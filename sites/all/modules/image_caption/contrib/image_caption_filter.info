@@ -1,0 +1,12 @@
+; $Id: image_caption_filter.info,v 1.1.2.1 2008/08/21 08:24:15 davidwhthomas Exp $
+name = Image caption filter
+description = Create captions on images using the title attribute.
+core = 6.x
+version = 6.x-1.x-dev
+
+; Information added by drupal.org packaging script on 2010-02-03
+version = "6.x-2.5"
+core = "6.x"
+project = "image_caption"
+datestamp = "1265184017"
+

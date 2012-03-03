@@ -1,0 +1,45 @@
+/**
+* Styling Semantic CCK Form
+*/
+
+fieldset.semantic-cck .fieldset-wrapper .form-item {
+	float: left;
+	width: 30%;
+}
+
+fieldset.semantic-cck .fieldset-wrapper .form-item + .form-item {
+	margin-left: 5%;
+	width: 30%;
+}
+
+fieldset.semantic-cck .fieldset-wrapper .form-item + .form-item + .form-item {
+	margin-left: 5%;
+	width: 30%;
+}
+
+fieldset.semantic-cck .fieldset-wrapper fieldset {
+	clear: both;
+}
+
+fieldset.semantic-cck .semantic-cck-multiple-values-fields,
+fieldset.semantic-cck .semantic-cck-multiple-values-field,
+fieldset.semantic-cck .semantic-cck-single-values-item {
+	background: transparent;
+	border: 0 none;
+	margin: 0;
+	padding: 0;
+}
+
+fieldset.semantic-cck #edit-semantic-cck-settings-field-prefix-wrapper,
+fieldset.semantic-cck #edit-semantic-cck-settings-multiple-item-separator-wrapper {
+  clear: left;
+  margin-left: 0;
+}
+
+fieldset.semantic-cck #edit-semantic-cck-settings-use-singlevalue-settings-wrapper,
+fieldset.semantic-cck #edit-semantic-cck-settings-striping-classes-wrapper {
+	margin-left: 0 !important;
+	width: 100%;
+}
+
+fieldset.semantic-cck .semantic-cck-single-values-settings .form-item {margin: 0;}

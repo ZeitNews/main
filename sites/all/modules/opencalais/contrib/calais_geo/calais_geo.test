@@ -1,0 +1,42 @@
+<?php
+
+class CalaisGeoBase extends DrupalWebTestCase {
+
+	function setUp() {
+		parent::setUp('calais_api', 'calais', 'calais_geo');
+	}
+
+	function tearDown() {
+		parent::tearDown();
+	}
+
+}
+
+class CalaisGeoTermLookupTestCase extends CalaisGeoBase {
+
+  function getInfo() {
+    return array(
+      'name' => t('Geo Term Lookup'),
+      'description' => t('Test that Geo can retrieve the proper Calais Term (including lat/lon).'),
+      'group' => t('Calais')
+    );
+  }
+
+	// Test filling in an existing terms guid
+	function testLookup() {
+		$calais_term = new CalaisTerm($this->randomName(100), $this->randomName(25));
+		$calais_term->vid = 100;
+		$calais_term->resolved_type = 'geo';
+		$calais_term->extra = array('latitude' => 99.6666, 'longitude' => -120.54321);
+		calais_save_term($calais_term);
+
+		db_query("INSERT INTO {calais_geo} (nid, vid) VALUES (99999, 99999)");
+		db_query("INSERT INTO {calais_geo_term} (nid, vid, tid) VALUES (99999, 99999, {$calais_term->tid})");
+
+		$data = calais_geo_load(99999);
+		$this->assertEqual(count($data->terms), 1, 'One Calais Term was found');
+		$found = $data->terms[0];
+		$this->assertEqual($found->extra['latitude'], 99.6666, 'Proper Calais Term Latitude');
+		$this->assertEqual($found->extra['longitude'], -120.54321, 'Proper Calais Term Longitude');		
+	}
+}

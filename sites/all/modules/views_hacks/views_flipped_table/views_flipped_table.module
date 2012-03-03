@@ -1,0 +1,21 @@
+<?php
+/**
+ * @file views_flipped_table.module
+ * Flipped table style plugin, flipping rows and columns.
+ */
+
+/**
+ * Implementation of hook_views_api().
+ */
+function views_flipped_table_views_api() {
+  return array(
+    'api' => 2.0,
+  );
+}
+
+/**
+ * Make sure the $header variable is passed to the theme file.
+ */
+function template_preprocess_views_flipped_table(&$vars) {
+  template_preprocess_views_view_table($vars);
+}

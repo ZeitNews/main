@@ -1,0 +1,377 @@
+<?php
+/**
+* @File OpenPublish Core module file.
+*/
+
+
+/**
+* hook_init implementation
+**/
+function openpublish_core_init() {
+  global $custom_theme, $conf;
+
+  $arg2 = arg(2);
+  
+  if (arg(0) == 'node' && ($arg2 == 'edit' || (arg(1) == 'add' && !empty($arg2)))) {
+    $denied = FALSE;
+    if ($arg2 == 'edit') {
+      $nid = arg(1);
+      $node = node_load($nid);  
+      $denied = !(node_access('update', $node));
+    }
+    if (arg(1) == 'add') {
+      $node_type = $arg2;
+      $denied = !(node_access('create', $node_type));      
+    }
+    
+    $op_is_in_preview = !($_POST['state-is-modify']);
+    
+    if (!$denied && ( 
+          (($_POST['op'] == t('Preview') || $_POST['op'] == t('Modify') ) && $op_is_in_preview) 
+          || $_POST['op'] == t('Save') 
+         ) 
+       ) {    
+      $custom_theme = $conf['admin_theme'] = variable_get('theme_default', 'openpublish_theme');  
+    }
+    
+  }
+   
+   // execute router for various theme preprocessors.
+   $router_file = dirname(__FILE__) . '/theme_helpers/router.inc';
+   if (file_exists($router_file)) {
+     require_once($router_file);
+   }  
+
+  // execute router for various theme preprocessors.
+  $lib_file = dirname(__FILE__) . '/openpublish_core.lib.inc';
+  require_once($lib_file);
+
+   
+   $mod_path = drupal_get_path('module', 'openpublish_core');
+   $js_path = $mod_path . '/openpublish_core.js';
+   
+   if (arg(0) == 'node' && sizeof(arg(2)) > 0 ) {
+     drupal_add_js($js_path, 'module', 'footer');
+   }
+   
+   drupal_add_js($mod_path . '/combineBlocks.js', 'module');
+   $combineBlocks = array(
+     array("#block-views-most_viewed_by_taxonomy-block", "#block-views-most_commented_articles-block_1"),
+     array("#block-views-most_viewed_by_node_type-block", "#block-views-most_commented_blogs-block_1"),
+     array("#block-views-most_viewed_by_node_type-block", "#block-views-most_commented_articles-block_1"),
+   );
+   drupal_add_js(array('combineBlocks'=>$combineBlocks), 'setting');
+
+}
+
+
+/**
+ * Implementation of hook_theme()
+ */
+function openpublish_core_theme() {
+  return array(
+    'op_related_terms' => array(
+      'arguments' => array('taxonomy' => NULL),
+      'template' => 'op-related-terms',
+    ),
+    'op_addthis_widget' => array(
+      'arguments' => array('addthis_link_title' => NULL),
+      'template' => 'op-addthis-widget',
+    ),
+    'op_breadcrumb' => array(
+      'arguments' => array('breadcrumb' => NULL),
+      'template' => 'op-breadcrumb',
+    ),    
+    'op_homepage_tweets' => array(
+     'arguments' => array('tweets' => NULL, 'twitkey' => NULL, 'title' => NULL),
+     'template' => 'op-homepage-tweets'
+    ),
+    'page_header' => array(
+     'arguments' => array('page_vars' => NULL),
+     'template' => 'page-header'
+    ),
+    'page_footer' => array(
+     'arguments' => array('page_vars' => NULL),
+     'template' => 'page-footer'
+    ),
+    
+  );
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function openpublish_core_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+
+  if ($op == 'load') {
+    _op_clean_teaser_for_rss_feeds($node);
+  }
+}
+
+
+/**
+* If we're viewing the node in an RSS feed and a teaser field is set,
+* use it instead of the regular teaser
+* at $op = 'rss item', the $content has already been assembled
+* and we do not want to interfere with the ability to manually pick the
+* fields that get displayed here
+*/
+function _op_clean_teaser_for_rss_feeds(&$node) {
+
+  static $is_views_feed_request = 'unknown';
+  static $handler = NULL;
+  static $identifying_url_handler = FALSE;
+  
+  //-- prevent unnecessary recursion that can be caused by menu_get_item() calling node_load() for translation stuff.
+  if ($identifying_url_handler) return; 
+  
+  if ($is_views_feed_request == 'unknown') { 
+    
+    /* @Speed optimization. Uncomment this if you know you will not need the processing on node and comment pages 
+    if (arg(0) == 'node' || arg(0) == 'comment') {
+      $is_views_feed_request = FALSE;
+      return;
+    }
+    */
+    
+    if (empty($handler)) {
+      $identifying_url_handler = TRUE;
+      $handler = menu_get_item();
+      $identifying_url_handler = FALSE;
+    }
+    
+    $callback = $handler['page_callback'];
+    
+    //-- check to see if this is a views-related request
+    if (!$handler || !isset($callback) 
+        || $callback != 'views_page' ) {
+      $is_views_feed_request = FALSE;
+      return;      
+    }
+    
+    //-- Uncomment this to add a check to see if this is a feed display type-related request
+    /* $views_arguments = $handler['page_arguments'];
+       $display_type = $views_arguments[1];
+       if (strpos($display_type, "feed_") === FALSE ) {
+        $is_views_feed_request = FALSE;
+        return;
+       } */
+    
+    $is_views_feed_request = TRUE;
+  }
+
+  if ($is_views_feed_request == FALSE) {
+    return;
+  }
+  
+  $teaser_field = strip_tags($node->field_teaser[0]['value']);
+  if (!empty($teaser_field)) {
+    $node->teaser = $node->field_teaser[0]['value'];
+  }
+
+}
+
+
+/**
+ * Implementation of hook_views_api().
+ */
+function openpublish_core_views_api() {
+  return array('api' => 2.0);
+}
+
+/**
+ * Implementation of hook_views_default_views().
+ *
+ * Load all the views from the include file in the views/ subdirectory.
+ */
+function openpublish_core_views_default_views() {
+  // Load all views from the "views" subdirectory
+  foreach (glob(dirname(__FILE__) . "/views/*.inc") as $filename) {
+      include_once($filename);
+      $views[$view->name] = $view;
+  }
+  return $views;
+}
+
+/**
+* Get role id by role name. Fork off of Installation APi
+*/
+function openpublish_core_get_rid_by_name($name) {
+  static $roles = array();
+  if (empty($roles[$name])) {
+    $roles[$name] = db_result(db_query_range("SELECT rid FROM {role} WHERE name ='%s'", $name, 0, 1));
+  }
+  return $roles[$name];
+}
+
+/**
+*  Reformat data for use with openpublish_core_add_permissions
+*/
+function openpublish_core_reverse_perm_array($openpublish_perms) {
+  $role_perms = array();
+  foreach ($openpublish_perms as $perm => $roles) {
+    foreach ($roles as $role) {
+      if(!isset($role_perms[$role])) {
+        $role_perms[$role] = array();
+      }
+      $role_perms[$role][] = $perm;
+    }
+  }
+  
+  return $role_perms;
+}
+
+/**
+ * Add the permission for a certain role. Fork off of Installation APi
+ */
+function openpublish_core_add_permissions($rid, $perms) {
+  // Retrieve the currently set permissions.
+  $result = db_query("SELECT p.perm FROM {role} r INNER JOIN {permission} p ON p.rid = r.rid WHERE r.rid = %d ", $rid);
+  $existing_perms = array();
+  while ($row = db_fetch_object($result)) {
+    $existing_perms += explode(', ', $row->perm);
+  }
+  // If this role already has permissions, merge them with the new permissions being set.
+  if (count($existing_perms) > 0) {
+    $perms = array_unique(array_merge($perms, (array)$existing_perms));
+  }
+
+  // Update the permissions.
+  db_query('DELETE FROM {permission} WHERE rid = %d', $rid);
+  db_query("INSERT INTO {permission} (rid, perm) VALUES (%d, '%s')", $rid, implode(', ', $perms));
+}
+
+/**
+ * Implementation of hook_twitter_pull_blocks()
+ */
+function openpublish_core_twitter_pull_blocks() {
+  $block->delta = 'op_tweets';
+  $block->name = t('OpenpPublish Tweets');
+  $block->title = t('Our Tweets');
+  $block->tweetkey = '@openpublish';
+  $block->number_of_items = 3;
+  $block->theme_key = 'op_homepage_tweets';
+  return array($block->delta => $block);
+}
+
+/**
+ * Implementation of template_preprocess_search_result()
+ */
+function openpublish_core_preprocess_search_result(&$vars) {
+  // Conceal user as it does not refer to the author
+  unset($vars['info_split']['user']);
+  $vars['info'] = implode(' - ', $vars['info_split']);
+}
+
+
+/**
+ * Make sure openpublish_core_final_preprocess_page() runs after all other
+ * page-level preprocess functions. Also give some special love to jquery_update
+ * since it is trying to pull the same trick with a heavier module weight.
+ *
+ * @See http://drupal.org/node/948938
+ *
+ * @See openpublish_core_final_preprocess_page() for why.
+ *
+ */
+function openpublish_core_theme_registry_alter(&$theme_registry) {
+
+  if (isset($theme_registry['page'])) {
+    if (count($theme_registry['page']['preprocess functions']) > 0) {
+      
+      // If jquery_update's preprocess function is there already, remove it.
+      if ($key = array_search('jquery_update_preprocess_page', $theme_registry['page']['preprocess functions'])) {
+        unset($theme_registry['page']['preprocess functions'][$key]);
+      }
+      
+    }
+  }  
+  
+  if (isset($theme_registry['page'])) {
+    if (count($theme_registry['page']['preprocess functions']) > 0) {
+      // If jquery_update's preprocess function is there already, remove it.
+      if ($key = array_search('openpublish_core_final_preprocess_page', $theme_registry['page']['preprocess functions'])) {
+        unset($theme_registry['page']['preprocess functions'][$key]);
+      }
+    }
+    // Now tack it on at the end so it runs after everything else.
+    $theme_registry['page']['preprocess functions'][] = 'openpublish_core_final_preprocess_page';
+  }
+
+  /** Postponed
+  $theme_registry['node_form']['preprocess functions'][] = 'openpublish_core_final_preprocess_node_form';
+  $theme_registry['node_form']['theme paths'][] = drupal_get_path('module', 'openpublish_core');
+  **/
+}
+
+/**
+*
+* Page-level preprocess function that always runs after all other preprocess functions.
+* Running as the last one is very important to make sure that our $op_header template gets
+* tpl variables processed by all possible modules that would care to alter variables.
+*
+* Also give some special love to jquery_update since it is trying to pull the same
+* trick with a heavier module weight.
+*
+*/
+function openpublish_core_final_preprocess_page(&$vars) {  
+  
+  if (_is_openpublish_theme()) {        
+    // $vars needs to have the latest version of $scripts if it's been altered by jquery_update
+    if (function_exists('jquery_update_preprocess_page')) {
+      jquery_update_preprocess_page($vars);
+    }
+    
+    //-- copy into a new array to avoid passing by reference.
+    $pagevars = $vars;
+    
+    //-- Replace default RSS feed link with a more useful one [in OpenPublish Context]
+    $pagevars['op_head'] = str_replace('rss.xml', 'rss/articles/all', $pagevars['head']); 
+    
+    $vars['page_header'] = theme('page_header', $pagevars);
+    $vars['page_footer'] = theme('page_footer', $pagevars);    
+    return;
+  }
+  
+}
+
+/** Postponed
+function openpublish_core_final_preprocess_node_form(&$vars) {
+  $arg2 = arg(2);
+  if (arg(0) == 'node' && ($arg2 == 'edit' || (arg(1) == 'add' && !empty($arg2)))) {
+    $vars['template_files'][] =  'node-add-edit';
+  }
+  dpm($vars, "vars");
+  dpm($vars['template_files'], "node bijoo");
+}
+**/
+
+
+
+/**
+* Determines if a theme is an OP-"compatible" one. OpenPublish Theme itself and any sub-themes are all considered compatible.
+*
+* @param $tkey
+*    theme_key of the theme being checked. Defaults to current theme.
+*/
+function _is_openpublish_theme($tkey = NULL) {
+  global $theme_key;
+  
+  if (empty($tkey)) {
+    $tkey = $theme_key;
+  }
+  
+  if ($tkey == 'openpublish_theme') {
+    return TRUE;
+  }
+  
+  $theme_infos = list_themes();
+  
+  if (!empty($theme_infos[$tkey]->base_theme)) {
+    return _is_openpublish_theme($theme_infos[$tkey]->base_theme);
+  }
+  else {
+    return FALSE;
+  }  
+}
+

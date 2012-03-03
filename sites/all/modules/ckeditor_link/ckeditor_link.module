@@ -1,0 +1,131 @@
+<?php
+// $Id: ckeditor_link.module,v 1.4 2010/07/22 10:45:12 anrikun Exp $
+
+/**
+ * @file
+ * Written by Henri MEDOT <henri.medot[AT]absyx[DOT]fr>
+ * http://www.absyx.fr
+ */
+
+/**
+ * Implementation of hook_init().
+ */
+function ckeditor_link_init() {
+  if (!variable_get('clean_url', 0)) {
+    module_disable(array('ckeditor_link'));
+    drupal_set_message(t('<em>CKEditor Link</em> has been disabled. <a href="!url">Clean URLs</a> need to be enabled for this module to work properly.', array('!url' => url('admin/settings/clean-urls'))), 'warning');
+  }
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function ckeditor_link_perm() {
+  return array('access ckeditor link');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function ckeditor_link_menu() {
+  $items['ckeditor_link/autocomplete'] = array(
+    'page callback' => 'ckeditor_link_autocomplete',
+    'access arguments' => array('access ckeditor link'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+function ckeditor_link_autocomplete($string = '') {
+  $matches = array();
+
+  if ($string !== '') {
+    $sql = db_rewrite_sql("SELECT n.nid, n.title FROM {node} n WHERE n.title LIKE '%%%s%%' ORDER BY n.title, n.type");
+    $result = db_query_range($sql, array($string), 0, 10);
+    while ($node = db_fetch_object($result)) {
+      $matches[$node->title .' (node/'. $node->nid. ')'] = '<div class="reference-autocomplete">'. check_plain($node->title) .'</div>';
+    }
+  }
+
+  drupal_json($matches);
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function ckeditor_link_form_alter(&$form, &$form_state) {
+  if (user_access('access ckeditor link')) {
+    $form['#after_build'][] = 'ckeditor_link_process_form';
+  }
+}
+
+function ckeditor_link_process_form(&$form, &$form_state) {
+  static $added = FALSE;
+  if (!$added && ($js = drupal_add_js()) && isset($js['setting'])) {
+    $setting = call_user_func_array('array_merge_recursive', $js['setting']);
+    if (isset($setting['ckeditor']) || isset($setting['wysiwyg']['configs']['ckeditor'])) {
+      drupal_add_css(drupal_get_path('module', 'ckeditor_link').'/ckeditor_link.css');
+      drupal_add_js('misc/autocomplete.js');
+      drupal_add_js(array('ckeditor_link' => array(
+        'module_path' => base_path().drupal_get_path('module', 'ckeditor_link'),
+        'autocomplete_path' => url('ckeditor_link/autocomplete'),
+        'msg_invalid_path' => t('Link must be a valid Drupal path.'),
+      )), 'setting');
+      $added = TRUE;
+    }
+  }
+  return $form;
+}
+
+/**
+ * Implementation of hook_wysiwyg_plugin().
+ */
+function ckeditor_link_wysiwyg_plugin($editor, $version) {
+  if (($editor == 'ckeditor') && user_access('access ckeditor link')) {
+    return array('drupal_path' => array(
+      'path' => drupal_get_path('module', 'ckeditor_link').'/plugins/link/',
+      'load' => TRUE,
+      'extensions' => array('Link' => t('CKEditor Link')),
+    ));
+  }
+}
+
+/**
+ * Implementation of hook_filter().
+ */
+function ckeditor_link_filter($op, $delta = 0, $format = -1, $text = '', $cache_id = 0) {
+  switch ($op) {
+    case 'list':
+      return array(0 => t('CKEditor Link Filter'));
+
+    case 'description':
+      return t('Converts links added through <em>CKEditor Link</em> into aliased and language prefixed URLs.');
+
+    case 'no cache':
+      return FALSE;
+
+    case 'prepare':
+      return $text;
+
+    case 'process':
+      return preg_replace_callback('`\bhref="'. preg_quote(base_path(), '`') .'node/(\d+)(?=[?#"])`', '_ckeditor_link_filter_process', $text);
+
+    default:
+      return $text;
+  }
+}
+
+function _ckeditor_link_filter_process($matches) {
+  $nid = $matches[1];
+  $options = array();
+
+  if ($lang = db_result(db_query('SELECT language FROM {node} WHERE nid = %d', $nid))) {
+    $languages = language_list('enabled');
+    $languages = $languages[1];
+    if (isset($languages[$lang])) {
+      $options['language'] = $languages[$lang];
+    }
+  }
+
+  return 'href="'. url("node/$nid", $options);
+}

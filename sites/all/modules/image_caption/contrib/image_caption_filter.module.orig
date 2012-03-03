@@ -1,0 +1,88 @@
+<?php
+/*
+  This module looks for <img> tags of the class 'image-left', 'image-right' or 'standalone-image'
+  with a title attibute set.  It then places the <img> tag in a <div> with the width and class
+  attributes set. A <div> tag of class "caption" is also added with the caption text obtained
+  from the title.  It removes the class attribute from the <img> tag.
+  <img> tags missing alt attributes are also marked with warning text to draw attention to 
+   this fact.
+  @info
+  http://drupal.org/node/264932
+  @author
+  John Fletcher
+  @contact
+  http://drupal.org/user/236219/contact
+*/
+
+/**
+* Display help and module information
+* @param path which path of the site we're displaying help
+* @param arg array that holds the current path as would be returned from arg() function
+* @return help text for the path
+*/
+function image_caption_filter_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case "admin/help#image_caption_filter":
+      $output = '<p>' .  t("Adds captions to images") . '</p>';
+      break;
+  }
+  return $output;
+} //function image_caption_filter_help
+
+//filter hook implementation
+function image_caption_filter_filter($op, $delta = 0, $format = -1, $text = '') {
+  switch ($op) {
+    case 'list':
+      return array(0 => t('Image caption filter'));
+
+    case 'description':
+      return t('Adds captions to images via a filter');
+
+    case 'prepare':
+      // Nothing to prepare
+      return $text;
+
+    case "process":
+      //Look for <img> tags and run the doImgTitles function on the <img> tag
+      $text = preg_replace_callback('|(<img.*?>)|s', 'doImgTitles', $text);
+      return $text;
+
+    default:
+      return $text;
+  }
+} //function image_caption_filter_filter
+
+
+//helper function to do the actual manipulation
+function doImgTitles($matches) {
+  $imgText = $matches[0];
+
+  //Get the title out of the <img> tag
+  preg_match ('/title=\"(.+?)\"/i', $imgText, $matches);
+  $title = $matches[1];
+
+  //Get the width out of the <img> tag
+  preg_match ('/width=\"(.+?)\"/i', $imgText, $matches);
+  $width = $matches[1];
+
+  //Get class out of the <img> tag
+  preg_match ('/class=\"(.+?)\"/i', $imgText, $matches);
+  $class = $matches[1];
+
+  //See if there is an alt attribute in the <img> tag, if not insert a LOUD warning
+  preg_match ('/alt=\"(.+?)\"/i', $imgText, $matches);
+  $alt = $matches[1];
+
+  //Only insert the caption and modify the <img> tag if it is has a title attribute and is one of the classes we are interested in
+  if (in_array($class, array('image-left', 'image-right', 'standalone-image')) && ($title)) {
+    $imgText = preg_replace ('/class=\"(.+?)\"/i', '', $imgText);
+    $returnText = "<div class=\"" . $class . "\" style=\"width: " . $width . "px\">"
+                  . $imgText 
+                  . "<div class=\"caption\">" . $title . "</div></div>";
+    return $returnText;
+  }
+  return $imgText;
+} //function doImgTitles
+
+?>

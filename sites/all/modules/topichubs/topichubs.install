@@ -1,0 +1,125 @@
+<?php
+/**
+ * Implementation of hook_install(). 
+ */
+function topichubs_install() {
+  drupal_install_schema('topichubs');
+
+  _topichubs_install_type();
+
+  // Must be after views
+  db_query("UPDATE {system} SET weight = 11 WHERE name = 'topichubs'");
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function topichubs_uninstall() {
+  drupal_uninstall_schema('topichubs');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function topichubs_schema() {
+
+  $schema['topichub'] = array(
+    'description' => 'Holds Topic Hub information',
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'description' => t("Primary Key: The feed item node's nid."),
+      ),
+      'config' => array(
+        'type' => 'blob',
+        'description' => t('A serialized array of config options for this topichub.'),
+      ),
+    ),
+    'primary key' => array('nid'),
+  );
+  $schema['topichub_condition'] = array(
+    'description' => 'Holds Topic Hub taxonomy expression conditions',
+    'fields' => array(
+      'tcid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => t('Primary Key: Unique ID.'),
+      ),
+      'nid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'description' => t("The Node id."),
+      ),
+      'tid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'description' => t("Taxonomy Term id."),
+      ),
+      'condition' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => t("The condition index for this term."),
+      ),
+    ),
+    'indexes' => array(
+      'nid' => array('nid'),
+    ),
+    'primary key' => array('tcid'),
+  );
+  return $schema;
+}
+
+/**
+ * Update from single term to a term expression.
+ */
+function topichubs_update_6001() {
+  $ret = array();
+  if (!db_table_exists('topichub_condition')) {
+    $schema = topichubs_schema();
+    db_create_table($ret, 'topichub_condition', $schema['topichub_condition']);
+    
+    // Seed table with pre-existing term
+    $result = db_query("SELECT * FROM {topichub}");
+    while($hub = db_fetch_object($result)) {
+      db_query("INSERT INTO {topichub_condition} (nid, tid, `condition`) VALUES (%d, %d, %d)", $hub->nid, $hub->tid, 0);
+    }
+    
+    // Remove term id from the main table if the migration was successful
+    db_drop_field($ret, 'topichub', 'tid');
+  }
+  
+  return $ret;
+}
+
+/**
+ * Create new content type for a topic hub
+ */
+function _topichubs_install_type() {
+  $type = array(
+    'type' => 'topichub',
+    'name' => t('Topic Hub'),
+    'module' => 'node',
+    'description' => t('These nodes represent a collection of related data pertaining to the same topic.'),
+    'has_title' => TRUE,
+    'title_label' => t('Title'),
+    'has_body' => TRUE,
+    'body_label' => t('Description'),
+    'custom' => TRUE,
+    'modified' => TRUE,
+    'locked' => FALSE,
+  );
+
+  $type = (object)_node_type_set_defaults($type);
+  $result = node_type_save($type);
+  
+  // Default to not promoted.
+  variable_set('node_options_topichub', array('status'));  
+  node_types_rebuild();
+}
+

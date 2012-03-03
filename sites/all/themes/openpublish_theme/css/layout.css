@@ -1,0 +1,178 @@
+@charset "UTF-8";
+
+/* Handy font size definitions 
+font-size: .833em;   12px x .833   = 10px 
+font-size: .917em;   12px x .917   = 11px 
+font-size: 1em;      12px x 1      = 12px 
+font-size: 1.083em   12px x 1.083  = 13px 
+font-size: 1.167em;  12px x 1.167  = 14px
+font-size: 1.25em;   12px x 1.125  = 15px
+font-size: 1.417em;  12px x 1.417  = 17px
+font-size: 2em;      12px x 2    = 24px
+*/
+
+/************ Styles that define the layout of the page. *************/
+
+
+.wrap { 
+  width: 960px; 
+  margin: 0 auto; 
+  }
+
+#wrapper {
+  margin: 0 auto;
+  width: 980px;
+  background: #FFF;
+  padding: 10px;
+  border: 1px solid #dbdbdb;
+}
+
+#container {
+  margin: 20px 0 10px;
+  }
+
+#outer-wrapper {
+  background: #fff;
+ }
+
+/* Home page */
+
+
+body.front-page #sidebar-left {
+  float: left;
+  width: 356px;
+}
+
+body.front-page #container {
+  background: url(../images/bkg/bg-3col.png) repeat-y;
+}
+
+
+body.front-page #op-content {
+  margin-left: 15px;
+  float: left;
+  width: 250px;
+  padding:0 0 0 15px;
+}
+
+
+
+/* 1 column */
+#center {
+  margin: 0 0 10px;
+  position: relative;
+  min-height: 500px;
+}
+
+/* 3 columns */
+body.sidebars #center {
+  border-left: 1px solid #b4d7f0;
+  border-right: 1px solid #b4d7f0;
+  float: left;
+  padding: 0 10px;
+  width: 600px;
+}
+
+/* 2 columns - sidebar-left */
+body.sidebar-left #center {
+  border-left: 1px solid #b4d7f0;
+  float: right;
+  padding-left: 10px;
+  width: 780px;
+}
+
+/* 2 columns - sidebar-right */
+body.sidebar-right #center {
+  float: left;
+  padding-right: 10px;
+  width: 620px;
+}
+
+
+#sidebar-left {
+  float: left;
+ }
+
+#sidebar-right {
+  float: right;
+  width: 310px;
+  padding: 0 0 10px 10px;
+}
+
+.indented {
+  margin-left: 14px;
+  padding-left: 5px;
+}
+
+.block {
+  margin: 0 0 10px;
+  clear: both;
+}
+
+.comment {
+  margin: 30px 0 0;
+  padding: 0;
+}
+
+
+#header {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  clear: both;
+  text-align: center;
+}
+
+#logo-area {
+  height: 113px;
+  background: url(../images/bkg/bg-logo-area.png) repeat-x bottom;
+}
+
+#footer {
+  border-top: 3px solid #000;
+  margin: 0 auto;
+  padding: 15px 10px 45px 10px;
+  position: relative;
+  clear: both; 
+  font-weight: normal;
+  width:980px;
+}
+
+#news-package-left {
+ float:left;
+ width:225px;
+ margin-right: 25px; 
+}
+
+#news-package-right {
+ float: right;
+ width: 225px;
+ margin-left: 20px; 
+}
+
+#news-package-center {
+  float: left;
+  width: 450px; 
+}
+
+
+#news-package-left {
+ float:left;
+ width:225px;
+ margin-right: 25px; 
+}
+
+#news-package-right {
+ float: right;
+ width: 225px;
+ margin-left: 20px; 
+}
+
+#news-package-center {
+  float: left;
+  width: 450px; 
+}
+
+
+#comments {margin: 45px 0 0 0;}
+

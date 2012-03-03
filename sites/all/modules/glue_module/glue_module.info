@@ -1,0 +1,4 @@
+; $Id$
+name = Glue Module
+description = Random glue code.
+core = 6.x

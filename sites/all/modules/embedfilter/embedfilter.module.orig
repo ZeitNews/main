@@ -1,0 +1,346 @@
+<?php
+
+/**
+ * Enter description here...
+ *
+ * @param string $section
+ *   A Drupal path
+ * @return string
+ *   The help text
+ */
+function embedfilter_help($section) {
+  switch ($section) {
+    case 'admin/help#embedfilter':
+      $output = '<p>'. t('Many great sites like <a href="http://www.youtube.com">YouTube</a>, <a href="http://www.ifilm.com">iFilm</a> and <a href="http://www.nowpublic.com">NowPublic</a> allow their media assets to be served to 3rd party websites (like this one). They usually offer snippets of code to be embedded in a web page that will then load a media object (usually Flash) from their servers. This module lets your site users embed such snippets into posts but gives you the power to decide which hosts to trust.') .'</p>';
+      $output .= '<p>'. t('Here are some examples of code snippets from the sites mentioned above:') .'</p>';
+      $output .= <<<EOF
+<h3>YouTube.com</h3>
+<pre>
+&lt;object width="425" height="350">&lt;param name="movie"
+  value="http://www.youtube.com/v/BqLvBUSJucg">
+  &lt;/param>&lt;embed src="http://www.youtube.com/v/BqLvBUSJucg"
+  type="application/x-shockwave-flash" width="425" height="350">
+  &lt;/embed>&lt;/object>
+</pre>
+<h3>iFilm</h3>
+<pre>
+&lt;embed allowScriptAccess="never" width="448" height="365"
+  src="http://www.ifilm.com/efp" quality="high" bgcolor="000000"
+  name="efp" align="middle" type="application/x-shockwave-flash"
+  pluginspage="http://www.macromedia.com/go/getflashplayer"
+  flashvars="flvbaseclip=2761045" >&lt;/embed>
+</pre>
+<h3>NowPublic</h3>
+<pre>
+&lt;script language="JavaScript"
+  src="http://media.nowpublic.com/js/7ae70d3f8c890cebc5c9633f49607ae2.js">&lt;/script>
+</pre>
+EOF;
+
+      $output .= '<p>'. t('To use this module, start by entering a number of hosts that you wish to allow. This is done from the <a href="/?q=admin/settings/embedfilter">settings page</a>. Examples taken from the sites mentioned above would be: <ul><li>youtube.com</li><li>ifilm.com</li><li>nowpublic.com</li></ul> You can define some HTML that will be embedded before and after any tags (in case you want to be able to visually identify them on your site), as well as some filter tip instructions to your users.') .'</p>';
+      $output .= '<p>'. t('After you have configured the module from the settings page, you need to add the "Object and embed" filter to the appropriate input formats (such as "Filtered HTML") on the <a href="/?q=admin/filters">input formats</a> administration page. Configure your HTML filter to accept &lt;object>, &lt;embed>, &lt;param> and &lt;script> tags by adding them to the list of accepted tags. Configure the order of the filters so that the "Object and embed tag" filter comes directly after the "HTML" filter. After this you should be ready to go!'). '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implemention of hook_menu
+ *
+ */
+function embedfilter_menu() {
+  $items = array();
+  $items['admin/settings/embedfilter'] = array(
+    'title' => t('Embed filter'),
+    'description' => t('Settings for Embed filter.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('embedfilter_admin_settings'),
+    'access arguments' => array('administer filters'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_settings
+ *
+ * @return a $form array
+ */
+function embedfilter_admin_settings() {
+  $form['embedfilter_host_whitelist'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Allowed hosts'),
+    '#default_value' => variable_get('embedfilter_host_whitelist', "http://www.youtube.com\nhttp://media.nowpublic.com"),
+    '#description' => t('Each host name from which &lt;object>, &lt;embed>, &lt;param> or &lt;script> tags should be accepted. One host per line. This module is patched to expect only domain.tld format and ignores subdomains. Example: youtube.com'),
+    );
+
+  $form['extramarkup'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Extra markup'),
+    '#collapsible' => true,
+    '#collapsed' => true,
+  );
+  $form['extramarkup']['embedfilter_pre_markup'] = array(
+    '#type' => 'textarea',
+    '#default_value' => variable_get('embedfilter_pre_markup', ''),
+    '#title' => t('Pre tag markup'),
+    '#description' => t('Markup that should appear directly before an &lt;object>, &lt;embed> or &lt;script> tag. This only applies to the outermost tag in the case where nested tags are found.'),
+  );
+  $form['extramarkup']['embedfilter_post_markup'] = array(
+    '#type' => 'textarea',
+    '#default_value' => variable_get('embedfilter_post_markup', ''),
+    '#title' => t('Post tag markup'),
+    '#description' => t('Markup that should appear directly after an &lt;/object>, &lt;/embed> or &lt;/script> tag. This only applies to the outermost tag in the case where nested tags are found.'),
+  );
+
+  $form['filtertip'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Filter tip'),
+    '#collapsible' => true,
+    '#collapsed' => true,
+  );
+  $form['filtertip']['embedfilter_filtertip'] = array(
+    '#type' => 'textarea',
+    '#default_value' => variable_get('embedfilter_filtertip', t('You can use &lt;object>, &lt;embed> and &lt;script> tags from the following sites to add media to your posts:')),
+    '#title' => t('Custom filter tips'),
+    '#description' => t('Instructions to your site users about how to use these tags. The whitelist will also be displayed.'),
+  );
+
+  return system_settings_form($form);
+}
+
+function embedfilter_get_whitelist() {
+  static $whitelist;
+  if (empty($whitelist)) {
+    $var = variable_get('embedfilter_host_whitelist', '');
+    $whitelist = array_filter(split("[\n|\r]", $var), 'trim');
+  }
+  return $whitelist;
+}
+
+/**
+ * Implementation of hook_filter_tips()
+ *
+ * @param int $delta
+ *   Used when a module defines more than one filter
+ * @param unknown_type $format
+ * @param boolean $long
+ *   Determines whether the long or the short tip version is displayed
+ * @return string
+ *   The tip to be displayed
+ */
+function embedfilter_filter_tips($delta, $format, $long = false) {
+  $output .= '<p>'. variable_get('embedfilter_filtertip', t('You can use &lt;object>, &lt;embed> and &lt;script> tags from the following sites to add media to your posts:')). "\n";
+  $output .= theme('item_list', embedfilter_get_whitelist()). "</p>\n";
+  return $output;
+}
+
+/**
+ * Implentation of hook_filter. Defines a filter, "Object and embed tag filter",
+ * that can be used in conjunction with the built in HTML filter to allow
+ * users to include <object>, <embed> and <script> tags within their posts,
+ * as long as any href or src elements point to trusted hosts defined on the
+ * whitelist (see admin/settings/embedfilter).
+ *
+ * @param string $op
+ * @param int $delta
+ * @param int $format
+ * @param string $text
+ *   The text to be filtered
+ * @return string
+ */
+function embedfilter_filter($op, $delta = 0, $format = -1, $text = '', $langcode = '', $cache_id = 0) {
+  switch ($op) {
+    case 'list':
+      return array(0 => t('Object and embed tag filter'));
+
+    case 'description':
+      return t('Lets users safely add <code>&lt;object></code>, <code>&lt;embed></code>, and <code>&lt;script></code> tags to posts.');
+
+    case 'process':
+      $text = embedfilter_process($text);
+      return $text;
+
+    default:
+      return $text;
+  }
+}
+
+/**
+ * A recursive function that finds all <embed>, <object> and <script>
+ * tags and either approves them (based on the whitelist) or removes them.
+ *
+ * No text is allowed between <script> and </script> tags.
+ *
+ * No on*= attributes are allowed (to prevent unwanted scripting)
+ *
+ * @param string or array $input
+ * @return string
+ *   The processed input string.
+ */
+function embedfilter_process($input) {
+  static $count;
+
+  // This function is called recursively to handle <embed> tags in <object> tags.
+
+  // If $input is an array, we are coming from preg_replace_callback.
+  if (is_array($input)) {
+    $count++;
+    $output = '';
+
+    // Check to see if the host is on the whitelist.
+    if (embedfilter_approve($input[2])) {
+      // The first time through we add the pre-markup.
+      if ($count === 1) {
+        $output = variable_get('embedfilter_pre_markup', '');
+      }
+      $output .= '<'. $input[1]. embedfilter_noevents(embedfilter_sanitize($input[2]));
+
+      // if there are opening and closing <script> tags, and there is
+      // anything in between them, deny.
+      if (count($input) == 4 && strtolower($input[1]) == 'script' && strlen(trim($input[3])) > 0) {
+        $count--;
+        return '';
+      }
+      // 4 part arrays have closing tags: <embed.... ></embed>
+      if (count($input) == 4) {
+        $output .= '>'. embedfilter_process($input[3]). '</'. $input[1]. '>';
+      }
+      // 3 part arrays are single, closed tags: <embed.... />
+      else if (count($input) == 3) {
+        $output .= '/>';
+      }
+      if ($count === 1) {
+        $output .= variable_get('embedfilter_post_markup', '');
+      }
+      $count--;
+    } else {
+      return '';
+    }
+    // If the embedfilter_approve step failed, we return an empty string.
+    $input = $output;
+  }
+  else {
+    // find open tag/close tag pairs.
+    $input = preg_replace_callback('@<(embed|object|script)([^>]*)>(.*?)</\1>@si', 'embedfilter_process', $input, 5);
+
+    // find single, closed tags
+    $input = preg_replace_callback('@<(embed|object|script)([^>]*)/>@si', 'embedfilter_process', $input, 5);
+  }
+
+  return embedfilter_media_resize($input, 550);
+}
+
+/**
+ * Checks a string for the presence of src and href attributes.
+ * If found, the URLs within those attributes are compared to the
+ * hosts in whitelist.
+ *
+ * @param string $input
+ * @return boolean
+ *   true if all the hosts are on the whitelist, false if any host is not.
+ */
+function embedfilter_approve($input) {
+  $pattern = '@(src|href|data)=([\'"])([^"]+)\\2@i';
+  $matches = array();
+  preg_match_all($pattern, $input, $matches);
+  foreach ($matches[3] as $url) {
+    $parts = parse_url($url);
+    //first check if there is no subdomain
+    if (preg_match('/^\.(com|co\.uk|tv|net|org|gov)/',strstr($parts['host'],'.'))) {
+      if (!in_array($parts['host'], embedfilter_get_whitelist())) {
+        return false;
+      }
+    //otherwise check if domain and subdomain are both missing from the permitted list
+    } 
+    elseif ((!in_array(ltrim(strstr($parts['host'],'.'),'.'), embedfilter_get_whitelist())) && (!in_array($parts['host'], embedfilter_get_whitelist()))) {
+      return false;
+    } 
+  }
+  return true;
+}
+
+/**
+ * Prevents XSS attacks on from the href or src attributes.
+ *
+ * @param string or array $input
+ * @return string
+ *   A sanitized string where all href and src attributes have been run through
+ *   check_url.
+ */
+function embedfilter_sanitize($input) {
+  // arrays are the product of the preg_replace_callback function
+  if (is_array($input)) {
+    $output = $input[1]. '='. $input[2]. check_url($input[3]). $input[2];
+  }
+  else {
+    $pattern = '@(src|href|data)=([\'"])([^"]+)\\2@i';
+    $output = preg_replace_callback($pattern, 'embedfilter_sanitize', $input);
+  }
+
+  //removes any errant slashes from the end of $output
+  $last = $input[strlen($output)-1];
+  if ($last == '/') {
+    $output = substr($output, 0, -1);
+  }
+
+  return $output;
+}
+
+/**
+ * Removes any on* attributes so that no scripting can be done.
+ * NOTE: The presence of these attributes does not cause the whole
+ * <object>, <embed> or <script> tag to be removed; only the offending
+ * attributes are removed.
+ *
+ * @param string $input
+ * @return string
+ */
+function embedfilter_noevents($input) {
+  $output = '';
+
+  // If $input is an array, we return an empty string because we want to
+  // get rid of whatever matched.
+  if (!is_array($input)) {
+    $pattern = '@( on[^=]+?=([\'"])([^\\2]+?)\\2)?@i';
+    $output = preg_replace_callback($pattern, 'embedfilter_noevents', $input);
+  }
+  return $output;
+}
+
+/**
+ * Resizes over-sized media
+ * 
+ *  @param $input
+ *  string of HTML with width and height attributes
+ * 
+ *  @param $maxwidth
+ *  the maximum permitted width on the website for embedded media
+ * 
+ *  @return
+ *  replacement $input HTML string containing revised width and height
+ */
+function embedfilter_media_resize($input = '', $maxwidth = 550) {
+  preg_match('/height="([0-9]*)"/',$input,$fetchheight);
+  preg_match('/width="([0-9]*)"/',$input,$fetchwidth);
+  if ($fetchheight && $fetchwidth) {
+    $height = $fetchheight[1];
+    $width = $fetchwidth[1];  
+  }
+  
+  if ($width > $maxwidth) {
+    $diff = $width-$maxwidth;
+    $ratio = $diff/$width;
+    $heightdiff = $ratio*$height;
+    $height = round($height-$heightdiff);
+    $width = $maxwidth;
+    
+    $patterns[0] = '/height="([0-9]*)"/';
+    $patterns[1] = '/width="([0-9]*)"/';
+    $replacements[1] = 'height="'.$height.'"';
+    $replacements[0] = 'width="'.$width.'"';
+    
+    $input = preg_replace($patterns, $replacements, $input);
+  }
+  return $input;
+}
+ 

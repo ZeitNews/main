@@ -1,0 +1,15 @@
+; $Id $
+name = Most Viewed
+description = "Topic Hubs - Most Popular Nodes for a Topic Hub"
+package = "Topic Hubs"
+core = 6.x
+dependencies[] = topichubs
+dependencies[] = views
+dependencies[] = statistics
+
+; Information added by drupal.org packaging script on 2009-09-02
+version = "6.x-2.1-rc1"
+core = "6.x"
+project = "topichubs"
+datestamp = "1251893186"
+

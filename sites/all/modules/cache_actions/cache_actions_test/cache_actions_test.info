@@ -1,0 +1,14 @@
+name = Cache Actions Test Dependencies
+description = This module contains panels, views and rules for the tests of cache actions. Do not enable this module, the tests will do that for you.
+dependencies[] = rules
+dependencies[] = cache_actions
+dependencies[] = simpletest
+core = 6.x
+package = Performance and scalability
+
+; Information added by drupal.org packaging script on 2012-02-02
+version = "6.x-2.0+0-dev"
+core = "6.x"
+project = "cache_actions"
+datestamp = "1328141374"
+

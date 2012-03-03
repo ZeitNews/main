@@ -1,0 +1,12 @@
+name = Views Display Block Path
+description = Extends block display plugin to support URL path and use exposed filter form without Ajax.
+package = Views
+dependencies[] = views
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-06-03
+version = "6.x-1.0-beta2"
+core = "6.x"
+project = "views_hacks"
+datestamp = "1307120522"
+

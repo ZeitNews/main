@@ -1,0 +1,452 @@
+<?php
+
+/**
+ * @file
+ *   Integration with the Apache Solr search application. Provides
+ *   faceting for CCK Date fields.
+ */
+
+/**
+ * Implementation of hook_apachesolr_facets().
+ * Only handles end date facets.
+ * Start date facet definitions are handled later.
+ * @see apachesolr_date_apachesolr_cck_fields_alter()
+ */
+function apachesolr_date_apachesolr_facets() {
+  // Get CCK field facets.
+  $fields = apachesolr_cck_fields();
+  $facets = array();
+  if ($fields) {
+    foreach ($fields as $name => $field) {
+      if (in_array($field['field_type'], array('date', 'datetime', 'datestamp'))) {
+        $cck_info = content_fields($field['field_name']);
+        // Only fields with a value2 have end dates to facet upon.
+        if (isset($cck_info['columns']['value2'])) {
+          // $delta can only be 32 chars, and the CCK field name may be this
+          // long also, so we cannot add anything to it.
+          $facets[$field['field_name'] . '_end'] = array_merge($field, array(
+              'info' => t('CCK @field_type field: Filter by @field end', array('@field_type' => $field['field_type'], '@field' => $field['label'])),
+              // 'facet_field' will later be block deltas.
+              'facet_field' => apachesolr_index_key($field) . '_end',
+              'content_types' => $field['content_types'],
+              'display_callback' => 'apachesolr_date_display_callback',
+            )
+          );
+        }
+      }
+    }
+  }
+  return $facets;
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function apachesolr_date_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+    case 'list':
+      $enabled_facets = apachesolr_get_enabled_facets('apachesolr_date');
+      $facets = apachesolr_date_apachesolr_facets();
+      // Add the blocks
+      $blocks = array();
+      foreach ($enabled_facets as $delta => $facet_field) {
+        if (isset($facets[$delta])) {
+          $blocks[$delta] = $facets[$delta] + array('cache' => BLOCK_CACHE_PER_ROLE | BLOCK_CACHE_PER_PAGE);
+          // TODO: This is ugly. The only consolation is that the admin can
+          // override block titles anyway.
+          $blocks[$delta]['label'] = $blocks[$delta]['label']  . ' (end)';
+        }
+      }
+      return $blocks;
+
+    case 'view':
+      if (apachesolr_has_searched()) {
+        // Get the query and response. Without these no blocks make sense.
+        $response = apachesolr_static_response_cache();
+        if (empty($response)) {
+          return;
+        }
+        $query = apachesolr_current_query();
+
+        $facets = apachesolr_get_enabled_facets('apachesolr_date');
+        if (empty($facets[$delta])) {
+          return;
+        }
+
+        if (!apachesolr_block_visibility($query, 'apachesolr_date', $delta)) {
+          return;
+        }
+        // $delta comes to us with _end on the end, which we snip off right here.
+        $delta = substr($delta, 0, strlen($delta) - 4);
+        if ($fields = apachesolr_cck_fields()) {
+          if ($field = $fields[$delta]) {
+            $index_key = apachesolr_index_key($field) . '_end';
+            $callback = isset($field['display_callback']) ? $field['display_callback'] : FALSE;
+            $block_function = (isset($field['facet_block_callback']) && function_exists($field['facet_block_callback'])) ? $field['facet_block_callback'] : 'apachesolr_facet_block';
+            return $block_function($response, $query, 'apachesolr_search', $delta, $index_key, t('Filter by @field end', array('@field' => $field['label'])), $callback);
+          }
+        }
+      }
+      break;
+
+    case 'configure':
+      return apachesolr_facetcount_form('apachesolr_date', $delta);
+
+    case 'save':
+      apachesolr_facetcount_save($edit);
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_apachesolr_prepare_query().
+ * Adds sorts for enabled date facets to the sorting block.
+ */
+function apachesolr_date_apachesolr_prepare_query(&$query) {
+  // Because we get the enabled facets just from apachesolr_search we're
+  // limiting sorting to start dates.
+  $enabled_facets = apachesolr_get_enabled_facets('apachesolr_search');
+  $facet_definitions = apachesolr_date_apachesolr_facets();
+  $facet_definitions += apachesolr_search_apachesolr_facets();
+
+  foreach ($enabled_facets as $key => $value) {
+    if (strpos($value, 'tds_cck_field_date') !== FALSE) {
+      $cck_field = content_fields($facet_definitions[$key]['field_name']);
+      $query->set_available_sort($value, array(
+        'title' => $cck_field['widget']['label'], // how the sort is to appear in the sorts block
+        'default' => 'desc',
+      ));
+    }
+  }
+}
+
+/**
+ * Implementation of hook_apachesolr_cck_fields_alter().
+ * This function adds the CCK date fields' definitions to let
+ * them be recognized as facets.
+ */
+function apachesolr_date_apachesolr_cck_fields_alter(&$mappings) {
+  $defaults = array(
+      'indexing_callback' => 'apachesolr_date_date_field_indexing_callback',
+      // Trie-Range date types.
+      'index_type' => 'tdate',
+      'facet_block_callback' => 'apachesolr_date_date_facet_block',
+      'display_callback'     => 'apachesolr_date_display_callback',
+      'facets' => TRUE,
+  );
+  // NOTE: The structure of this array essentially blocks us from having
+  // multiple mappings per CCK field. For that we'd need a structure like
+  // $mappings['date']['date_select'][]      = $defaults;
+  $mappings['date']['date_select']      = $defaults;
+  $mappings['date']['date_text']        = $defaults;
+  $mappings['datetime']['date_select']  = $defaults;
+  $mappings['datetime']['date_text']    = $defaults;
+  $mappings['datestamp']['date_select'] = $defaults;
+  $mappings['datestamp']['date_text']   = $defaults;
+  $mappings['datestamp']['date_select']['indexing_callback'] = 'apachesolr_date_datestamp_field_indexing_callback';
+  $mappings['datestamp']['date_text']['indexing_callback']   = 'apachesolr_date_datestamp_field_indexing_callback';
+
+  if (module_exists('date_popup')) {
+    $mappings['date']['date_popup']      = $defaults;
+    $mappings['datetime']['date_popup']  = $defaults;
+    $mappings['datestamp']['date_popup'] = $defaults;
+    $mappings['datestamp']['date_popup']['indexing_callback'] = 'apachesolr_date_datestamp_field_indexing_callback';
+  }
+}
+
+/**
+ * This function is used during indexing to normalize the DATE and DATETIME
+ * fields into the appropriate format for Apache Solr.
+ */
+function apachesolr_date_date_field_indexing_callback($node, $field_name, $cck_info) {
+  $fields = array();
+  if (isset($node->$field_name)) {
+    $index_key = apachesolr_index_key($cck_info);
+    foreach ($node->$field_name as $field) {
+      // Construct a Solr-ready date string in UTC time zone based on the field's date string and time zone.
+      $tz = new DateTimeZone(isset($field['timezone']) ? $field['timezone'] : 'UTC');
+
+      // $fields may end up having two values; one for the start date
+      // and one for the end date.
+      if (isset($field['value'])) {
+        if ($date = date_create($field['value'], $tz)) {
+          $index_value = apachesolr_date_iso($date->format('U'));
+          $fields[] = array(
+            'key' => $index_key,
+            'value' => $index_value,
+          );
+        }
+      }
+      if (isset($field['value2'])) {
+        if ($date = date_create($field['value2'], $tz)) {
+          $index_value = apachesolr_date_iso($date->format('U'));
+          $fields[] = array(
+            // The value2 element is the end date. Therefore it gets indexed
+            // into its own Solr field.
+            'key' => $index_key . '_end',
+            'value' => $index_value,
+          );
+        }
+      }
+    }
+  }
+  return $fields;
+}
+
+/**
+ * This function is used during indexing to normalize the DATESTAMP fields
+ * into the appropriate format for Apache Solr.
+ */
+function apachesolr_date_datestamp_field_indexing_callback($node, $field_name, $cck_info) {
+  $fields = array();
+  if (isset($node->$field_name)) {
+    $index_key = apachesolr_index_key($cck_info);
+
+    // $fields may end up having two values; one for the start date
+    // and one for the end date.
+    foreach ($node->$field_name as $field) {
+      if (isset($field['value']) && $field['value'] != 0) {
+        $index_value = apachesolr_date_iso($field['value']);
+        $fields[] = array(
+          'key' => $index_key,
+          'value' => $index_value,
+        );
+      }
+      if (isset($field['value2']) && $field['value'] != 0) {
+        $index_value = apachesolr_date_iso($field['value2']);
+        $fields[] = array(
+          // The value2 element is the end date. Therefore it gets indexed
+          // into its own Solr field.
+          'key' => $index_key . '_end',
+          'value' => $index_value,
+        );
+      }
+    }
+  }
+  return $fields;
+}
+
+/**
+ * When faceting and filtering we need to infer ranges of dates.
+ * This function looks at a query and a facet field and returns a
+ * date range for use in querying.
+ *
+ * @param Drupal_Solr_Query_Interface $query
+ *   Current query object.
+ * @param $facet_field
+ *   The field for which a range must be generated.
+ *
+ * @return array $gap
+ *   The array contains a start, end, and gap element.
+ *
+ *  Example return value:
+ *  array(
+ *    0 => '2007-01-05T13:05:00Z/YEAR',
+ *    1 => '2013-11-17T15:04:00Z+1YEAR/YEAR',
+ *    2 => '+1YEAR',
+ *  );
+ *
+ */
+function apachesolr_date_search_date_range($query, $facet_field) {
+  foreach ($query->get_filters($facet_field) as $filter) {
+    // If we had an ISO date library we could use ISO dates
+    // directly.  Instead, we convert to Unix timestamps for comparison.
+    // Only use dates if we are able to parse into timestamps.
+    $start = strtotime($filter['#start']);
+    $end = strtotime($filter['#end']);
+    if ($start && $end && ($start < $end)) {
+        $start_iso = $filter['#start'];
+        $end_iso = $filter['#end'];
+      // Determine the drilldown gap for this range.
+      $gap = apachesolr_date_gap_drilldown(apachesolr_date_find_query_gap($start_iso, $end_iso));
+    }
+  }
+
+  // If there is no $delta field in the query object, get initial
+  // facet.date.* params from the DB and determine the best search
+  // gap to use.
+  if (!isset($start_iso)) {
+    // NOTE: Finding the field namd and loading the field info is a hacky
+    // bit of string manipulation. We look once with what comes in ($field_name),
+    // and if that doesn't find any CCK field definition for us, we hack off
+    // the last four characters (presumed to be '_end' for an ending date),
+    // and try again. If that doesn't find anything we go home.
+
+    $field_name = substr($facet_field, 8);
+    $field = content_fields($field_name);
+    $db_info = content_database_info($field);
+    $column = $db_info['columns']['value']['column'];
+    // This check is in place for the cases where the field name has
+    // _end appended to the end, and signifies that it is and end date.
+    if (!$field) {
+      $field_name = substr($field_name, 0, strlen($field_name) - 4);
+      $field = content_fields($field_name);
+      $db_info = content_database_info($field);
+      $column = $db_info['columns']['value2']['column'];
+    }
+
+    // By this point we should have the following:
+    //   $field_name, a cck field name
+    //   $field, a cck field definition
+    //   $db_info, information from content.module about retrieving db data
+    //   $column, the column name in the db table for this field
+    if (!$field) {
+      return;
+    }
+
+    if (!empty($field['timezone_db'])) {
+      $tz = new DateTimeZone($field['timezone_db']);
+    }
+    else {
+      // The commented code takes the TZ from the computer the site is on.
+      //$tz = new DateTimeZone(date_default_timezone_get());
+      $tz = new DateTimeZone('UTC');
+    }
+    $table = $db_info['table'];
+    $start_value = db_result(db_query("SELECT MIN(cck.$column) FROM {{$table}} cck INNER JOIN {node} n ON cck.vid = n.vid WHERE n.status = 1"));
+    if (is_numeric($start_value)) {
+      $start_iso = apachesolr_date_iso($start_value);
+    }
+    elseif ($date = date_create($start_value, $tz)) {
+      $start_iso = apachesolr_date_iso($date->format('U'));
+    }
+
+    // Subtract one second, so that this range's $end_iso is not equal to the
+    // next range's $start_iso.
+    $end_value = db_result(db_query("SELECT MAX(cck.$column) FROM {{$table}} cck INNER JOIN {node} n ON cck.vid = n.vid WHERE n.status = 1"));
+    if (is_numeric($end_value)) {
+      $end_iso = apachesolr_date_iso($end_value - 1);
+    }
+    elseif ($date = date_create($end_value, $tz)) {
+      $end_iso = apachesolr_date_iso($date->format('U') - 1);
+    }
+
+    if (isset($start_iso) && isset($end_iso)) {
+      $gap = apachesolr_date_determine_gap($start_iso, $end_iso);
+    }
+    else {
+      // TODO: Find the gap.
+      $end_iso = $start_iso;
+      $gap = "YEAR";
+    }
+  }
+
+  // Return a query range from the beginning of a gap period to the beginning
+  // of the next gap period.  We ALWAYS generate query ranges of this form
+  // and the apachesolr_date_*() helper functions require it.
+  return array("$start_iso/$gap", "$end_iso+1$gap/$gap", "+1$gap");
+}
+
+/**
+ * Helper function for displaying a date facet blocks.
+ */
+function apachesolr_date_date_facet_block($response, $query, $module, $delta, $facet_field, $filter_by, $facet_callback = FALSE) {
+  // The items in the facet block (facet links and unclick links).
+  $items = array();
+  // The array that is ultimately sent into apachesolr_l(), @see apachesolr_l()
+  $options = array();
+  // The display text for any given facet or unclick link.
+  $facet_text = '';
+
+  // Clone the query as we either add or remove a filter before generating
+  // the link.
+  $new_query = clone $query;
+  // Set the default gap.
+  $gap = 'YEAR';
+  foreach (array_reverse($new_query->get_filters($facet_field)) as $filter) {
+    $new_query->remove_filter($facet_field, $filter['#value']);
+    $gap = apachesolr_date_find_query_gap($filter['#start'], $filter['#end']);
+    $facet_text = apachesolr_date_format_iso_by_gap($gap, $filter['#start']);
+    $options['gap'] = $gap;
+    $options['query'] = $new_query->get_url_queryvalues();
+    array_unshift($items, theme('apachesolr_unclick_link', $facet_text, $new_query->get_path(), $options));
+  }
+
+  // Add links for additional date filters.
+  // NOTE: Date fields come in $response->facet_counts->facet_fields
+  // but others come in $response->facet_counts->facet_dates.
+  if (!empty($response->facet_counts->facet_dates->$facet_field)) {
+    $field = clone $response->facet_counts->facet_dates->$facet_field;
+  }
+  elseif (!empty($response->facet_counts->facet_fields->$facet_field)) {
+    $field = clone $response->facet_counts->facet_fields->$facet_field;
+  }
+  if ($field) {
+    // A field will have this type of structure, where the main information
+    // is in the form DATE => COUNT:
+    // stdClass Object
+    // (
+    //    [2007-01-01T00:00:00Z] => 5
+    //    [2008-01-01T00:00:00Z] => 4
+    //    [2009-01-01T00:00:00Z] => 2
+    //    [2010-01-01T00:00:00Z] => 6
+    //    [2011-01-01T00:00:00Z] => 7
+    //    [2012-01-01T00:00:00Z] => 4
+    //    [2013-01-01T00:00:00Z] => 4
+    //    [gap] => +1YEAR
+    //    [end] => 2014-01-01T00:00:00Z
+    // )
+
+    // Isolate $end and $gap and clean the field to only have the actual
+    // date values.
+    $end = $field->end;
+    unset($field->end);
+
+    if (isset($field->gap)) {
+      $gap = $field->gap;
+      unset($field->gap);
+    }
+    // Treat each date facet as a range start, and use the next date
+    // facet as range end.  Use 'end' for the final end.
+    $range_end = array();
+    foreach ($field as $facet => $count) {
+      if (isset($prev_facet)) {
+        $range_end[$prev_facet] = $facet;
+      }
+      $prev_facet = $facet;
+    }
+    $range_end[$prev_facet] = $end;
+
+    foreach ($field as $facet => $count) {
+      // Solr sends this back if it's empty.
+      if ($facet == '_empty_' || $count == 0) {
+        continue;
+      }
+      if ($facet_callback && function_exists($facet_callback)) {
+        $facet_text = $facet_callback($facet, array('gap' => $gap));
+      }
+      else {
+        $facet_text = apachesolr_date_format_iso_by_gap($gap, $facet);
+      }
+      $new_query = clone $query;
+      $new_query->add_filter($facet_field, '['. $facet .' TO '. $range_end[$facet] .']');
+      $options['query'] = $new_query->get_url_queryvalues();
+      $items[] = theme('apachesolr_facet_link', $facet_text, $new_query->get_path(), $options, $count, FALSE, $response->response->numFound);
+    }
+  }
+  if (count($items) > 0) {
+    // Get information needed by the rest of the blocks about limits.
+    $initial_limits = variable_get('apachesolr_facet_query_initial_limits', array());
+    $limit = isset($initial_limits[$module][$delta]) ? $initial_limits[$module][$delta] : variable_get('apachesolr_facet_query_initial_limit_default', 10);
+    $output = theme('apachesolr_facet_list', $items, $limit, $delta);
+    return array('subject' => $filter_by, 'content' => $output);
+  }
+  return NULL;
+}
+
+/**
+ *  Handles facet text and breadcrumb displays for dates or date ranges.
+ *  @param $facet
+ *    A date string, eg: 2008-01-01T00:00:00Z or a date range, eg: [2007-01-01T00:00:00Z TO 2008-01-01T00:00:00Z]
+ *  @param $options
+ *    An array with a key 'gap' of the form +1YEAR, or +1MONTH etc.
+ *
+ *  TODO: Why is $options an array?
+ */
+function apachesolr_date_display_callback($facet, $options) {
+  if (preg_match('@[\[\{](\S+) TO (\S+)[\]\}]@', $facet, $match)) {
+    return apachesolr_date_format_range($match[1], $match[2]);
+  }
+  $gap = preg_replace('/^\+[0-9]+/', '', $options['gap']);
+  return apachesolr_date_format_iso_by_gap($gap, $facet);
+}

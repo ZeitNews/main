@@ -1,0 +1,9 @@
+name = Module filter
+description = "Filter the modules list."
+core = 6.x
+; Information added by drupal.org packaging script on 2011-03-12
+version = "6.x-1.6"
+core = "6.x"
+project = "module_filter"
+datestamp = "1299954671"
+

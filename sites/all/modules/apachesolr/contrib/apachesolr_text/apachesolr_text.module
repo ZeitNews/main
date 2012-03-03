@@ -1,0 +1,86 @@
+<?php
+
+function apachesolr_text_apachesolr_cck_fields_alter(&$mappings) {
+  // If the content permissions module is in use, fields which are not visible
+  // to anonymous aren't getting indexed. Adding a default case to the text
+  // field definition will guarantee that they get indexed as text.
+  $mappings['text']['default'] =  array(
+    'display_callback' => 'apachesolr_cck_text_field_callback',
+    'indexing_callback' => 'apachesolr_cck_text_indexing_callback',
+    'index_type' => 'text',
+    'facets' => TRUE,
+  );
+  // Reroute the indexing callbacks for the optionwidget fields to this
+  // module's version, apachesolr_text_cck_text_indexing_callback,
+  // because we need to index both text and string versions of the fields
+  // (only the text version is searchable, and only the string version is
+  // suitable for faceting).
+  $mappings['text']['optionwidgets_select']['indexing_callback'] = 'apachesolr_text_cck_text_indexing_callback';
+  $mappings['text']['optionwidgets_buttons']['indexing_callback'] = 'apachesolr_text_cck_text_indexing_callback';
+}
+
+/**
+ * A replacement indexing callback for optionwidget text fields for when
+ * content_permissions are in use. Splits the indexing of these fields
+ * into a dynamic string field and a dynamic text field. This allows
+ * for both searching and faceting on the field.
+ */
+function apachesolr_text_cck_text_indexing_callback($node, $field_name, $cck_info) {
+  $fields = array();
+  if (isset($node->{$field_name})) {
+    $index_key_string = apachesolr_index_key($cck_info);
+    // Generate a key for text as well.
+    $cck_info['index_type'] = 'text';
+    $index_key_text = apachesolr_index_key($cck_info);
+    foreach ($node->$field_name as $field) {
+      if ($index_value = (isset($field['safe']) && strlen($field['safe'])) ? $field['safe'] : FALSE) {
+        $fields[] = array(
+          'key' => $index_key_string,
+          'value' => $index_value,
+        );
+        // Index the field a second time as text so that we can search on it.
+        $fields[] = array(
+          'key' => $index_key_text,
+          'value' => $index_value,
+        );
+      }
+    }
+  }
+  return $fields;
+}
+
+/**
+ * Modify searches to include CCK text fields.
+ */
+function apachesolr_text_apachesolr_modify_query(&$query, &$params, $caller) {
+  global $user;
+
+  module_load_include('inc', 'content', 'includes/content.crud');
+  $cck_field_instances = content_field_instance_read();
+  $cck_fields = apachesolr_cck_fields();
+  $keys = htmlspecialchars($query->get_query_basic(), ENT_NOQUOTES, 'UTF-8');
+  foreach ($cck_field_instances as $field) {
+    $allowed = content_permissions_field_access('view', $field, $user);
+    if ($allowed) {
+      $field_name = 'ts_cck_' . $field['field_name'];
+      if (strpos($params['fl'], $field_name) === FALSE) {
+        $params['fl'] .= ',' . $field_name;
+        $params['qf'][] = "{$field_name}^1.0";
+        $params['hl.fl'] .= ",$field_name";
+        // The comma separated strings are problematic as they don't work if they have a comma at the front.
+        $params['hl.fl'] = implode(',', array_filter(explode(',', $params['hl.fl'])));
+      }
+    }
+  }
+  // If we set qf explicitly, it wipes out the sensible defaults from solrconfig.xml.
+  // Thus we put them back in here, else nothing works at all.
+  if (isset($params['qf'])) {
+    foreach (explode(' ', 'body^40.0 title^5.0 name^3.0 taxonomy_names^2.0 tags_h1^5.0 tags_h2_h3^3.0 tags_h4_h5_h6^2.0 tags_inline^1.0') as $qf) {
+      $params['qf'][] = $qf;
+    }
+  }
+  // Likewise, setting hl.fl wipes solrconfig.xml settings.
+  if (isset($params['hl.fl']) && strpos($params['hl.fl'], 'body') === FALSE) {
+    $params['hl.fl'] .= ',body';
+  }
+}

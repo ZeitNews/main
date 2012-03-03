@@ -1,0 +1,159 @@
+<?php
+// $Id: maxlength.module,v 1.11.4.11.2.15 2011/02/16 13:23:20 aronnovak Exp $
+
+/**
+ * @file
+ *   Enables a max length countdown on node body, title and CCK textfields.
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function maxlength_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#maxlength':
+    case 'admin/modules#description':
+      return t('Sets a maximum length for body fields and shows a counter that is updated as you type.');
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function maxlength_form_alter(&$form, &$form_state, $form_id) {
+  // Editing the content
+  if ($form['#id'] == 'node-form') {
+    module_load_include('inc', 'maxlength', 'maxlength');
+    _maxlength_content_form_alter($form, $form_state, $form_id);
+  }
+
+  // Editing the content type
+  elseif ($form_id == 'node_type_form' && isset($form['identity']['type'])) {
+    module_load_include('inc', 'maxlength', 'maxlength');
+    _maxlength_content_type_form_alter($form, $form_state, $form_id);
+  }
+
+  // Editing a CCK text field.
+  elseif ($form_id == 'content_field_edit_form' && isset($form['field']['max_length'])) {
+    module_load_include('inc', 'maxlength', 'maxlength');
+    _maxlength_cck_form_alter($form, $form_state, $form_id);
+  }
+
+  // Deleting a CCK text field.
+  elseif ($form_id == '_content_admin_field_remove') {
+    variable_del('maxlength_' . $form['field_name']['#value']);
+    variable_del('maxlength_' . $form['field_name']['#value'] .'_js');
+    variable_del('maxlength_' . $form['field_name']['#value'] .'_text');
+  }
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function maxlength_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  if ($op != 'validate') {
+    return;
+  }
+  // Core fields, CCK takes care of CCK fields, no need to validate them
+  $fields = array('title', 'body');
+
+  foreach ($fields as $field) {
+    $limit = intval(variable_get('maxlength_' . $field .'_'. $node->type, ''));
+    if ($limit > 0) {
+      $form = $a3;
+      // line breaks can be stored 2 or more chars, breaking the count.
+      $text = $node->$field;
+
+      $text = str_replace("\r\n", '#', $text);
+      $text = str_replace("\n", '#', $text);
+      $text = str_replace("\r", '#', $text);
+      if (drupal_strlen($text) > $limit) {
+        form_set_error($field, t('The !field field has exceeded its maximum number of characters (!limit).', array('!limit' => $limit, '!field' => $field)));
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_node_type().
+ */
+function maxlength_node_type($op, $info) {
+  $labels = array(
+    'title', 'js_title', 'text_title',
+    'body', 'js_body', 'text_body');
+
+  switch ($op) {
+    case 'delete':
+      foreach ($labels as $label) {
+        variable_del('maxlength_' . $label . $info->type);
+      }
+      break;
+
+    case 'update':
+      if (!empty($info->old_type) && $info->old_type != $info->type) {
+        foreach ($labels as $label) {
+          $old_var = variable_get('maxlength_' . $label . $info->old_type, '');
+          variable_set('maxlength_' . $label . $info->type, $old_var);
+          variable_del('maxlength_' . $label . $info->old_type);
+        }
+      }
+
+      break;
+  }
+}
+
+/**
+ * Formats a form element to use maxlength value and use js.
+ * It's not moved to maxlength.inc because Form API calls it even when form_alter is not called
+ *
+ * @arg array $element
+ *   The form element which should be maxlengthed.
+ * @return
+ *   Maxlength-enabled form element
+ *
+ */
+function _maxlength_format_element($element) {
+  static $processed = array();
+  module_load_include('inc', 'maxlength', 'maxlength');
+  $value = $element['#max_length_properties'][0];
+  $field = $element['#max_length_properties'][1];
+  $id = $element['#max_length_properties'][2];
+  $type = $element['#max_length_properties'][3];
+
+  $values = _maxlength_get_values($field, $type);
+
+  if ($values !== FALSE && isset($values['limit']) && $values['limit'] && $values['use_js']) {
+    $path = drupal_get_path('module', 'maxlength');
+    drupal_add_js($path .'/maxlength.js');
+
+    $remaining = $values['limit'] - drupal_strlen($value);
+
+    if ($remaining < 0) {
+      drupal_set_message(
+        t('%body_field_label truncated to %limit characters!',
+        array(
+          '%body_field_label' => $element['#title'],
+          '%limit' => $values['limit'])
+        ),
+        'error'
+      );
+
+      $element['#default_value'] = drupal_substr($element['#default_value'], 0, $values['limit']);
+      $remaining = 0;
+    }
+
+    if (in_array($element['#id'], $processed) === FALSE) {
+      $js_settings = array(
+        'maxlength' => array(
+          'edit-'. $id => $values['limit'],
+        ),
+      );
+      drupal_add_js($js_settings, 'setting');
+    }
+    $element['#suffix'] = '<div id="maxlength-'. $id .'"
+      class="maxlength-counter">' . t($values['text'], array('!limit' => $values['limit'], '!count' => '<span class="maxlength-count">' . drupal_strlen($value) .'</span>', '!remaining' => '<span class="maxlength-counter-remaining">' . $remaining . '</span>')) . '</div>';
+    $processed[] = $element['#id'];
+  }
+  return $element;
+}

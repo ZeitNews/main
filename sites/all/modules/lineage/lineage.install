@@ -1,0 +1,56 @@
+<?php
+// $Id: lineage.install,v 1.5.2.2 2010/03/05 18:49:46 xjm Exp $
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the Taxonomy Lineage module.
+ */
+
+/**
+ * Implementation of hook_schema().
+ */
+function lineage_schema() {
+  $schema['term_lineage'] = array(
+    'fields' => array(
+      'tid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'lineage' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+      'depth' => array('type' => 'int', 'not null' => TRUE, 'default' => 0)
+    ),
+    'indexes' => array(
+      'lineage' => array('lineage')
+    ),
+    'primary key' => array('tid'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function lineage_install() {
+  // Create tables.
+  drupal_install_schema('lineage');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function lineage_uninstall() {
+  drupal_uninstall_schema('lineage');
+}
+
+function lineage_update_1() {
+  return _system_update_utf8(array('term_lineage'));
+}
+
+function lineage_update_2() {
+  // fixed a bug that left the table in an inconsistent state. This should fix it.
+  return lineage_update_all();
+}
+
+function lineage_update_6000() {
+  // Changed weight string format, so trigger a full update.
+  lineage_update_all();
+  return array();
+}

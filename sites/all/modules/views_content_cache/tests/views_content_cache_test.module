@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * Implementation of hook_views_default_views().
+ */
+function views_content_cache_test_views_default_views() {
+  $views = array();
+
+  $files = file_scan_directory(drupal_get_path('module', 'views_content_cache_test') . '/views/default', '\.inc$');
+
+  foreach ($files as $file) {
+    include($file->filename);
+    $views[$view->name] = $view;
+  }
+
+  return $views;
+}
+
+
+/**
+ * Implementation of hook_views_api().
+ */
+function views_content_cache_test_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'views_content_cache_test') .'/views',
+  );
+}

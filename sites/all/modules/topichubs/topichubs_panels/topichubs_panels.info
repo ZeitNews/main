@@ -1,0 +1,14 @@
+; $Id $
+name = Topic Hubs - Panels
+description = "Integration of Topic Hubs with Panels2"
+package = "Topic Hubs"
+core = 6.x
+dependencies[] = views
+dependencies[] = panels_node
+
+; Information added by drupal.org packaging script on 2009-09-02
+version = "6.x-2.1-rc1"
+core = "6.x"
+project = "topichubs"
+datestamp = "1251893186"
+

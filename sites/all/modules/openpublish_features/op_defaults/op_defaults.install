@@ -1,0 +1,53 @@
+<?php
+
+// $Id: op_defaults.install,v 1.1.2.4 2010/08/16 20:19:19 tirdadc Exp $
+
+/**
+* @File op_defaults feature module's installation file.'
+*/
+
+/**
+*  hook_install implementation
+*/
+function op_defaults_install() {
+  op_defaults_set_filter_roles();
+  op_defaults_enable_node_embed_for_full_html();
+}
+
+/**
+*  hook_uninstall implementation
+*/
+function op_defaults_uninstall() {
+}
+
+
+/***** Helper Functions *****/
+
+/**
+*  Setting proper initial roles for input filters
+*/
+function op_defaults_set_filter_roles() {
+  db_query("UPDATE {filter_formats} SET roles=',1,2,3,6,4,5,' WHERE format = 1");
+  db_query("UPDATE {filter_formats} SET roles=',3,6,4,5,' WHERE format = 2" ); 
+}
+
+/**
+ * Enable Node Embed for Full HTML input filter
+ */
+function op_defaults_enable_node_embed_for_full_html() {
+  $filter = new stdClass();
+  $filter->format = 2; // Full HTML fid
+  $filter->module = 'node_embed';
+  $filter->delta = 0;
+  $filter->weight = 10;
+  return drupal_write_record('filters', $filter);
+}
+
+/**
+ * Make sure Node Embed is enabled for Full HTML after an upgrade
+ */
+function op_defaults_update_6101() {
+  $res = op_defaults_enable_node_embed_for_full_html();
+  $ret[] = array('success' => $res, 'query' => 'drupal_write_record("filters", $filter)');
+  return $ret;
+}

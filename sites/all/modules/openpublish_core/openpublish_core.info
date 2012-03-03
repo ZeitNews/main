@@ -1,0 +1,12 @@
+; $Id: openpublish_core.info,v 1.1 2009/12/01 23:41:36 inadarei Exp $
+name = OpenPublish Core
+description = "Provide core functionality and helpers for OpenPublish"
+core = 6.x
+package = OpenPublish
+dependencies[] = views
+; Information added by drupal.org packaging script on 2010-12-03
+version = "6.x-1.20"
+core = "6.x"
+project = "openpublish_core"
+datestamp = "1291419993"
+

@@ -1,0 +1,5 @@
+$Id: CREDITS.txt,v 1.2.6.1 2008/09/28 20:20:49 acm Exp $
+
+1.x was written by Mariuss and inspired by functionality found in the ed_classified module.
+
+2.x has been written by a_c_m and dereine, from the 1.x codebase.

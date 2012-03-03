@@ -1,0 +1,8 @@
+<?php
+
+// $Id: premium_default_off.install,v 1.1.2.1 2010/04/11 05:24:24 inadarei Exp $
+
+function premium_default_off_enable() {
+  //-- Make sure this module runs after the premium module
+  db_query("UPDATE {system} SET weight=1000 WHERE name='premium_default_off'");
+}

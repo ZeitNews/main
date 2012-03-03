@@ -1,0 +1,20 @@
+core = "6.x"
+dependencies[] = "premium"
+name = "Premium: Default Off"
+description = "Premium module sets default value to ON (Restricted) for content types. This tiny module overrides that behavior and makes default off - content is available"
+package = "Other"
+version = "6.x-1.0"
+
+; Information added by drupal.org packaging script on 2010-08-19
+version = "6.x-1.16"
+core = "6.x"
+project = "openpublish_features"
+datestamp = "1282257692"
+
+
+; Information added by drupal.org packaging script on 2010-12-03
+version = "6.x-1.18"
+core = "6.x"
+project = "openpublish_features"
+datestamp = "1291420542"
+

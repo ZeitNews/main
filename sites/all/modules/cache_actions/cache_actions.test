@@ -1,0 +1,293 @@
+<?php
+
+/**
+ * @file
+ * This file contains the tests for Cache Actions.
+ * All tests depend on the panels, views and rules that are defined by the
+ * cache actions test module.
+ */
+
+/**
+ * A class containing shared information about the cache actions tests.
+ */
+class CacheActionsTestCase extends DrupalWebTestCase {
+  function  setUp() {
+    module_list(TRUE);
+    parent::setUp('ctools', 'panels', 'page_manager', 'views_content', 'rules', 'cache_actions_test', 'panels_mini', 'views', 'cache_actions', 'cache_actions_test');
+  }
+}
+
+/**
+ * Tests for Cache Actions Views.
+ */
+class CacheActionsViewsTestCase extends CacheActionsTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => t('Cache Actions Views Test'),
+      'description' => t('Tests the cache actions views'),
+      'group' => t('Cache Actions'),
+    );
+  }
+
+  /**
+   * Test clearing the cache of a view.
+   */
+  function testClearViews() {
+    drupal_flush_all_caches();
+    // Create a node.
+    $node = $this->drupalCreateNode();
+
+    // Get the view page.
+    $html = $this->drupalGet('cache-actions-test-view');
+    // We should see the node title.
+    $this->assertText($node->title, t('Title found.'));
+
+    // Do the same for the view that doesn't have a rule that will be triggered.
+    $html = $this->drupalGet('cache-actions-test-view-no-cache');
+    $this->assertText($node->title, t('Title found.'));
+
+    $node->title = "We have changed the title";
+    // Save the changed node.
+    node_save($node);
+    // Execute the view again. The result should be the same.
+    $html = $this->drupalGet('cache-actions-test-view');
+    // The node title should have changed since the rule is active.
+    $this->assertText($node->title, t('Title found after cached has been cleared'));
+
+    $html = $this->drupalGet('cache-actions-test-view-no-cache');
+    $this->assertNOText($node->title, t('Title not found after cached has been cleared'));
+  }
+}
+
+/**
+ * Tests for clearing cache bins.
+ */
+class CacheActionsBinTestCase extends CacheActionsTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => t('Cache Actions Bin Test'),
+      'description' => t('Tests the clearing of cache bins'),
+      'group' => t('Cache Actions'),
+    );
+  }
+
+  /**
+   * Test clearing a cache bin.
+   */
+  function testClearCacheBin() {
+    // Needed in order to register the default rules.
+    drupal_flush_all_caches();
+
+    // Put a dummy value into the cache
+    cache_set('dummy', 'dummy_value', 'cache_cache_actions_test');
+
+    // Create a node. This will trigger the rule.
+    $node = $this->drupalCreateNode();
+
+    // Let's look at the content of our cache.
+    $count = db_result(db_query("SELECT COUNT(*) FROM {cache_cache_actions_test}"));
+
+    // The cache chould be empty now, since we cleared the cache bin.
+    $this->assertEqual($count, 0, 'We had ' . $count . ' items in our cache.');
+  }
+
+  /**
+   * Test clearing a specific cache cid.
+   */
+  function testClearCacheCid() {
+    // Needed in order to register the default rules.
+    drupal_flush_all_caches();
+
+    // Put a dummy value into the cache
+    cache_set('dummy', 'dummy_value', 'cache_cache_actions_test');
+
+    // Create a node. This will trigger the rule.
+    $node = $this->drupalCreateNode();
+
+    // Let's try to get the cache cid from the cache. It should fail.
+    $value = cache_get('dummy', 'cache_cache_actions_test');
+
+    // We should not have gotten a value if the rule was triggered.
+    $this->assertFalse($value, t('The value was removed from the cache.'));
+  }
+}
+
+/**
+ * Tests for clearing panels.
+ */
+class CacheActionsPanelsTestCase extends CacheActionsTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => t('Cache Actions Panels Test'),
+      'description' => t('Tests the clearing of Panel Variants and Panel Panes'),
+      'group' => t('Cache Actions'),
+    );
+  }
+
+  /**
+   * Test clearing panel page variants.
+   */
+  function testClearPanelVariants() {
+    // Needed in order to register the default panels.
+    drupal_flush_all_caches();
+
+    // Create a node.
+    $node = $this->drupalCreateNode();
+    // Let's go to a panel, in order to make it cached.
+    $html = $this->drupalGet('cache-actions-test-panel');
+    // We should be able to see the title
+    $this->assertText($node->title);
+    // Get a panel that doesn't have a rule that will be triggered.
+    $html = $this->drupalGet('cache-actions-test-panel-no-cache');
+    // We should be able to see the title
+    $this->assertText($node->title);
+
+    // Alter the title.
+    $node->title = "Altered title";
+    node_save($node);
+
+    // The title should be correct in the first panel.
+    $html = $this->drupalGet('cache-actions-test-panel');
+    // We should be able to see the title
+    $this->assertText($node->title);
+
+    // And not be correct in the second.
+    $html = $this->drupalGet('cache-actions-test-panel-no-cache');
+    $this->assertNoText($node->title);
+  }
+
+  /**
+   * Test clearing panel page panes.
+   */
+  function testClearPanelPanes() {
+    // Needed in order to register the default panels.
+    drupal_flush_all_caches();
+
+    // Create a node.
+    $node = $this->drupalCreateNode();
+
+    // Let's go to a panel, in order to make it cached.
+    $html = $this->drupalGet('cache-actions-test-panel-pane');
+    // We should be able to see the title
+    $this->assertText($node->title);
+    // Get a panel that doesn't have a rule that will be triggered.
+    $html = $this->drupalGet('cache-actions-test-panel-pane-no-cache');
+    // We should be able to see the title
+    $this->assertText($node->title);
+
+    // Alter the title.
+    $node->title = "Altered title";
+    node_save($node);
+
+    // The title should be correct in the first panel.
+    $html = $this->drupalGet('cache-actions-test-panel-pane');
+    // We should be able to see the title
+    $this->assertText($node->title);
+
+    // And not be correct in the second.
+    $html = $this->drupalGet('cache-actions-test-panel-pane-no-cache');
+    $this->assertNoText($node->title);
+  }
+}
+
+/**
+ * Tests for clearing panels.
+ */
+class CacheActionsMiniPanelsTestCase extends CacheActionsTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => t('Cache Actions Mini Panels Test'),
+      'description' => t('Tests the clearing of Panel Variants and Panel Panes'),
+      'group' => t('Cache Actions'),
+    );
+  }
+
+  /**
+   * Test clearing Mini panel variants.
+   */
+  function testClearPanelVariants() {
+    // Needed in order to register the default panels.
+    drupal_flush_all_caches();
+
+    // Create a node.
+    $node = $this->drupalCreateNode();
+
+    // Let's go to a panel, in order to make it cached.
+    $html = $this->drupalGet('cache-actions-test-mini-panel-wrapper');
+    // We should be able to see the title
+    $this->assertText($node->title);
+
+    // Alter the title.
+    $node->title = "Altered title";
+    node_save($node);
+
+    // The title should be correct in the first panel.
+    $html = $this->drupalGet('cache-actions-test-mini-panel-wrapper');
+    // We should be able to see the title
+    $this->assertText($node->title);
+  }
+
+   /**
+   * Test clearing of Mini Panel Panes.
+   */
+  function testClearPanelPanes() {
+    // Needed in order to register the default panels.
+    drupal_flush_all_caches();
+
+    // Create a node.
+    $node = $this->drupalCreateNode();
+
+    // Let's go to a panel, in order to make it cached.
+    $html = $this->drupalGet('cache-actions-test-mini-panel-pane-wrapper');
+    // We should be able to see the title
+    $this->assertText($node->title);
+    // Alter the title.
+    $node->title = "Altered title";
+    node_save($node);
+
+    // The title should be correct in the first panel.
+    $html = $this->drupalGet('cache-actions-test-mini-panel-pane-wrapper');
+    // We should be able to see the title
+    $this->assertText($node->title);
+  }
+}
+
+/**
+ * Tests for css and js.
+ */
+class CacheActionsCssJsTestCase extends CacheActionsTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => t('Cache Actions CSS and JS Test'),
+      'description' => t('Tests the clearing of CSS and JS'),
+      'group' => t('Cache Actions'),
+    );
+  }
+
+  function  setUp() {
+    parent::setUp();
+    // Make sure caching for css and js is set.
+    variable_set('preprocess_js', 1);
+    variable_set('preprocess_css', 1);
+  }
+
+  /**
+   * Test clearing the css and js caches.
+   */
+  function testClearCssJs() {
+    // Create the css and js cache.
+    $this->drupalGet('/');
+
+    // Create a node which triggers the rule.
+    $this->drupalCreateNode();
+
+    $css = scandir(file_directory_path() . '/css');
+    $js =scandir(file_directory_path() . '/js');
+    // Check that the css and js cache is cleared.
+    $this->assertEqual(count($css), 2);
+    $this->assertEqual(count($js), 2);
+  }
+}

@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * This is Views Slideshow: Galleria's installation file.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function views_slideshow_galleria_install() {
+  return array();
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function views_slideshow_galleria_uninstall() {
+  foreach (views_slideshow_galleria_variable_default() as $variable => $value) {
+    views_slideshow_galleria_variable_del($variable);
+  }
+  return array(array('success' => TRUE, 'query' => "Deleted all variables in the Views Slideshow: Galleria namespace."));
+}
+

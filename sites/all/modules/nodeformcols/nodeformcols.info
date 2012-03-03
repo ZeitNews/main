@@ -1,0 +1,11 @@
+name = Node form columns
+description = Separates the node forms into two columns and a footer.
+core = 6.x
+package = Node form columns
+
+; Information added by drupal.org packaging script on 2011-02-25
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "nodeformcols"
+datestamp = "1298619736"
+

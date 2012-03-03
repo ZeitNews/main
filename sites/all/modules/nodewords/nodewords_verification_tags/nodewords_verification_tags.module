@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * @file
+ * Define site verification meta tags required by some search engines
+ * to verify a web site.
+ */
+
+/**
+ * Implements hook_nodewords_api().
+ */
+function nodewords_verification_tags_nodewords_api() {
+  return array(
+    'version' => '1.14',
+    'path' => '',
+  );
+}

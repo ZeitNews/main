@@ -1,0 +1,74 @@
+<?php
+
+/**
+ *  @file
+ *  Integrating Galleria with Views Slideshow.
+ */
+
+/* ***************************************** */
+/* INCLUDES                                  */
+/* ***************************************** */
+
+// A registry of variable_get defaults.
+include_once('includes/views_slideshow_galleria.variables.inc');
+
+/**
+ *  Implements hook_menu().
+ */
+function views_slideshow_galleria_menu() {
+  $items['admin/build/views/views_slideshow_galleria'] = array(
+    'title' => 'Views Slideshow: Galleria',
+    'description' => 'Configure Views Slideshow: Galleria options.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('views_slideshow_galleria_settings'),
+    'file' => 'includes/views_slideshow_galleria.admin.inc',
+    'access callback' => 'user_access',
+    'access arguments' => array('administer views'),
+  );
+  return $items;
+}
+
+/**
+ *  Implements hook_theme().
+ */
+function views_slideshow_galleria_theme($existing, $type, $theme, $path) {
+  return array(
+    'views_slideshow_galleria' => array(
+      'arguments' => array('view' => NULL, 'options' => array(), 'rows' => array(), 'title' => ''),
+      'template' => 'views-slideshow-galleria',
+      'file' => 'views_slideshow_galleria.theme.inc',
+      'path' => $path .'/themes',
+    ),
+  );
+}
+
+/**
+ * Return the path to the Galleria plugin.
+ *
+ * If views_slideshow_galleria_variable_get('path') has not yet been set, then
+ * this will attempt to autodiscover the path if the galleria.js file exists
+ * within sites/all/libraries/* or sites/example.com/libraries/*. It will also
+ * set the path to views_slideshow_galleria_variable_get('path').
+ *
+ * The library is available from http://galleria.aino.se/.
+ *
+ * @param boolean $reset
+ *  (Optional) If TRUE, then reset the variable and attempt a new autodiscovery.
+ * @return string
+ *  The path to the galleria.js file.
+ */
+function views_slideshow_galleria_path($reset = FALSE) {
+  static $path;
+
+  if (!isset($path) || $reset) {
+    if (!($path = views_slideshow_galleria_variable_get('path')) || $reset) {
+      $files = drupal_system_listing('^galleria\.js$', 'libraries', 'basename', 0);
+      if (isset($files['galleria.js'])) {
+        $path = dirname($files['galleria.js']->filename);
+        views_slideshow_galleria_variable_set('path', $path);
+      }
+    }
+  }
+
+  return $path;
+}

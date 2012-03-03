@@ -1,0 +1,175 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Basic meta tags module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function nodewords_basic_install() {
+  db_query("UPDATE {system} SET weight = 12 WHERE name = 'nodewords_basic' AND type = 'module'");
+}
+
+/**
+ * Implements hook_update_N().
+ */
+function nodewords_basic_update_6107() {
+  $ret = array();
+
+  $value = variable_get('nodewords_list_robots', NULL);
+  if (isset($value) && is_array($value)) {
+    $robots_value = array_filter($value);
+    $value = array_values($robots_value);
+
+    $index_follow = in_array('noindex', $value) ? 'noindex' : 'index';
+    $index_follow .= in_array('nofollow', $value) ? ',nofollow' : ',follow';
+
+    unset($robots_value['noindex']);
+    unset($robots_value['nofollow']);
+
+    variable_set('nodewords_list_robots_index_follow', $index_follow);
+    variable_set('nodewords_list_robots_value', $robots_value);
+
+    $ret[] = array(
+      'success' => TRUE,
+      'query' => 'Updated module settings',
+    );
+  }
+
+  return $ret;
+}
+
+/**
+ * Implements hook_update_N().
+ */
+function nodewords_basic_update_6111() {
+  $new_value = '';
+  $ret = array();
+
+  $value = variable_get('nodewords_list_robots_index_follow', NULL);
+  if (isset($value)) {
+    if (preg_match('/noindex/i', $value)) {
+      $new_value = 'noindex';
+    }
+    else {
+      $new_value = 'index';
+    }
+
+    if (preg_match('/nofollow/i', $value)) {
+      $new_value .= ',nofollow';
+    }
+    else {
+      $new_value .= ',follow';
+    }
+
+    variable_set('nodewords_list_robots_index_follow', $new_value);
+
+    $ret[] = array(
+      'success' => TRUE,
+      'query' => 'Updated module settings',
+    );
+  }
+
+  return $ret;
+}
+
+/**
+ * Implements hook_update_N().
+ */
+function nodewords_basic_update_6112(&$sandbox) {
+  $ret = array();
+
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0;
+    $sandbox['max'] = (int) db_result(
+      db_query("SELECT COUNT(*) FROM {nodewords} WHERE name = 'robots'")
+    );
+    $sandbox['current_mtid'] = 0;
+  }
+
+  if ($sandbox['max']) {
+    $metatags = db_query_range(
+      "SELECT * FROM {nodewords} WHERE name = 'robots' AND mtid > %d ORDER BY mtid ASC",
+      $sandbox['current_mtid'], 0, 20
+    );
+
+    while ($metatag = db_fetch_object($metatags)) {
+      $content = $metatag->content;
+      $robots_content = array(
+        'index_nofollow' => '',
+        'value' => array(),
+      );
+
+      if (preg_match('/noindex/i', $content)) {
+        $new_value = 'noindex';
+      }
+      else {
+        $new_value = 'index';
+      }
+
+      if (preg_match('/nofollow/i', $content)) {
+        $new_value .= ',nofollow';
+      }
+      else {
+        $new_value .= ',follow';
+      }
+
+      $robots_content['index_nofollow'] = $new_value;
+
+      $patterns = array(
+        'noarchive',
+        'noodp',
+        'nosnippet',
+        'noydir',
+      );
+      foreach ($patterns as $pattern) {
+        $matches = array();
+        if (preg_match_all('/' . $pattern . '/i', $content, $matches) >= 2) {
+          $robots_content['index_nofollow'][$pattern] = $pattern;
+        }
+      }
+
+      db_query(
+        "UPDATE {nodewords} SET content = '%s' WHERE mtid = %d",
+        serialize($robots_content), $metatag->mtid
+      );
+
+      $sandbox['current_mtid'] = $metatag->mtid;
+      $sandbox['progress']++;
+    }
+  }
+
+  $ret['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+  if ($ret['#finished'] == 1) {
+    $ret[] = array(
+      'success' => TRUE,
+      'query' => 'Corrected the values saved in the database that were causing a PHP error',
+    );
+  }
+
+  return $ret;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function nodewords_basic_uninstall() {
+  if (db_table_exists('nodewords')) {
+    $metatags = array(
+      'abstract',
+      'canonical',
+      'copyright',
+      'description',
+      'keywords',
+      'revisit-after',
+      'robots'
+    );
+
+    db_query("DELETE FROM {nodewords} WHERE name IN (" . db_placeholders($metatags, 'varchar') . ")", $metatags);
+  }
+
+  variable_del('nodewords_list_robots_index_follow');
+  variable_del('nodewords_list_robots_value');
+}

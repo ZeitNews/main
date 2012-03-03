@@ -1,0 +1,237 @@
+<?php
+
+$view = new view;
+$view->name = 'content_by_topic';
+$view->description = 'List of various content types from a topic.';
+$view->tag = '';
+$view->view_php = '';
+$view->base_table = 'node';
+$view->is_cacheable = FALSE;
+$view->api_version = 2;
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+$handler = $view->new_display('default', 'Defaults', 'default');
+$handler->override_option('fields', array(
+  'created' => array(
+    'label' => '',
+    'date_format' => 'custom',
+    'custom_date_format' => 'F j, Y',
+    'exclude' => 0,
+    'id' => 'created',
+    'table' => 'node',
+    'field' => 'created',
+    'relationship' => 'none',
+  ),
+  'title' => array(
+    'label' => '',
+    'link_to_node' => 1,
+    'exclude' => 0,
+    'id' => 'title',
+    'table' => 'node',
+    'field' => 'title',
+    'relationship' => 'none',
+  ),
+  'field_teaser_value' => array(
+    'label' => '',
+    'link_to_node' => 0,
+    'label_type' => 'none',
+    'format' => 'default',
+    'multiple' => array(
+      'group' => TRUE,
+      'multiple_number' => '',
+      'multiple_from' => '',
+      'multiple_reversed' => FALSE,
+    ),
+    'exclude' => 0,
+    'id' => 'field_teaser_value',
+    'table' => 'node_data_field_teaser',
+    'field' => 'field_teaser_value',
+    'relationship' => 'none',
+  ),
+  'teaser' => array(
+    'label' => '',
+    'exclude' => 0,
+    'id' => 'teaser',
+    'table' => 'node_revisions',
+    'field' => 'teaser',
+    'relationship' => 'none',
+  ),
+));
+$handler->override_option('sorts', array(
+  'sticky' => array(
+    'order' => 'DESC',
+    'id' => 'sticky',
+    'table' => 'node',
+    'field' => 'sticky',
+    'relationship' => 'none',
+  ),
+  'created' => array(
+    'order' => 'DESC',
+    'granularity' => 'day',
+    'id' => 'created',
+    'table' => 'node',
+    'field' => 'created',
+    'relationship' => 'none',
+  ),
+  'title' => array(
+    'order' => 'ASC',
+    'id' => 'title',
+    'table' => 'node',
+    'field' => 'title',
+    'relationship' => 'none',
+  ),
+));
+$handler->override_option('arguments', array(
+  'name' => array(
+    'default_action' => 'ignore',
+    'style_plugin' => 'default_summary',
+    'style_options' => array(),
+    'wildcard' => 'all',
+    'wildcard_substitution' => 'All',
+    'title' => 'Content about %1',
+    'default_argument_type' => 'fixed',
+    'default_argument' => '',
+    'validate_type' => 'none',
+    'validate_fail' => 'not found',
+    'glossary' => 0,
+    'limit' => '0',
+    'case' => 'none',
+    'path_case' => 'none',
+    'transform_dash' => 0,
+    'add_table' => 0,
+    'require_value' => 0,
+    'id' => 'name',
+    'table' => 'term_data',
+    'field' => 'name',
+    'relationship' => 'none',
+    'default_options_div_prefix' => '',
+    'default_argument_user' => 0,
+    'default_argument_fixed' => '',
+    'default_argument_php' => '',
+    'validate_argument_node_type' => array(
+      'blog' => 0,
+      'article' => 0,
+      'audio' => 0,
+      'event' => 0,
+      'feed' => 0,
+      'feeditem' => 0,
+      'op_image' => 0,
+      'package' => 0,
+      'page' => 0,
+      'resource' => 0,
+      'story' => 0,
+      'topichub' => 0,
+      'twitter_item' => 0,
+      'video' => 0,
+    ),
+    'validate_argument_node_access' => 0,
+    'validate_argument_nid_type' => 'nid',
+    'validate_argument_vocabulary' => array(
+      '81' => 0,
+      '119' => 0,
+      '82' => 0,
+      '83' => 0,
+      '84' => 0,
+      '85' => 0,
+      '86' => 0,
+      '87' => 0,
+      '88' => 0,
+      '120' => 0,
+      '89' => 0,
+      '90' => 0,
+      '91' => 0,
+      '92' => 0,
+      '93' => 0,
+      '94' => 0,
+      '95' => 0,
+      '96' => 0,
+      '97' => 0,
+      '98' => 0,
+      '99' => 0,
+      '100' => 0,
+      '101' => 0,
+      '102' => 0,
+      '103' => 0,
+      '104' => 0,
+      '105' => 0,
+      '106' => 0,
+      '107' => 0,
+      '108' => 0,
+      '109' => 0,
+      '110' => 0,
+      '111' => 0,
+      '112' => 0,
+      '113' => 0,
+      '114' => 0,
+      '115' => 0,
+      '116' => 0,
+      '117' => 0,
+      '118' => 0,
+    ),
+    'validate_argument_type' => 'tid',
+    'validate_argument_node_flag_name' => '*relationship*',
+    'validate_argument_node_flag_test' => 'flaggable',
+    'validate_argument_node_flag_id_type' => 'id',
+    'validate_argument_user_flag_name' => '*relationship*',
+    'validate_argument_user_flag_test' => 'flaggable',
+    'validate_argument_user_flag_id_type' => 'id',
+    'validate_argument_php' => '',
+    'override' => array(
+      'button' => 'Override',
+    ),
+  ),
+));
+$handler->override_option('filters', array(
+  'status' => array(
+    'operator' => '=',
+    'value' => 1,
+    'group' => '0',
+    'exposed' => FALSE,
+    'expose' => array(
+      'operator' => FALSE,
+      'label' => '',
+    ),
+    'id' => 'status',
+    'table' => 'node',
+    'field' => 'status',
+    'relationship' => 'none',
+  ),
+  'type' => array(
+    'operator' => 'in',
+    'value' => array(
+      'blog' => 'blog',
+      'article' => 'article',
+      'audio' => 'audio',
+      'event' => 'event',
+      'op_image' => 'op_image',
+      'resource' => 'resource',
+      'video' => 'video',
+    ),
+    'group' => '0',
+    'exposed' => FALSE,
+    'expose' => array(
+      'operator' => FALSE,
+      'label' => '',
+    ),
+    'id' => 'type',
+    'table' => 'node',
+    'field' => 'type',
+    'relationship' => 'none',
+  ),
+));
+$handler->override_option('access', array(
+  'type' => 'none',
+));
+$handler->override_option('items_per_page', 25);
+$handler = $view->new_display('page', 'Page', 'page_1');
+$handler->override_option('path', 'topics');
+$handler->override_option('menu', array(
+  'type' => 'none',
+  'title' => '',
+  'weight' => 0,
+  'name' => 'navigation',
+));
+$handler->override_option('tab_options', array(
+  'type' => 'none',
+  'title' => '',
+  'weight' => 0,
+));

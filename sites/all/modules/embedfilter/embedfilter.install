@@ -1,0 +1,31 @@
+<?php
+function embedfilter_install() {
+  
+  variable_set('embedfilter_filtertip', t('You can use &lt;object>, &lt;embed> and &lt;script> tags from the following sites to add media to your posts:'));
+  
+  $whitelist = array(
+    $_SERVER['HTTP_HOST'],
+    'youtube.com',
+    'flicker.com',
+    'twitter.com',
+    'facebook.com',
+    'google.com',
+    'yahoo.com',
+    );
+  variable_set('embedfilter_host_whitelist', implode("\n", $whitelist));  
+}
+
+function embedfilter_update_6000() {
+  $ret = array();
+  // Create a new format with only this filter.
+  db_query("INSERT INTO {filter_formats} (name, roles, cache) VALUES ('%s', '', %d)", 'feature_embed', 1);
+  $format_id = db_last_insert_id('filter_formats', 'format');
+  
+  db_query("INSERT INTO {filters} (`format`, `module`, `delta`, `weight`) VALUES (%d, '%s', %d, %d)", $format_id, 'feature_embed', 0, 0);
+  variable_set('embedfilter_format', $format_id);
+  return $ret;  
+}
+
+function embedfilter_uninstall() {
+  db_query("DELETE FROM {variable} WHERE NAME LIKE 'embedfilter%'");
+}

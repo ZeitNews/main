@@ -1,0 +1,10 @@
+; $Id: better_perms.info,v 1.1 2009/04/20 05:37:16 mattman Exp $
+name = Better Permissions
+description = Super simple module which adds collapse/expand to the permissions admin page.
+core = 6.x
+; Information added by drupal.org packaging script on 2009-04-20
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "better_perms"
+datestamp = "1240251022"
+

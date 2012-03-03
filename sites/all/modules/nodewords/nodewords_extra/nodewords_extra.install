@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Extra meta tags module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function nodewords_extra_install() {
+  db_query("UPDATE {system} SET weight = 14 WHERE name = 'nodewords_extra' AND type = 'module'");
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function nodewords_extra_uninstall() {
+  if (db_table_exists('nodewords')) {
+    $metatags = array(
+      'dc.contributor',
+      'dc.creator',
+      'dc.date',
+      'dc.publisher',
+      'dc.title',
+      'geourl',
+      'location',
+      'pics-label',
+    );
+
+    db_query("DELETE FROM {nodewords} WHERE name IN (". db_placeholders($metatags, 'varchar') .")", $metatags);
+  }
+}
+
+/**
+ * Removed support for IRCA PICS labels.
+ */
+function nodewords_extra_update_6106() {
+  $ret = array();
+  $ret[] = update_sql("DELETE FROM {nodewords} WHERE name = 'pics-label'");
+  variable_del('nodewords_icra_validation_content');
+  $ret[] = array('success' => TRUE, 'query' => 'Removed support for the IRCA PICS label meta tags. See <a href="http://www.icra.org/">http://www.icra.org/</a> for more information.');
+  return $ret;
+}

@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * Implements hook_update_N().
+ *
+ * Alter the module weight so that it fires after views_filters_selective, thus
+ * allowing us to hide the reset button if no filters are shown.
+ */
+function views_filters_reset_update_6001() {
+  $weight = db_result(db_query('SELECT weight FROM {system} WHERE name = "views_filters_selective"'));
+  if (empty($weight)) {
+    $weight = 0;
+  }
+  $ret = array();
+  $ret[] = update_sql('UPDATE {system} SET weight = %d WHERE name = "views_filters_reset"', $weight++);
+  return $ret;
+}
+

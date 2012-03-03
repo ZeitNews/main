@@ -1,0 +1,182 @@
+<?php
+// $Id: imce_crop.module,v 1.1.2.3 2010/10/09 06:17:12 ufku Exp $
+
+/**
+ * Implementation of hook_form_formID_alter().
+ */
+function imce_crop_form_imce_fileop_form_alter(&$form, &$form_state) {
+  $imce =& $form['#parameters'][2]['imce'];
+  if (imce_perm_exists($imce, 'crop')) {
+    $form['fset_crop'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Crop'),
+    ) + imce_crop_form($imce);
+    $path = drupal_get_path('module', 'imce_crop');
+    drupal_add_js($path .'/imce_crop.js');
+    drupal_add_css($path .'/imce_crop.css');
+  }
+}
+
+/**
+ * Implementation of hook_form_formID_alter().
+ */
+function imce_crop_form_imce_profile_form_alter(&$form, &$form_state) {
+  foreach (element_children($form['profile']['directories']) as $key) {
+    $form['profile']['directories'][$key]['crop'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Crop'),
+      '#default_value' => isset($form_state['profile']['directories'][$key]['crop']) ? $form_state['profile']['directories'][$key]['crop'] : 0,
+    );
+  }
+}
+
+/**
+ * Crop form.
+ */
+function imce_crop_form(&$imce) {
+  $form['crop_x'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Start from (X:Y)'),
+    '#size' => 4,
+    '#maxlength' => 4,
+    '#prefix' => '<div class="container-inline">',
+  );
+  $form['crop_y'] = array(
+    '#type' => 'textfield',
+    '#size' => 4,
+    '#maxlength' => 4,
+    '#prefix' => ':',
+    '#suffix' => '</div>',
+  );
+  $form['crop_width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Width x Height'),
+    '#size' => 4,
+    '#maxlength' => 4,
+    '#prefix' => '<div class="container-inline">',
+  );
+  $form['crop_height'] = array(
+    '#type' => 'textfield',
+    '#size' => 4,
+    '#maxlength' => 4,
+    '#prefix' => 'x',
+  );
+  $form['crop'] = array(
+    '#type' => 'submit',
+    '#value' => t('Crop'),
+    '#submit' => $imce['perm']['crop'] ? array('imce_crop_submit') : NULL,//permission for submission
+    '#suffix' => '</div>',
+  );
+  $form['crop_copy'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Create a new image'),
+    '#default_value' => 1,
+  );
+  return $form;
+}
+
+/**
+ * Submit crop form.
+ */
+function imce_crop_submit($form, &$form_state) {
+  $form_state['redirect'] = FALSE;
+  $imce =& $form['#parameters'][2]['imce'];
+
+  //check dimensions & coordinates
+  $x = (int) $form_state['values']['crop_x'];
+  $y = (int) $form_state['values']['crop_y'];
+  $width = (int) $form_state['values']['crop_width'];
+  $height = (int) $form_state['values']['crop_height'];
+
+  $cropped = imce_process_files($form_state['values']['filenames'], $imce, 'imce_crop_image', array($x, $y, $width, $height, $form_state['values']['crop_copy']));
+
+  if (!empty($cropped)) {
+    drupal_set_message(t('Image cropping successful: %files.', array('%files' => utf8_encode(implode(', ', $cropped)))));
+  }
+
+}
+
+/**
+ * Crop an image.
+ */
+function imce_crop_image($filename, &$imce, $x, $y, $width, $height, $copy = TRUE) {
+  $dirpath = file_directory_path() . ($imce['dir'] == '.' ? '' : '/'. $imce['dir']);
+  $filepath = $dirpath .'/'. $filename;
+
+  //check if the file is an image
+  if (!$imce['files'][$filename]['width']) {
+    drupal_set_message(t('%filename is not an image.', array('%filename' => utf8_encode($filename))), 'error', FALSE);
+    return FALSE;
+  }
+
+  //check boundaries
+  if ($x < 0 || $y < 0 || $width < 1 || $height < 1 || $imce['files'][$filename]['width'] < ($x + $width) || $imce['files'][$filename]['height'] < ($y + $height)) {
+    drupal_set_message(t('Crop must be inside the image boundaries.'), 'error', FALSE);
+    return FALSE;
+  }
+
+  //crop image to a temp file
+  $temp = tempnam(realpath(file_directory_temp()), 'imc');
+  register_shutdown_function('file_delete', $temp);
+  if (!image_crop($filepath, $temp, $x, $y, $width, $height)) {
+    drupal_set_message(t('%filename cannot be cropped.', array('%filename' => utf8_encode($filename))), 'error', FALSE);
+    return FALSE;
+  }
+
+  //create file object
+  $file = new stdClass();
+  $file->filepath = $copy ? file_create_filename($filename, $dirpath) : $filepath;
+  $file->filename = basename($file->filepath);
+  $overwrite = $file->filename == $filename;
+
+  //validate quota
+  $file->filesize = filesize($temp);
+  if (!imce_validate_quotas($file, $imce, $overwrite ? -$imce['files'][$filename]['size'] : 0)) {
+    return FALSE;
+  }
+
+  //copy from temp to filepath
+  if (!@copy($temp, $file->filepath)) {
+    drupal_set_message(t('The selected file %file could not be copied.', array('%file' => utf8_encode($file->filename))), 'error', FALSE);
+    return FALSE;
+  }
+  @chmod($file->filepath, 0664);
+
+  //build the rest of the file object
+  $img = imce_image_info($file->filepath);
+  $file->uid = $imce['uid'];
+  $file->filemime = $img['mime'];
+  $file->status = FILE_STATUS_PERMANENT;
+  $file->timestamp = time();
+
+  //if we are overwriting the file and it is already in database.
+  $update = array();
+  if ($overwrite && $_file = db_fetch_object(db_query("SELECT f.* FROM {files} f WHERE f.filepath = '%s'", $file->filepath))) {
+    $file->fid = $_file->fid;
+    $file->uid = $_file->uid;
+    $update[] = 'fid';
+  }
+
+  //save the file
+  drupal_write_record('files', $file, $update);
+  if (function_exists('imce_file_register')) {
+    imce_file_register($file);
+  }
+
+  //add to the list
+  $file->width = $img['width'];
+  $file->height = $img['height'];
+  imce_add_file($file, $imce);
+
+  return $file;
+}
+
+/**
+ * Ajax operation: crop
+ */
+function imce_js_crop(&$imce) {
+  if ($imce['perm']['crop']) {
+    $_POST['op'] = t('Crop');
+    return imce_process_fileop($imce);
+  }
+}

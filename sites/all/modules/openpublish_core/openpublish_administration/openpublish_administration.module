@@ -1,0 +1,400 @@
+<?php
+/**
+ * @file openpublish_administration.module
+ */
+/**
+ * Implementation of hook_init().
+ */
+function openpublish_administration_init() {  
+  global $custom_theme; 
+  
+  $admin_theme = variable_get('admin_theme', 'rubik');
+  
+  // Use the rubik theme for node/xxx/calais, as well.
+  if (variable_get('node_admin_theme', 0) && (arg(0) == 'node' && is_numeric(arg(1)) && arg(2) != NULL)) {
+    $custom_theme = $admin_theme;
+  }
+  
+  // Set an override CSS, we use theme and screen to make it appear last after things like admin/slate
+  drupal_add_css(drupal_get_path('module', 'openpublish_administration') . '/admin.css', 'theme', 'screen');  
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function openpublish_administration_form_alter(&$form, $form_state, $form_id) {
+  // Make mods to every node form
+  if ($form['#id'] == 'node-form') {
+    $form['menu']['#collapsed'] = TRUE;
+    $form['path']['#collapsed'] = TRUE;
+    
+    if (isset($form['morelikethis'])) {
+      $form['morelikethis']['#collapsed'] = TRUE;      
+    }
+    if (isset($form['flag'])) {
+      $form['flag']['#collapsed'] = TRUE;      
+    }
+    
+    // Hide the split summary button
+    if (!empty($form['body_field'])) {
+      $form['body_field']['teaser_js']['#type'] = 'hidden';
+      $form['body_field']['teaser_include']['#type'] = 'hidden';
+    }    
+  }
+}
+
+/**
+ * Implementation of hook_node_form_sidebar().
+ *
+ * This is an integration with the Slate theme of the Admin module.
+ */
+function openpublish_administration_node_form_sidebar($form, $node) {
+  return array(
+    //'field_op_article_author',
+    //'field_show_author_info',
+    'path', 
+    'options', 
+    'menu', 
+    'author', 
+    'revision_information', 
+    'comment_settings', 
+    'flag',
+    'scheduler_settings',
+    'op_workflow_settings',
+  );
+}
+
+/**
+ * Implementation of hook_menu_alter().
+ *
+ * Expose a few more items to the Admin Toolbar
+ */
+function openpublish_administration_menu_alter(&$items) {
+  // Hide the default node edit
+  $items['admin/content/node']['options']['admin'] = FALSE;
+  
+  // Enable the Content Management Filter
+  $items['admin/content/filter']['title'] = 'Find Content';
+  $items['admin/content/filter']['options']['admin'] = TRUE;
+  
+  // Enable Reports
+  $items['admin/reports']['options']['admin'] = TRUE;
+  $items['admin/reports/updates']['options']['admin'] = TRUE;
+  $items['admin/reports/status']['options']['admin'] = TRUE;
+  
+  // Enable OpenPublish API Page
+  $items['admin/settings/openpublish']['options']['admin'] = TRUE;    
+
+  // Other fixes
+  $items['admin/content/emfield']['title'] = 'Embedded Media';
+  
+  //Enable some often-used pathes, on the quick bar, for convenience:
+  $items['admin/content/taxonomy']['options']['admin'] = TRUE;    
+  $items['admin/content/topichubs']['options']['admin'] = TRUE;   
+  $items['admin/content/types']['options']['admin'] = TRUE; 
+  $items['admin/content/clearcache']['options']['admin'] = TRUE;   
+   
+  $items['admin/build/context']['options']['admin'] = TRUE;    
+  $items['admin/build/modules']['options']['admin'] = TRUE;    
+  $items['admin/build/features']['options']['admin'] = TRUE; 
+  $items['admin/build/panels']['options']['admin'] = TRUE;          
+    
+    //-- And if we have context, I guess we don't need blocks UI :)
+  $items['admin/build/block']['options']['admin'] = FALSE;      
+
+  $items['admin/help']['options']['admin'] = TRUE;
+  
+  $items['admin/user/roles']['options']['admin'] = TRUE;    
+
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function openpublish_administration_perm() {
+  return array('access openpublish admin pages', 'set api keys', 'clear all drupal cache');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function openpublish_administration_menu() {
+  $items = array();
+  
+  $items['admin/content/clearcache'] = array(
+    'title' => t('Clear cache'),
+    'page callback' => 'openpublish_administration_clear_cache',
+    'description' => t('Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.'),
+    'access arguments' => array('clear all drupal cache'),
+    'menu_name' => 'Clear Cache',
+  );
+  
+  $items['admin/settings/openpublish'] = array(
+    'title' => t('OpenPublish'),
+    'description' => t('Openpublish-related settings.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('openpublish_api_key_form'),
+    'access arguments' => array('set api keys'),
+  );  
+  $items['admin/settings/openpublish/api-keys'] = array(
+    'title' => t('OpenPublish API Keys'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('openpublish_api_key_form'),
+    'access arguments' => array('set api keys'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );    
+  $items['admin/settings/openpublish/content'] = array(
+    'title' => t('OpenPublish Content'),
+    'page callback' => '_openpublish_administration_content_menu_page',	
+    'access arguments' => array('access openpublish admin pages'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/settings/openpublish/clear-help'] = array(
+    'title' => t('Clear help message'),
+    'page callback' => 'openpublish_administration_clear_help',
+    'access arguments' => array('access openpublish admin pages'),
+    'type' => MENU_CALLBACK,
+  );  
+
+  // This is for help creating the install profile
+  $items['admin/settings/openpublish/export-perms'] = array(
+    'title' => t('Export System Permissions'),
+    'page callback' => '_openpublish_administration_export_perms',	
+    'access arguments' => array('administer permissions'),
+    'type' => MENU_CALLBACK,
+  );
+  
+  return $items;
+}
+
+/**
+* Implementation of hook_theme().
+*/
+function openpublish_administration_theme() {
+  return array(    
+    'admin_content_menu_page' => array(
+      'template' => 'admin-content-menu-page',      
+    ),
+  );
+}
+
+/**
+* Ability to flush all caches even if devel module is not installed (i.e. in production).
+*/
+function openpublish_administration_clear_cache() {
+
+  drupal_flush_all_caches();
+  drupal_set_message('Cache cleared.');
+  drupal_goto($_SERVER['HTTP_REFERER']);
+  
+}
+
+/**
+ * Setup the real homepage and redirect there.
+ */
+function openpublish_administration_clear_help() {
+  variable_set('openpublish_show_help', FALSE);
+  drupal_goto('<front>');
+}
+
+/**
+ * Display the OpenPublish "Dashboard" (please make this better).
+ */
+function _openpublish_administration_content_menu_page() {
+  return theme('admin_content_menu_page');  
+}
+
+/**
+ * Build a form which lists all of the various API keys required by services of some kind.
+ *
+ * @todo: Add Acquia?
+ * @todo: Add Contenture
+ * @todo: Add Quantcast
+ */
+function openpublish_api_key_form() {
+  $config = _openpublish_api_keys();
+  foreach ($config as $module => $settings) {
+    if(module_exists($module)) {
+      $form[$module] = array(
+        '#type'        => "fieldset",
+        '#title'       => $settings['#title'],
+        '#collapsible' => TRUE,
+        '#collapsed'   => FALSE,
+      );
+      
+      $keys = element_children($settings);
+      foreach ($keys as $key) {
+        $form[$module][$key] = array(
+          '#type'          => 'textfield',
+          '#default_value' => variable_get($key, ''),
+          '#size'          => 60,
+          '#maxlength'     => 255,
+        );
+        // Allow specific key settings to override the defaults
+        $form[$module][$key] = array_merge($form[$module][$key], $settings[$key]);
+      }
+    }
+  }
+
+  return system_settings_form($form);
+}
+
+/**
+ * Returns a structured array of all the API Keys OpenPublish could be expecting. This is used for 
+ * rendering a unified screen for API keys as well as for checking that all required keys have been 
+ * configured for modules that are enabled.
+ */
+function _openpublish_api_keys() {
+  
+  if ($keys = cache_get('openpublish_api_keys')) {
+    return $keys->data;
+  }
+  
+  $keys = array(
+    'calais_api' => array(
+      '#title' => t('Calais'),
+      'calais_api_key' => array(
+        '#title' => t('Calais API Key'),
+        '#description' => t('You need to obtain an API Key from the !calaisurl first', array('!calaisurl' => l(t('Calais Website'), 'http://www.opencalais.com/user/register'))),
+      ),
+    ),
+
+    'apture' => array(
+      '#title' => t('Apture'),
+      'apture_token' => array(
+        '#title' => t('Apture Site Token'),
+        '#description' => t("Paste Site Token provided by Apture when you register this site's domain in their system. 
+        You can also paste the entire code snippet they give you. Token will be automatically extracted."),
+      ),
+    ),
+
+    'flickrapi' => array(
+      '#title' => t('Flickr'),
+      'flickrapi_api_key' => array(
+        '#title' => t('Flickr API Key'),
+        '#description' => t('API Key from Flickr'),
+      ),
+      'flickrapi_api_secret' => array(
+        '#title' => t('Flickr API Shared Secret'),
+        '#description' => t("API key's secret from Flickr."),
+      ),
+    ),
+
+    'morelikethis_yboss' => array(
+      '#title' => t('Yahoo BOSS'),
+      'morelikethis_yboss_appid' => array(
+        '#title' => t('Yahoo BOSS Search App ID'),
+        '#description' => t('Enter a valid <a href="!url">Yahoo application ID</a>. This can be the same as the Yahoo BOSS Image Search App ID.', array("!url" => "http://developer.yahoo.com/wsregapp/")),
+      ),
+      'morelikethis_ybossimg_appid' => array(
+        '#title' => t('Yahoo BOSS Image Search App ID'),
+        '#description' => t('Enter a valid <a href="!url">Yahoo application ID</a>. This can be the same as the Yahoo BOSS Search App ID.', array("!url" => "http://developer.yahoo.com/wsregapp/")),
+      ),
+    ),
+
+    'gmap' => array(
+      '#title' => t('Google Maps'),
+      'googlemap_api_key' => array(
+        '#title' => t('Google Maps API Key'),
+        '#description' => t('Your personal Googlemaps API key. You must get this for each separate website at <a href="!url" target="_blank">Google Map API website</a>.', array("!url" => "http://code.google.com/apis/maps/index.html")),
+      ),
+    ),
+     
+    'mollom' => array(
+      '#title' => t('Mollom'),
+      'mollom_public_key' => array(
+        '#title' => t('Public Key'),
+        '#description' => t('The public key is used to uniquely identify you.'),
+      ),
+      'mollom_private_key' => array(
+        '#title' => t('Private Key'),
+        '#description' => t('The private key is used to prevent someone from hijacking your requests. Similar to a password, it should never be shared with anyone.'),
+      ),
+    ),
+  );  
+  
+  // Allow other modules to add to/modify the api key settings
+  drupal_alter('openpublish_api_keys', $keys);
+  
+  cache_set('openpublish_api_keys', $keys, 'cache', CACHE_TEMPORARY);
+  return $keys;
+} 
+ 
+/**
+* Generate menu in html so perms can be checked for display
+* @param op the operation from the URL
+* @param delta offset
+* @returns block HTML
+*/
+function openpublish_administration_block($op = 'list', $delta = 0) {
+  // listing of blocks, such as on the admin/block page
+  if ($op == "list") {
+    $block[0]["info"] = t('OpenPublish Menu');
+    return $block;
+  }
+  else if ($op == 'view') {    
+    $block['title'] = t('OpenPublish Control Panel');
+    $block['content'] .= _openpublish_administration_links();
+    return $block;
+  }
+}
+
+function _openpublish_administration_links() {
+  
+  $output = '<ul>';
+ 
+  $menu_link = menu_get_item('admin/settings/openpublish/api-keys'); 
+  if ($menu_link['access']) {
+    $output .= '<li>'.l(t('API Keys'), $menu_link['path']).'</li>';    
+  }
+  
+  $menu_link2 = menu_get_item('admin/settings/calais');
+  $menu_link3 = menu_get_item('admin/settings/morelikethis');
+  if ($menu_link2['accesss'] || $menu_link3['access'])  {
+    $output .= '<li>'.l(t('Calais Suite'), 'admin/settings/openpublish/calais-suite').'</li>';
+  }
+  
+  $menu_link4 = menu_get_item('admin/settings/openpublish/content');
+  if ($menu_link4['access']) {
+    $output .= '<li>'.l(t('OpenPublish Content Tools'), $menu_link4['path']).'</li>';
+  }  
+
+  $output .= '<li>'.l(t('Drupal Admin Screen'), 'admin').'<li>';
+  $output .= '</ul>';
+  
+  return $output;
+}
+  
+/**
+ * This function helps exporting all system permissions for inclusion into the install profile
+ */
+function _openpublish_administration_export_perms() {
+  
+  ctools_include('export');
+  
+  $code = "<?php\n";
+  $code .= "// This file was generated using admin/settings/openpublish/export-perms on " . date("r") . "\n\n";
+  $result = db_query("SELECT rid, name FROM {role} ORDER BY rid");  
+  while ($row = db_fetch_object($result)) {
+    $code .= "install_add_role('$row->name');\n";
+  }
+  $code .= "\n";
+
+  $allperms = array();
+  $result = db_query("SELECT p.rid, p.perm, r.name FROM {role} r INNER JOIN {permission} p ON p.rid = r.rid");  
+  while ($row = db_fetch_object($result)) {
+    $role_perms = explode(', ', $row->perm);
+    foreach ($role_perms as $perm) { 
+      $perm_roles = isset($allperms[$perm]) ? array_unique(array_merge(array($row->name), $allperms[$perm])) : array($row->name);
+      sort($perm_roles);
+      $allperms[$perm] = $perm_roles;
+    }
+  }
+  ksort($allperms, SORT_STRING);
+  
+  $code .= "\$openpublish_perms = " . ctools_var_export($allperms) . ';';
+
+  $output = drupal_get_form('ctools_export_form', $code, t('OpenPublish Permissions Export'));
+  return $output;
+}
+

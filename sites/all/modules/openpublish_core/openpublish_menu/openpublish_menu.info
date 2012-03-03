@@ -1,0 +1,11 @@
+; $Id: openpublish_menu.info,v 1.1.2.1 2010/07/01 19:16:18 inadarei Exp $
+name = OpenPublish Menu
+description = "Provide sub-menu functionality for OpenPublish"
+core = 6.x
+package = OpenPublish
+; Information added by drupal.org packaging script on 2010-12-03
+version = "6.x-1.20"
+core = "6.x"
+project = "openpublish_core"
+datestamp = "1291419993"
+

@@ -1,0 +1,23 @@
+core = "6.x"
+description = "OpenPublish Author Feature"
+features[content][] = "author-field_author_photo"
+features[content][] = "author-field_author_user"
+features[content][] = "author-field_op_author_jobtitle"
+features[ctools][] = "strongarm:strongarm:1"
+features[imagecache][] = "author_photo"
+features[node][] = "author"
+features[variable][] = "scheduler_author"
+features[variable][] = "scheduler_touch_author"
+features[views][] = "author_articles"
+features[views][] = "author_blogposts"
+features[views_api][] = "api:2"
+name = "OP Author"
+package = "Features"
+project = "op_author"
+
+; Information added by drupal.org packaging script on 2010-12-03
+version = "6.x-1.18"
+core = "6.x"
+project = "openpublish_features"
+datestamp = "1291420542"
+

@@ -1,0 +1,761 @@
+<?php
+/*
+  Copyright (C) 2008 by Phase2 Technology.
+  Author(s): Frank Febbraro, Irakli Nadareishvili
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY. See the LICENSE.txt file for more details.
+
+  $Id: topichubs.module,v 1.2.2.1 2009/09/02 12:00:20 inadarei Exp $
+*/
+/**
+ * @file
+ */
+ 
+define ('TOPICHUB_NO_RENDER_PLUGIN', 'TOPICHUB_NO_RENDER_PLUGIN');
+
+module_load_include('inc', 'topichubs', 'topichubs.plugins');
+
+/**
+* Determine the rendering plugin of topichubs. Returns FALSE if none
+* of the modules define a plugin;
+*/
+function topichubs_render_plugin() {
+  static $pluginName;
+  
+  if (empty($pluginName)) {
+    // Only one render plugin can be used at a time, so we are fetching the first one.
+    $plugins = module_implements('topichubs_render_plugin');
+    if (is_array($plugins) && sizeof($plugins)>0) {
+      $pluginName = $plugins[0];
+    }
+    else {
+      $pluginName = TOPICHUB_NO_RENDER_PLUGIN;
+    }
+  }
+
+  return ($pluginName!=TOPICHUB_NO_RENDER_PLUGIN) ? $pluginName : FALSE;
+}
+
+/**
+* We need to make sure pass-by-reference works, so we can't func_get_args
+**/
+function topichubs_render_invoke($hook, &$arg0=null, &$arg1=null, &$arg2=null, &$arg3=null) {
+  $render_plugin = topichubs_render_plugin();
+  if (!empty($render_plugin)) {
+    
+    $module = $render_plugin;
+
+    $function = $module .'_topichubs_render_'. $hook;
+    
+    $result = $function($arg0, $arg1, $arg2, $arg3);
+    return $result;        
+  } else {
+    return "#!#TH_RENDER_NO_IMPL#!#"; //None of the render implementation modules are enabled
+  }
+}
+
+/**
+ * Declare the views version we support (and provide views)
+ */
+function topichubs_views_api() {
+  return array(
+    'api' => 2.0,
+    'path' => drupal_get_path('module', 'topichubs') .'/views',
+  );
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function topichubs_perm() {
+  return array(
+    'administer topichubs',
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function topichubs_menu() {
+  $items = array();
+  $items['admin/content/topichubs'] = array(
+    'title' => 'Topic Hubs',
+    'description' => 'Topic Hubs',
+    'page callback' => 'topichubs_admin_overview',
+    'access arguments' =>  array('administer topichubs'),
+    'file' => 'topichubs.admin.inc',
+  );
+  $items['admin/content/topichubs/list'] = array(
+    'title' => 'List',
+    'description' => 'List all site Topic Hubs',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 10,
+  );
+  $items['admin/content/topichubs/hot'] = array(
+    'title' => 'Hot Topics',
+    'description' => 'What Topics are Hot.',
+    'page callback' => 'topichubs_hot_topics_page',
+    'access arguments' =>  array('administer topichubs'),
+    'file' => 'topichubs.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 15,
+  );
+  $items['admin/content/topichubs/settings'] = array(
+    'title' => t('Settings'),
+    'description' => 'Configuration for Topic Hubs.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('topichubs_settings'),
+    'access arguments' =>  array('administer topichubs'),
+    'file' => 'topichubs.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 20,
+  );
+  if (_get_panels_version() >= 6300 && !variable_get('topichubs_panel_update_run', 0)) {
+    $items['admin/content/topichubs/update'] = array(
+      'title' => t('Update'),
+      'description' => 'Update existing Topic Hubs from Panels 2 to Panels 3.',
+      'page callback' => 'topichubs_update_page',
+      'access arguments' =>  array('administer topichubs'),
+      'file' => 'topichubs.admin.inc',
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 25,
+    );
+   }
+  
+  $items['node/%node/topichub'] = array(
+    'title' => 'Topic Hub Configuration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('topichubs_config_form', 1),
+    'access callback' => 'topichubs_access',
+    'access arguments' => array(1),
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK
+  );
+
+  $items_render = topichubs_render_invoke('menu');
+
+  if(is_array($items_render)) {
+    $items = array_merge($items, $items_render);
+  }
+  
+  return $items;
+}
+
+/**
+ * Implementation of hook_access().
+ */
+function topichubs_access($node) {
+  return user_access('administer topichubs') && $node->type == 'topichub';
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function topichubs_theme() {
+  $themes = array();
+  
+  $themes['topichubs_config_form'] = array(
+    'arguments' => array('form' => array()),
+  );
+  
+  $plugins = topichubs_discover_plugins();
+  foreach ($plugins as $type => $definition) {
+    $themes["topichubs_{$type}"] = array(
+		  'pattern' => "topichubs_{$type}__",
+		  'arguments' => array('topichub' => NULL, 'items' => array()),
+		  'path' => $definition['theme path'],
+		  'template' => "topichubs-{$type}",
+    );
+  }
+  return $themes;
+}
+
+/**
+ * Implementation of hook_theme_registry_alter().
+ *
+ * This is so that it will look for the node-topichub.tpl.php file here too.
+ */
+function topichubs_theme_registry_alter(&$theme_registry) {
+  $modulepath = drupal_get_path('module', 'topichubs');
+  array_unshift($theme_registry['node']['theme paths'], $modulepath);
+}
+
+/**
+ * Implementation of hook_preprocess_node().
+ *
+ * This is so that it will look for the node-topichub-[nid].tpl.php
+ */
+function topichubs_preprocess_node(&$variables) {
+  $node = $variables['node'];
+  if($node->type == 'topichub') {
+    $variables['template_files'][] = 'node-' . $node->type . '-' . $node->nid;
+  }
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function topichubs_nodeapi(&$node, $op, $param3 = NULL, $param4 = NULL) {
+  if ($node->type == 'topichub') {
+    switch ($op) {
+      case 'prepare':
+        topichubs_render_invoke('load', $node);      
+      	// covers add coming from hot topic page.
+        if (arg(1) == 'add' && isset($_GET['tid'])) {
+          $tid = $_GET['tid'];
+          $term = taxonomy_get_term($tid);
+          $node->title = "{$term->name} Topic Hub";
+          $node->topichub_tid = $tid;
+        }
+        break;
+      case 'load':
+        topichub_load($node);
+        topichubs_render_invoke('load', $node);              
+        break;
+      case 'validate':
+        topichubs_render_invoke('validate', $node);
+        break;
+      case 'insert': 
+        if(property_exists($node, 'topichub_tid')) {
+          $node->topichub->conditions = array(array($node->topichub_tid));
+          topichub_insert($node);
+        }
+        // Since calling topichub_insert is conditional, we have to call this outside that function
+        // This does a redirect too, so cal it last
+        topichubs_render_invoke('insert', $node);
+        break;      
+      case 'update':
+        topichubs_render_invoke('update', $node);
+        break;
+      case 'delete':
+        topichubs_render_invoke('delete', $node);                    
+        topichub_delete($node->nid);
+        break;
+      case 'view':
+        if(topichub_is_initialized($node)) {
+          $res = topichubs_render_invoke('view', $node);
+          if ($res == '#!#TH_RENDER_NO_IMPL#!#') { //default, TPL_based implementationvai 
+            $path = drupal_get_path('module', 'topichubs');
+            drupal_add_css("$path/topichubs.css");
+            topichub_view($node);
+          }
+        }
+        else {
+          drupal_set_message(t('Topic Hub not initialized. Please !config.', array('!config' => l('configure an expression',  "node/{$node->nid}/topichub"))));
+        }
+        break;
+    }
+    
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy().
+ *
+ * Make sure deleted terms are removed from existing expressions
+ */
+function topichubs_taxonomy($op, $type, $data) {
+  if($op == 'delete' && $type == 'term') {
+    topichub_term_delete($data['tid']);
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * If we are creating a Topic Hub form a Taxonomy Term, set the value for save processing
+ */
+function topichubs_form_alter(&$form, $form_state, $form_id) {
+  if($form_id == 'topichub_node_form'){
+    $node = $form['#node'];
+    if($node->topichub_tid) {
+      $form['topichub_tid'] = array(
+        '#type' => 'hidden',
+        '#value' => $node->topichub_tid,
+      );
+    }
+    
+    topichubs_render_invoke('form', $node, $form);    
+  }
+}
+
+/**
+ * Determine if a topichub has any conditions setup.
+ */
+function topichub_is_initialized($node) {
+  if(is_numeric($node)) {
+    $node = node_load($node);
+  }
+  else if (is_object($node) && is_numeric($node->nid)) {
+    return !empty($node->topichub->conditions);
+  }
+  
+  return FALSE;
+}
+
+
+/**
+ * Lookup topichub data from the DB
+ *
+ * @param $node
+ *      The node to load with configuration. It will populate an object property of <em>topichub</em> 
+ *      with the taxonomy expression and plugin configuration.
+ */
+function topichub_load(&$node) {
+  $result = db_query('SELECT * FROM {topichub} WHERE nid = %d', $node->nid);
+  if ($topichub = db_fetch_object($result)) {
+    $node->topichub = $topichub;
+    $node->topichub->config = unserialize($topichub->config);
+    $node->topichub->conditions = topichub_load_conditions($node->nid);  
+  }
+}
+
+/**
+ * Lookup topichub condition from the DB
+ *
+ * @param $nid
+ *      The node id to load the conditions.
+ */
+function topichub_load_conditions($nid) {
+  $result = db_query('SELECT * FROM {topichub_condition} WHERE nid = %d ORDER BY `condition` ASC, tcid ASC', $nid);
+  $conditions = array();
+  while($cond = db_fetch_object($result)) {
+    $conditions[$cond->condition][] = $cond->tid;
+  }
+  return $conditions;
+}
+
+/**
+ * Load all topichub data from providers.
+ *
+ * @param $node
+ *      The node to load with data. It should have an object property of <em>topichub</em> which
+ *      will get populated with a <em>data</em> array.
+ */
+function topichub_view(&$node) {  
+  $plugins = topichubs_discover_plugins();
+  foreach ($plugins as $type => $def) {
+    $impl = _topichubs_new_handler_class($def);
+    if($impl) {
+      $impl->init($type, $def, $node, $node->topichub->config[$type]);
+      $node->topichub->data[$type] = $impl->execute();
+    }
+  }
+
+  return $node;
+}
+
+/**
+ * Insert topichub data.
+ *
+ * @param $node
+ *      The node to persist. It should have an object property of <em>topichub</em>
+ */
+function topichub_insert($node) {
+  db_query("INSERT INTO {topichub} (nid, config) VALUES (%d, %b)", $node->nid, serialize($node->topichub->config));
+  topichub_insert_conditions($node->nid, $node->topichub->conditions);
+}
+
+/**
+ * Update topichub data.
+ *
+ * @param $node
+ *      The node to persist. It should have an object property of <em>topichub</em>
+ */
+function topichub_update($node) {
+  db_query("UPDATE {topichub} SET config = %b WHERE nid = %d", serialize($node->topichub->config), $node->nid);
+  topichub_insert_conditions($node->nid, $node->topichub->conditions);
+}
+
+/**
+ * Insert condition data for the topichub expression.
+ *
+ * @param $nid
+ *    Node ID
+ * @param $conditions
+ *    Array of conditions and term IDs for each condition
+ */
+function topichub_insert_conditions($nid, $conditions) {
+  db_query("DELETE FROM {topichub_condition} WHERE nid = %d", $nid);
+  foreach($conditions as $key => $tids) {
+    foreach($tids as $tid) {
+      db_query("INSERT INTO {topichub_condition} (nid, `condition`, tid) VALUES (%d, %d, %d)", $nid, $key, $tid);
+    }
+  }
+}
+
+/**
+ * Remove topichub data.
+ *
+ * @param $nid
+ *      The node to delete
+ */
+function topichub_delete($nid) {
+  db_query("DELETE FROM {topichub} WHERE nid = %d", $nid);
+  db_query("DELETE FROM {topichub_condition} WHERE nid = %d", $nid);
+}
+
+/**
+ * Topichub remove term from conditions. We also need to load the conditions and reorder them
+ * b/c the first condition might have only 1 term and if we remove it conditions woudl start ordering @ 1.
+ *
+ * @param $nid
+ *      The node to delete
+ */
+function topichub_term_delete($tid) {
+  $result = db_query("SELECT DISTINCT(nid) FROM {topichub_condition} WHERE tid = %d", $tid);
+  db_query("DELETE FROM {topichub_condition} WHERE tid = %d", $tid);
+  while($cond = db_fetch_object($result)) {
+    $conditions = topichub_load_conditions($cond->nid);
+    $conditions = array_merge($conditions);
+    topichub_insert_conditions($cond->nid, $conditions);
+  }
+}
+
+/**
+ * Form for configuring a Topic Hub.  
+ * This form allows for the building of a taxonomy
+ * expression (in conjunction with topichubs.js). It also provides the configuration
+ * options for each of the enabled Topic Hub plugins.
+ */
+function topichubs_config_form(&$form_state, $node) {
+  $path = drupal_get_path('module', 'topichubs');
+  drupal_add_css("$path/topichubs-admin.css");
+  drupal_add_js("$path/topichubs.js");
+
+  // Add image as an array so the JS can always use [0]. Somethign wierd was happening where
+  // the multistep form was setting this value twice and causign the JS to barf when adding
+  // a term to the UI. This way it is always an array and even if there are many, [0] works.
+  drupal_add_js(array(
+    'topichubs' => array(
+      'delete_img' => array(theme('image', "$path/images/delete.gif")),
+    )
+  ), 'setting');
+
+  topichub_load($node);
+  
+  $form = array();
+  $form['#node'] = $node;
+  $form['nid'] = array(
+    '#type' => 'hidden',
+    '#value' => $node->nid,
+  );
+  
+  _topichub_plugin_expression_form($form, $form_state, $node);
+  _topichub_plugin_config_form($form, $form_state, $node);
+
+  $form['#tree'] = TRUE;
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  
+  return $form;
+}
+
+/**
+ * Render the Topic Hub Expression Builder form.
+ */
+function _topichub_plugin_expression_form(&$form, &$form_state, $node) {
+  $conditions = $form_state['storage']['conditions'];   
+  if(!isset($conditions)) {
+    $conditions = array();
+    if(is_array($node->topichub->conditions)) {
+      foreach($node->topichub->conditions as $cond => $tids) {
+        $conditions[$cond] = implode(',', $tids);
+      }
+    }
+  } 
+      
+  $form['expression']['help'] = array(
+    '#type' => 'markup',
+    '#value' => t('Content meeting any of the following conditions will be included in this Topic Hub. <b>Adding multiple terms</b> will make a specific condition more stringent. <b>Adding conditions</b> will broaden the context of your Topic Hub by increasing the likelyhood of matching. Be careful, large expressions can have a significant performance penalty.'),
+  );
+      
+  $form['expression']['buttons']['add_condition'] = array(
+    '#type' => 'submit',
+    '#value' => t('New Condition'),
+    '#submit' => array('topichubs_config_form_add_condition'),
+    '#skip_validate' => TRUE,
+  );  
+  
+  $vocab_options = array('' => '<select>');
+  $options = array();
+  $vocabs = taxonomy_get_vocabularies();
+  foreach ($vocabs as $vocab) {
+    $tree = taxonomy_get_tree($vocab->vid);
+    if ($tree) {
+      $vocab_options[$vocab->vid] = $vocab->name;
+      foreach ($tree as $term) {
+        $options[$vocab->vid][$term->tid] = $term->name;
+      }
+    }
+  }  
+
+  $form['expression']['taxonomy'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Add a Term to an existing Condition'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['expression']['taxonomy']['pre'] = array(
+    '#value' => '<div id="condition-builder" class="clear-block">',
+  );        
+  
+  $form['expression']['taxonomy']['vocab'] = array(
+    '#type' => 'select',
+    '#title' => t('Choose a Vocabulary'),
+    '#value' => '',
+    '#options' => $vocab_options,
+    '#attributes' => array('id' => 'vocabulary-selector'),
+  );
+  
+  foreach($options as $vid => $terms) {
+    $form['expression']['taxonomy']['term'][$vid] = array(
+      '#type' => 'select',
+      '#title' => t('@vocab Terms', array('@vocab' => $vocab_options[$vid])),
+      '#options' => $terms,
+      '#attributes' => array('id' => "term-{$vid}-selector"),
+      '#prefix' => "<div id='terms-{$vid}-selector-wrapper' class='topichub-term-selector'>",
+      '#suffix' => '</div>',
+    );
+  }
+  
+  $condition_options = array('' => '<select>');
+  $conditionKeys = array_keys($conditions);
+  foreach ($conditionKeys as $key) {
+    $condition_options[$key] = t("Condition @num", array('@num' => ($key+1)));
+  }
+  $form['expression']['taxonomy']['condition'] = array(
+    '#type' => 'select',
+    '#title' => t('Condition'),
+    '#value' => '',
+    '#attributes' => array('id' => "condition-selector"),
+    '#options' => $condition_options,
+  );
+  $form['expression']['taxonomy']['add'] = array(
+    '#value' => '<a id="topichub-add-term" href="javascript:void(0);">' . t('Add Term') . '</a>',
+    '#prefix' => "<div id='add-term'>",
+    '#suffix' => '</div>',
+  );
+  
+  $form['expression']['taxonomy']['post'] = array(
+    '#value' => '</div>',
+  );        
+  
+  // Hide the condition builder if there are no conditions
+  if(count($conditions) == 0) {
+    $form['expression']['taxonomy']['#attributes'] = array('style' => "display:none;");
+  }
+  
+  foreach ($conditions as $conditionKey => $tids) {
+    $form['expression']['condition'][$conditionKey] = array(
+      '#type' => 'fieldset',
+      '#title' => t("Condition @num", array('@num' => ($conditionKey + 1))),
+      '#collapsible' => FALSE,
+      '#collapsed' => FALSE,
+      '#tree' => TRUE,
+      '#attributes' => array('id' => "condition-wrapper-{$conditionKey}"),
+      '#prefix' => '<div class="clear-block">',
+      '#suffix' => '</div>',
+    );
+    if($conditionKey + 1 < count($conditions)) {
+      $form['expression']['condition'][$conditionKey]['#suffix'] .= '<div class="operator">' . t('OR') . '</div>';
+    }
+    $form['expression']['condition'][$conditionKey]['remove'] = array(
+      '#type' => 'submit',
+      '#value' => t('Remove Condition @num', array('@num' => ($conditionKey + 1))),
+      '#submit' => array('topichubs_config_form_remove_condition'),
+      '#prefix' => '<div class="remove-condition">',
+      '#suffix' => '</div>',
+      '#skip_validate' => TRUE,
+      '#condition' => $conditionKey,
+    );
+    $path = drupal_get_path('module', 'topichubs');
+    $delete_img = theme('image', "$path/images/delete.gif");
+    $tids_array = empty($tids) ? array() : explode(',', $tids);
+    foreach($tids_array as $index => $tid) {
+      $term = taxonomy_get_term($tid);
+      $vocab = taxonomy_vocabulary_load($term->vid);
+      $operator = ($index > 0) ? '<span class="operator">' . t('AND') . '</span>' : '';
+      $form['expression']['condition'][$conditionKey][] = array(
+        '#value' => "<span class='vocab-name'>" . $vocab->name . "</span>: <span class='term-name'>" . $term->name . '</span>',
+        '#prefix' => '<span class="condition-term">' . $operator,
+        '#suffix' => "<a class='topichub-term-remove' href='javascript:void(0);' title='Remove' tid='{$tid}' condition='{$conditionKey}'>{$delete_img}</a></span>",
+      );
+    }
+    // FAPI does not allow for overriding ID of hidden via #attributes
+    $form['expression']['conditions'][$conditionKey] = array(
+      '#type' => 'hidden',
+      '#default_value' => $tids,
+      '#id' => "conditions-{$conditionKey}",
+    );
+  }  
+    
+}
+
+/**
+ * Render the Topic Hub Plugin configuration form.
+ */
+function _topichub_plugin_config_form(&$form, &$form_state, $node) {
+
+  $config = $form_state['storage']['config'];   
+  if(!isset($config)) {
+    $config = $node->topichub->config;
+  } 
+  
+  $plugins = topichubs_discover_plugins();
+  foreach ($plugins as $type => $def) {
+    $impl = _topichubs_new_handler_class($def);
+    if($impl) {
+      $impl->init($type, $def, $node, $config[$type]);
+      $impl->build_form('options', $form['config'], $form_state);
+    }
+  }
+}
+
+/**
+ * Validate handler for the Topic Hub configuration.
+ */
+function topichubs_config_form_validate($form, &$form_state) {
+  
+  if(!$form_state['clicked_button']['#skip_validate']) {
+    $node = $form['#node'];
+
+    $conditions = $form_state['values']['expression']['conditions'];
+    if(isset($conditions)) {
+      foreach($conditions as $key => $terms) {
+        if(empty($terms)) {
+          form_set_error("condition-$key", t('Condition @num cannot be empty.', array('@num' => ($key + 1))));
+        }
+      }
+    }
+    
+    $config = $form_state['values']['config'];
+    $plugins = topichubs_discover_plugins();
+    foreach ($plugins as $type => $def) {
+      $impl = _topichubs_new_handler_class($def);
+      if($impl) {
+        $impl->init($type, $def, $node, $config[$type]);
+        $impl->options_validate($node, $form);
+      }
+    }
+  }  
+}
+
+
+/**
+ * Submit handler for the Topic Hub configuration.
+ */
+function topichubs_config_form_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  
+  $node = new stdClass;
+  $node->nid = $values['nid'];
+  topichub_load($node);
+   
+  $save_function = 'topichub_update';
+  if(!$node->topichub) {
+    $node->topichub = new stdClass;
+    $save_function = 'topichub_insert';
+  }
+  
+  $conditions = $values['expression']['conditions'];
+  foreach($conditions as $key => $tids) {
+    $conditions[$key] = empty($tids) ? array() : explode(',', $tids);
+  }
+  
+  $node->topichub->config = $values['config'];
+  $node->topichub->conditions = $conditions;
+  $save_function($node);
+    
+  unset($form_state['storage']); // Otherwise redirect won't work, it will just rebuild
+  $form_state['redirect'] = "node/{$node->nid}";
+}
+
+/**
+ * Handle the Add Condition button. Adds a new condition and saves them away for form rebuild
+ */
+function topichubs_config_form_add_condition($form, &$form_state) {
+
+  $conditions = $form_state['values']['expression']['conditions'];
+  if(!isset($conditions)) {
+    $conditions = array();
+  }  
+  array_push($conditions, '');  
+  $form_state['storage']['conditions'] = $conditions;
+  $form_state['storage']['config'] = $form_state['values']['config'];
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Handle the Remove Condition button. Removes and existing condition and saves them away for form rebuild
+ */
+function topichubs_config_form_remove_condition($form, &$form_state) {
+  $removeKey = $form_state['clicked_button']['#condition'];
+  $conditions = $form_state['values']['expression']['conditions'];
+  if(isset($conditions)) {
+    unset($conditions[$removeKey]);
+    $conditions = array_merge($conditions); //reorder keys
+  }  
+  $form_state['storage']['conditions'] = $conditions;
+  $form_state['storage']['config'] = $form_state['values']['config'];
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Lookup installed version of panels
+ * @return int
+ *    version
+ */
+ function _get_panels_version() {
+   return db_result(db_query("SELECT schema_version from {system} where name = 'panels'"));
+ }
+
+
+/**
+ * Theme the Topic Hub Config form.
+ */
+function theme_topichubs_config_form($form) {
+  $output = '<div id="topichub-config">';
+  $output .= '<h3>' . t('Topic Hub Expression') . '</h3>';
+  $output .= drupal_render($form['expression']['help']);
+  $output .= "<div>";
+  $output .= drupal_render($form['expression']['buttons']);
+  $output .= "</div>";
+  $output .= drupal_render($form['expression']['taxonomy']);
+  $output .= drupal_render($form['expression']['condition']);
+  $output .= '<h3>' . t('Plugin Configuration') . '</h3>';
+  $config = &$form['config'];
+  foreach(element_children($config) as $index => $type) {
+    $labels[] .= "<div id='plugin-{$type}' class='plugin-label'>" . $config[$type]['#title'] . '</div>';    
+    $settings[] .= "<div id='plugin-{$type}-form' class='plugin-settings'>" . drupal_render($config[$type]) . '</div>';    
+  }
+  $labels[] .= '<div class="plugin-label-bottom">&nbsp;</div>';
+
+  $header = array(
+    t('Plugin'),
+    t('Configuration'),
+  );
+  $rows = array(
+    array(
+      array(
+        'data' => implode($labels), 
+        'class' => 'topichub-plugin-labels'
+      ), 
+      array(
+        'data' => implode($settings),
+        'class' => 'topichub-plugin-settings'
+      ),
+    ),
+  );
+  $output .= theme('table', $header, $rows, array('class' => 'topichub-plugin-config'));
+
+  $output .= drupal_render($form);
+  $output .= '</div>';
+  return $output;
+}

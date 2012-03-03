@@ -1,0 +1,15 @@
+<?php
+//$Id: topichubs_related_topics.module,v 1.1.2.1 2009/09/02 12:00:21 inadarei Exp $
+
+/**
+ * Implementation of hook_topichubs_plugins().
+ */
+function topichubs_related_topics_topichubs_plugins() {
+  return array(
+    'related_topics' => array(
+      'title' => 'Related Topics',
+      'description' => 'Other Topic Hubs that are related.',
+      'handler' => 'topichubs_plugin_related_topics',
+    ),
+  );
+}

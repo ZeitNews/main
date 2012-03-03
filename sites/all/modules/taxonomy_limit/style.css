@@ -1,0 +1,16 @@
+.taxonomy_limit_types {
+  width: 600px;
+  border-bottom: 1px dotted silver;
+}
+
+.taxonomy_limit_types .form-item{
+  margin: 2px 0 2px 0;
+}
+
+.taxonomy_limit_types label {
+  text-align: right;
+  margin-right: 5px;
+  margin-top: 3px;
+  width: 200px;
+  float: left;
+}

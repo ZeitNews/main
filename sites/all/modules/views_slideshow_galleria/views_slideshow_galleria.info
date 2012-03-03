@@ -1,0 +1,14 @@
+
+name = Views Slideshow: Galleria
+description = Provides integration between the Galleria plugin and Views Slideshow.
+core = 6.x
+package = Views
+dependencies[] = views_slideshow
+dependencies[] = jquery_update
+
+; Information added by drupal.org packaging script on 2011-03-14
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "views_slideshow_galleria"
+datestamp = "1300104981"
+

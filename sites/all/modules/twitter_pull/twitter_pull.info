@@ -1,0 +1,12 @@
+; $Id: twitter_pull.info,v 1.1.2.1 2010/04/02 17:01:56 detour Exp $
+name = Twitter Pull
+description = Pull Info from Twitter and Create Contextual Insets
+package = Other
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-01-11
+version = "6.x-1.2"
+core = "6.x"
+project = "twitter_pull"
+datestamp = "1294720891"
+

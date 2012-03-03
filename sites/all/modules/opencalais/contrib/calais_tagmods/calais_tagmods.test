@@ -1,0 +1,67 @@
+<?php
+
+class CalaisTagmodsTestCase extends DrupalWebTestCase {
+
+	function setUp() {
+		parent::setUp('calais_api', 'calais', 'calais_tagmods');
+		
+		// Create and login user
+    $admin_user = $this->drupalCreateUser(array('administer taxonomy'));
+    $this->drupalLogin($admin_user);
+	}
+
+	function tearDown() {
+		parent::tearDown();
+	}
+
+	function createVocabulary() {
+		$vocab = array();
+	  $vocab['name'] = $this->randomName(20);
+    taxonomy_save_vocabulary($vocab);
+		return $vocab;
+	}
+	
+	function createTerm($vid) {
+		$term = array();
+		$term['vid'] = $vid;
+	  $term['name'] = $this->randomName(30);
+		$term['description'] = $this->randomName(200);
+    taxonomy_save_term($term);
+		return $term;
+	}
+}
+
+class CalaisTagmodsRenameTestCase extends CalaisTagmodsTestCase {
+
+  function getInfo() {
+    return array(
+      'name' => t('Rename Taxonomy Term Test'),
+      'description' => t('Verify that the rename propertly renames a Taxonomy & Calais term.'),
+      'group' => t('Calais')
+    );
+  }
+
+	function testRename() {
+		$vocab = $this->createVocabulary();
+		$term = $this->createTerm($vocab['vid']);
+    taxonomy_save_term($term);
+
+		$calais_term = new CalaisTerm($this->randomName(100), $term['name']);
+		$calais_term->tdid = $term['tid'];
+		calais_save_term($calais_term);
+
+    $rename = $this->randomName(30);
+		$calais_term->name = $rename;
+
+    _calais_tagmods_rename_term($calais_term);    
+		
+		$foundct = calais_get_term(NULL, $calais_term->tid);
+		$this->assertEqual($rename, $foundct->name, 'CalaisTerm was renamed');
+		
+		$foundtt = taxonomy_get_term($term['tid']);
+		$this->assertEqual($rename, $foundtt->name, 'TaxonomyTerm was renamed');
+
+		// $name = db_result(db_query('SELECT name FROM {term_data} WHERE tid = %d', $term['tid']));
+		// $this->assertEqual($name, $calais_term->value, 'Taxonomy Term name matches CalaisTerm');
+	}
+}

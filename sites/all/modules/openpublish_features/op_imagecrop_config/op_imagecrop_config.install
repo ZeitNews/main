@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function op_imagecrop_config_install() {
+  /**
+   * Despite the presets being exported to code, imagecrop needs them in the DB for it to work.
+   */
+  
+  $presets = array(
+    'author_photo' => array('presetname' => 'author_photo'),
+    '400xY' => array('presetname' => '400xY'),
+  );
+  
+  // author_photo
+  $preset = imagecache_preset_save($presets['author_photo']);
+  
+  $actions = array(
+    '0' => array(
+      'presetid' => $preset['presetid'],
+      'weight' => '0',
+      'module' => 'imagecrop',
+      'action' => 'imagecrop_javascript',
+      'data' => array(
+        'width' => '70',
+        'height' => '70',
+        'xoffset' => 'center',
+        'yoffset' => 'center',
+        'resizable' => 1,
+        'disable_if_no_data' => 1,
+      ),
+    ),
+    '1' => array(
+      'presetid' => $preset['presetid'],
+      'weight' => '0',
+      'module' => 'imagecache',
+      'action' => 'imagecache_scale',
+      'data' => array(
+        'width' => '70',
+        'height' => '',
+        'upscale' => 1,
+      ),
+    ),
+  );
+  
+  foreach ($actions as $action) {
+    imagecache_action_save($action);
+  }
+  
+  // 400xY
+  $preset = imagecache_preset_save($presets['400xY']);
+  
+  $actions = array(
+    '0' => array(
+      'presetid' => $preset['presetid'],
+      'weight' => '-1',
+      'module' => 'imagecrop',
+      'action' => 'imagecrop_javascript',
+      'data' => array(
+        'width' => '400',
+        'height' => '200',
+        'xoffset' => 'center',
+        'yoffset' => 'center',
+        'resizable' => 1,
+        'disable_if_no_data' => 1,
+      ),
+    ),
+    '1' => array(
+      'presetid' => $preset['presetid'],
+      'weight' => '0',
+      'module' => 'imagecache',
+      'action' => 'imagecache_scale',
+      'data' => array(
+        'width' => '400',
+        'height' => '',
+        'upscale' => 1,
+      ),
+    ),
+  );
+  
+  foreach ($actions as $action) {
+    imagecache_action_save($action);
+  }
+
+}

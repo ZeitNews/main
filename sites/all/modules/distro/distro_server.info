@@ -1,0 +1,13 @@
+; $Id: distro_server.info,v 1.1.2.1 2009/11/11 11:05:41 inadarei Exp $
+name = Distro Server
+description = Distribution Management Server
+package = Distro
+dependencies[] = update
+core = 6.x
+php = 5.2
+; Information added by drupal.org packaging script on 2009-12-03
+version = "6.x-1.0-rc1"
+core = "6.x"
+project = "distro"
+datestamp = "1259861124"
+

@@ -1,0 +1,12 @@
+;$Id;
+name = "Image Caption"
+description = "Provides a caption for images using jquery."
+core = "6.x"
+php = "4.7"
+version = "6.x-1.0"
+; Information added by drupal.org packaging script on 2010-02-03
+version = "6.x-2.5"
+core = "6.x"
+project = "image_caption"
+datestamp = "1265184017"
+

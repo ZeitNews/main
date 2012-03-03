@@ -1,0 +1,9 @@
+<?php
+
+/*
+* @File module file for OP Author feature
+*/
+
+include_once('op_author.features.inc');
+
+include_once(dirname(__FILE__) . '/includes/theme.inc');

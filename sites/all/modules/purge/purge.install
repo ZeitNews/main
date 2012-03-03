@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * Purge install requirements and uninstall code.
+ */
+
+/**
+ * Implementation of hook_requirements().
+ */
+function purge_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break at install time
+  $t = get_t();
+  if ($phase == 'install') {
+    // Check if curl is installed and block installation if it is not
+    if (!extension_loaded('curl')) {
+      $requirements['purge'] = array(
+        'description' => $t('PHP curl extension not enabled. See http://php.net/manual/en/curl.installation.php'),
+        'severity' => REQUIREMENT_ERROR
+      );
+    }
+  }
+  return $requirements;
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function purge_uninstall() {
+  // Clean up the settings variable
+  variable_del('purge_proxy_urls');
+}

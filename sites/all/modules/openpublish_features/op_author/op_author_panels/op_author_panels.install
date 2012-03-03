@@ -1,0 +1,31 @@
+<?php
+
+// $id: $
+
+/**
+ * @file
+ * OP Author Panels install script.
+ */
+
+function op_author_panels_enable() {  
+  
+  //-- Enable page overrides for node view.
+  
+  module_load_include('inc', 'page_manager', 'page_manager.admin');    
+  $page = page_manager_cache_load('node_view');
+  
+    // Attention: Can't call page_manager_enable_page(FALSE, 0, $page); because it includes redirect :(
+  
+  if ($function = ctools_plugin_get_function($page->subtask, 'enable callback')) {
+    $result = $function($page, FALSE);
+    menu_rebuild();
+  
+    // We want to re-cache this if it's changed so that status is properly
+    // updated on the changed form.
+    if (!empty($cache->changed)) {
+      page_manager_set_page_cache($cache);
+    }
+  }
+
+
+}

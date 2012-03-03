@@ -1,0 +1,12 @@
+name = Views Field View
+description = 'Embeds a view into a view as field'
+package = Views
+dependencies[] = views
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-09-16
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "views_field_view"
+datestamp = "1316134788"
+

@@ -1,0 +1,93 @@
+<?php
+function semantic_cck_update_6101(&$sandbox) {
+  $setting_names = array('semantic_cck_field_element', 'semantic_cck_field_class',
+    'semantic_cck_label_element_above', 'semantic_cck_label_class_above',
+    'semantic_cck_label_class_inline','semantic_cck_label_suffix_above',
+    'semantic_cck_label_suffix_inline', 'semantic_cck_label_element_inline',
+    'semantic_cck_multiple_items_element', 'semantic_cck_multiple_items_class',
+    'semantic_cck_multiple_item_element', 'semantic_cck_multiple_item_class',
+    'semantic_cck_use_singlevalue_settings', 'semantic_cck_single_item_element',
+    'semantic_cck_single_item_class', 'semantic_cck_last_every_nth',
+    'semantic_cck_first_class', 'semantic_cck_last_class',
+    'semantic_cck_striping_classes');
+
+  drupal_load('module', 'content');
+
+  $ret = array();
+
+  // Grab the list of fields to update.
+  $context['sandbox']['fields'] = array();
+  $context['sandbox']['widgets'] = array();
+  $results = db_query("SELECT * FROM {content_node_field}");
+  while ($field = db_fetch_array($results)) {
+    $field['global_settings'] = unserialize($field['global_settings']);
+    $context['sandbox']['fields'][$field['field_name']] = $field;
+  }
+
+  $results = db_query("SELECT * FROM {content_node_field_instance}");
+  while($widget = db_fetch_array($results)) {
+    $widget['widget_settings'] = unserialize($widget['widget_settings']);
+    $widget['display_settings'] = unserialize($widget['display_settings']);
+    $context['sandbox']['widgets'][] = $widget;
+  }
+
+  // Update the global field settings.
+  foreach ($context['sandbox']['fields'] as $field) {
+    if (!isset($field['global_settings']['semantic_cck_use_semantic_output'])) {
+      continue;
+    }
+
+    $field['global_settings']['semantic_cck_field_settings'] = array(
+      'enabled' => 0,
+    );
+
+    if ($field['global_settings']['semantic_cck_use_semantic_output']) {
+      $field['global_settings']['semantic_cck_field_settings']['enabled'] = $field['global_settings']['semantic_cck_use_semantic_output'];
+
+      foreach ($setting_names as $setting_name) {
+        if (isset($field['global_settings'][$setting_name])) {
+          $field['global_settings']['semantic_cck_field_settings'][str_replace('semantic_cck_', '', $setting_name)] = $field['global_settings'][$setting_name];
+        }
+      }
+    }
+
+    unset($field['global_settings']['semantic_cck_use_semantic_output']);
+    foreach ($setting_names as $setting_name) {
+      unset($field['global_settings'][$setting_name]);
+    }
+
+    db_query("UPDATE {content_node_field} SET global_settings = '%s' WHERE field_name = '%s'", serialize($field['global_settings']), $field['field_name']);
+  }
+
+  // Update the settings for each field instance.
+  foreach ($context['sandbox']['widgets'] as $widget) {
+    if (!isset($widget['widget_settings']['semantic_cck_use_semantic_instance'])) {
+      continue;
+    }
+
+    $widget['widget_settings']['semantic_cck_widget_settings'] = array(
+      'use_widget_settings' => 0,
+    );
+
+    if ($widget['widget_settings']['semantic_cck_use_semantic_instance']) {
+      $widget['widget_settings']['semantic_cck_widget_settings']['use_widget_settings'] = $widget['widget_settings']['semantic_cck_use_semantic_instance'];
+
+      foreach ($setting_names as $setting_name) {
+        if (isset($widget['widget_settings'][$setting_name])) {
+          $widget['widget_settings']['semantic_cck_widget_settings'][str_replace('semantic_cck_', '', $setting_name)] = $widget['widget_settings'][$setting_name];
+        }
+      }
+    }
+
+    unset($widget['widget_settings']['semantic_cck_use_semantic_instance']);
+    foreach ($setting_names as $setting_name) {
+      unset($widget['widget_settings'][$setting_name]);
+    }
+
+    db_query("UPDATE {content_node_field_instance} SET widget_settings = '%s' WHERE field_name = '%s' AND type_name = '%s'", serialize($widget['widget_settings']), $widget['field_name'], $widget['type_name']);
+  }
+
+  content_clear_type_cache(TRUE);
+
+  return $ret;
+}

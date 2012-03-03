@@ -1,0 +1,66 @@
+# Hungarian translation of image_caption (6.x-2.3)
+# Copyright (c) 2009 by the Hungarian translation team
+# Generated from files:
+#  image_caption.module,v 1.2.2.1 2008/08/21 07:47:05 davidwhthomas
+#  image_caption/image_caption.info: n/a
+#  image_caption/contrib/image_caption_filter.module: n/a
+#  image_caption_filter.info,v 1.1.2.1 2008/08/21 08:24:15 davidwhthomas
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: image_caption (6.x-2.3)\n"
+"POT-Creation-Date: 2009-02-10 12:27-0600\n"
+"PO-Revision-Date: 2008-11-05 00:37-0600\n"
+"Last-Translator: Balogh Zoltán\n"
+"Language-Team: Hungarian http://forditas.mindworks.hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: image_caption.module:21
+msgid "Image Caption Settings"
+msgstr "Képaláírás beállításai"
+
+#: image_caption.module:22
+msgid "Configure image caption settings."
+msgstr "Képaláírás lehetőségeinek beállítása."
+
+#: image_caption.module:43
+msgid "Select node types to include in image captioning"
+msgstr "Képaláírással ellátható tartalomtípusok kiválasztása"
+
+#: image_caption.module:0
+msgid "image_caption"
+msgstr "image_caption"
+
+#: image_caption.info:0
+msgid "Image Caption"
+msgstr "Képaláírás"
+
+#: image_caption.info:0
+msgid "Provides a caption for images using jquery."
+msgstr "jQuery használatával képaláírásokat nyújt."
+
+#: contrib/image_caption_filter.module:27
+msgid "Adds captions to images"
+msgstr "Képaláírásokat ad a képekhez"
+
+#: contrib/image_caption_filter.module:37; contrib/image_caption_filter.info:0
+msgid "Image caption filter"
+msgstr "Képaláírás beviteli forma"
+
+#: contrib/image_caption_filter.module:40
+msgid "Adds captions to images via a filter"
+msgstr "Képaláírásokat ad a képekhez a beviteli formák segítségével"
+
+#: contrib/image_caption_filter.module:0
+msgid "image_caption_filter"
+msgstr "image_caption_filter"
+
+#: contrib/image_caption_filter.info:0
+msgid "Create captions on images using the title attribute."
+msgstr ""
+"Képaláírásokat hoz létre a képekhez a „title” tulajdonság "
+"használatával."
+

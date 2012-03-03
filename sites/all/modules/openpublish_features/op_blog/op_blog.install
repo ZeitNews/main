@@ -1,0 +1,9 @@
+<?php
+
+/**
+* Important for upgrade: OP 1.6 -> 1.7. Should not matter for other versions
+*/
+function op_blog_install() {
+  //-- Mostly used for upgrade from OP 1.6. Ignore error if the table does not exist.
+  @db_query("DELETE from {content_node_field_instance} WHERE field_name='field_show_author_info' AND type_name = 'blog' ");
+}

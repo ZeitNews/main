@@ -1,0 +1,12 @@
+; $Id: pathauto_persist.info,v 1.1 2010/10/10 20:23:26 davereid Exp $
+name = Pathauto persistant state
+description = Keeps track and enforces a persistant Pathauto state per node.
+core = 6.x
+dependencies[] = pathauto
+
+; Information added by drupal.org packaging script on 2010-10-11
+version = "6.x-1.0"
+core = "6.x"
+project = "pathauto_persist"
+datestamp = "1286759465"
+

@@ -1,0 +1,27 @@
+<?php
+
+//$Id: premium_default_off.module,v 1.1.2.1 2010/04/11 05:24:24 inadarei Exp $
+
+/**
+* @File main file of premium_default_off module
+*/
+
+function premium_default_off_form_alter(&$form, $form_state, $form_id) {
+
+  if ($form_id == 'node_type_form') {
+    $type = $form['#node_type']->type;
+    if (_premium_node($type)) {
+      //-- Fix title to reflect actual behavior.
+      $form['workflow']['node_options']['#options']['premium'] = t('Enable option of access-restriction for non-premium users');
+    }
+  }
+
+  $type = '';
+  if (isset($form['type'])) {
+    $type = $form['type']['#value'];
+  }
+  
+  if ($form_id == $type .'_node_form') {    
+    unset($form['options']['premium']['#default_value']);
+  }
+}

@@ -1,0 +1,49 @@
+<?php
+// $Id: pathauto_persist.install,v 1.1 2010/10/10 20:23:26 davereid Exp $
+
+/**
+ * Implements hook_schema().
+ */
+function pathauto_persist_schema() {
+  $schema['pathauto_persist'] = array(
+    'description' => '',
+    'fields' => array(
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'An entity type.',
+      ),
+      'entity_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'An entity ID.',
+      ),
+      'pathauto' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The automatic alias status of the entity.',
+      ),
+    ),
+    'primary key' => array('entity_type', 'entity_id'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function pathauto_persist_install() {
+  drupal_install_schema('pathauto_persist');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function pathauto_persist_uninstall() {
+  drupal_uninstall_schema('pathauto_persist');
+}

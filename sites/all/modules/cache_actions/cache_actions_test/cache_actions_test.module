@@ -1,0 +1,99 @@
+<?php
+
+/**
+ * @file
+ * This is the main module file. It currently contains logic for including our
+ * default views and panels which are needed for the testing.
+ */
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function cache_actions_test_ctools_plugin_api($module, $api) {
+  if ($module == 'panels_mini' && $api == 'panels_default') {
+    return array('version' => 1);
+  }
+  if ($module == 'page_manager' && $api == 'pages_default') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function cache_actions_test_views_api() {
+  return array(
+    'api' => '2',
+  );
+}
+
+/**
+ * Implementation of hook_views_default_views().
+ * We define all the views we need for the testing here.
+ */
+function cache_actions_test_views_default_views() {
+  $views = array();
+  $path = drupal_get_path('module', 'cache_actions_test') . '/views/';
+  include($path . 'cache_actions_test_view.php');
+  $views[$view->name] = $view;
+  include($path . 'cache_actions_test_view_no_cache.php');
+  $views[$view->name] = $view;
+  include($path . 'cache_actions_test_view_pane.php');
+  $views[$view->name] = $view;
+  return $views;
+}
+
+/**
+ * Implementation of hook_default_page_manager_pages().
+ * We define all the panels we need for the testing here.
+ */
+function cache_actions_test_default_page_manager_pages() {
+  $path = drupal_get_path('module', 'cache_actions_test') . '/panels/';
+  include($path . 'cache_actions_test_panel.php');
+  $pages['cache_actions_test_panel'] = $page;
+
+  include($path . 'cache_actions_test_panel_no_cache.php');
+  $pages['cache_actions_test_panel_no_cache'] = $page;
+
+  include($path . 'cache_actions_test_panel_pane_no_cache.php');
+  $pages['cache_actions_test_panel_pane_no_cache'] = $page;
+
+  include($path . 'cache_actions_test_panel_pane.php');
+  $pages['cache_actions_test_panel_pane'] = $page;
+
+  include($path . 'cache_actions_test_mini_panel_wrapper.php');
+  $pages['cache_actions_test_mini_panel_wrapper'] = $page;
+
+  include($path . 'cache_actions_test_mini_panel_pane_wrapper.php');
+  $pages['cache_actions_test_mini_panel_pane_wrapper'] = $page;
+
+  return $pages;
+}
+
+/**
+ * Implementation of hook_flush_caches().
+ * We define our own cache table, so that it doesn't disturb any other
+ * caching mechanisms.
+ */
+function cache_actions_test_flush_caches() {
+  return array('cache_cache_actions_test');
+}
+
+/**
+ * Implementation of hook_default_page_manager_handlers().
+ */
+function cache_actions_test_default_page_manager_handlers() {
+
+}
+
+function cache_actions_test_default_panels_mini() {
+  $path = drupal_get_path('module', 'cache_actions_test') . '/panels/';
+
+  include($path . 'cache_actions_test_mini_panel.php');
+  $pages['cache_actions_test_mini_panel'] = $mini;
+
+  include($path . 'cache_actions_test_mini_panel_pane.php');
+  $pages['cache_actions_test_mini_panel_pane'] = $mini;
+
+  return $pages;
+}

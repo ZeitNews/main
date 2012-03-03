@@ -1,0 +1,12 @@
+; $Id: maxlength.info,v 1.2.4.1.2.1 2009/04/01 23:52:52 dereine Exp $
+
+name = "Maxlength"
+description = "Set a maximum length for body fields."
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-02-16
+version = "6.x-2.0-beta2"
+core = "6.x"
+project = "maxlength"
+datestamp = "1297863418"
+

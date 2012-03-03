@@ -1,0 +1,19 @@
+<?php
+/**
+ * Implement HOOK_preprocess_page().
+ */
+function ie_css_optimizer_preprocess_page(&$vars, $hook) {
+  $preprocess_css = variable_get('preprocess_css', 0);
+  if ($preprocess_css == 'theme' || $preprocess_css == 'module') {
+    module_load_include('inc', 'ie_css_optimizer', 'ie_css_optimizer.pages');
+    _ie_css_optimizer_preprocess_page($vars, $hook, $preprocess_css);
+  }
+}
+
+/**
+ * Implement HOOK_form_alter().
+ */
+function ie_css_optimizer_form_system_performance_settings_alter(&$form, $form_state) {
+  module_load_include('inc', 'ie_css_optimizer', 'ie_css_optimizer.admin');
+  _ie_css_optimizer_form_system_performance_settings_alter($form, $form_state);
+}

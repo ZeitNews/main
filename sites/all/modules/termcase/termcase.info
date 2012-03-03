@@ -1,0 +1,11 @@
+; $Id$
+name = Termcase
+description = "Enable text case settings per taxonomy (lowercase, uppercase or only the first character uppercase)"
+core = 6.x
+dependencies[] = taxonomy
+; Information added by drupal.org packaging script on 2010-10-31
+version = "6.x-1.3"
+core = "6.x"
+project = "termcase"
+datestamp = "1288560349"
+

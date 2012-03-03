@@ -1,0 +1,100 @@
+/* Global TopicHub configuration */
+.topic-hub-settings {
+	float:left; 
+	background:#f0f0f0; 
+	width:250px; 
+	margin:5px; 
+	padding:5px 0px 5px 20px;
+}
+
+/* Formatting for TopicHub Config Form */
+#topichub-config h3 {
+	color:#666;
+} 
+
+/* Styles for TopicHub Expression builder */
+#condition-builder .form-item {
+	float:left;
+	padding-right:10px;
+}
+
+#add-term {
+	padding-top:30px;
+}
+
+.remove-condition {
+	margin-top:-10px;
+	text-align:right;
+}
+
+.topichub-term-selector {
+	display:none;
+}
+
+.operator {
+	font-style:italic;
+	padding:0 5px;
+}
+
+.condition-term .term-name {
+	font-weight:bold;
+}
+
+a.topichub-term-remove {
+	padding-left:5px;
+}
+
+/* Styles for plugin settings */
+.topichub-plugin-config {
+	border:1px solid #d4e7f3;
+}
+
+.topichub-plugin-config tr {
+	padding:0;
+	margin:0;
+}
+
+.topichub-plugin-config td {
+	margin:0;
+	padding:0;
+}
+
+td.topichub-plugin-labels {
+	width:25%;
+	white-space:nowrap;
+	vertical-align:top;
+}
+
+td.topichub-plugin-settings {
+	background:#fff; 
+	vertical-align:top;
+}
+
+div.plugin-label {
+	padding:10px;
+	border-top:1px solid #d4e7f3;
+}
+
+div.plugin-label:hover {
+	cursor:pointer;
+}
+
+div.plugin-label-active {
+	background:#fff; 
+	font-weight:bold;
+	border-right:0;
+}
+
+div.plugin-label-bottom {
+	min-height:150px;
+}
+
+div.plugin-settings {
+	padding:10px;
+	background:#fff; 
+}
+
+
+
+
+

@@ -1,0 +1,70 @@
+.hubclear {
+	clear:both;
+}
+
+.hubleft {
+	float:left;
+	width: 48%;
+}
+
+#topichub div.section {
+  border:0px;
+  margin:2px;
+  padding-left: 0;
+}
+
+div.section h3 {
+  margin-top: 25px;
+  margin-bottom: 5px;
+}
+
+#topichub div.map {
+	height:325px;
+	padding: 10px;
+  border: 5px solid #b4d7f0;
+}
+
+div.map h3 {
+  margin: 0;
+  margin-bottom: 7px;
+}
+
+div.overview h3 {
+  margin: 0;
+}
+
+#topichub .hub-left-col {
+	clear:left;
+	float:left;
+  width:28%;
+  border-right:1px solid #b4d7f0;
+  padding: 0 25px 0 0;	
+}
+
+#topichub .hub-wide-right-col {
+  width:63%;  
+  float:left;
+  margin: 0 0 0 15px;
+  padding: 0;
+}
+
+#topichub .hub-center-col {
+	width:40%;		
+}
+
+#topichub .hub-right-col {
+	width:40%;		
+}	
+
+.author {
+  padding:5px;
+}
+
+.author .picture img{
+  margin: 0 5px 0 0;
+  background: #FFF;
+  border: 1px solid #E4E4E4;
+  padding: 2px;
+}
+
+

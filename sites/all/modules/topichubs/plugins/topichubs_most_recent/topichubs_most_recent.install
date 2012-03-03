@@ -1,0 +1,13 @@
+<?php
+
+function topichubs_most_recent_install() {
+  // set weigth to higher than the views module
+  db_query("UPDATE {system} SET weight = 11 WHERE name = 'topichubs_most_recent'");
+}
+
+function topichubs_most_recent_update_6000() {
+  $ret = array();
+  $ret[] = update_sql("UPDATE {system} SET weight = 11 WHERE name = 'topichubs_most_recent'");
+  return $ret;
+}
+

@@ -1,0 +1,19 @@
+; $Id: custom_breadcrumbs_panels.info,v 1.1.2.1 2009/08/02 23:18:48 mgn Exp $
+name = Custom Breadcrumbs for Panels
+package = Custom Breadcrumbs
+dependencies[] = custom_breadcrumbs
+dependencies[] = panels
+dependencies[] = ctools
+dependencies[] = page_manager
+description = Provides Custom Breadcrumbs for panels pages.
+core = 6.x
+
+
+
+
+; Information added by drupal.org packaging script on 2011-01-08
+version = "6.x-2.0-rc1"
+core = "6.x"
+project = "custom_breadcrumbs"
+datestamp = "1294462254"
+

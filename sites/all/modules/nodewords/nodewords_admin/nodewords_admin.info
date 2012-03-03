@@ -1,0 +1,12 @@
+name = Administration interface for Nodewords
+description = Administration interface for Nodewords.
+package = Meta tags
+dependencies[] = nodewords
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-05-03
+version = "6.x-2.0-alpha1"
+core = "6.x"
+project = "nodewords"
+datestamp = "1304452316"
+

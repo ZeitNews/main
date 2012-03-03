@@ -1,0 +1,35 @@
+<?php
+// $Id: imce_rename.install,v 1.2 2010/10/06 10:24:30 aaron1234nz Exp $
+
+/**
+ * @file
+ * Install file for imce_rename
+ */
+
+/**
+ * Implementation of hook_install()
+ */
+function imce_rename_install() {
+  $profiles = variable_get('imce_profiles', array());
+  //set crop permissions. make profile#1 have access by default.
+  foreach ($profiles as $i => $profile) {
+    foreach ($profile['directories'] as $j => $directory) {
+      $profiles[$i]['directories'][$j]['rename'] = $i == 1 ? 1 : 0;
+    }
+  }
+  variable_set('imce_profiles', $profiles);
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function imce_rename_uninstall() {
+  $profiles = variable_get('imce_profiles', array());
+  //delete crop permissions.
+  foreach ($profiles as $i => $profile) {
+    foreach ($profile['directories'] as $j => $directory) {
+      unset($profiles[$i]['directories'][$j]['rename']);
+    }
+  }
+  variable_set('imce_profiles', $profiles);
+}

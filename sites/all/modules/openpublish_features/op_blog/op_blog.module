@@ -1,0 +1,9 @@
+<?php
+// $Id: op_blog.module,v 1.1.2.3 2010/03/19 19:01:09 inadarei Exp $
+/*
+* @File module file for OP Blog feature
+*/
+
+require_once(dirname(__FILE__) . '/includes/theme.inc');
+
+include_once('op_blog.features.inc');

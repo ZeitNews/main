@@ -1,0 +1,63 @@
+<?php
+/**
+ * @file openpublish_administration.install
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function openpublish_administration_enable() {
+  db_query("UPDATE {system} SET weight = 20 WHERE name = 'openpublish_administration'");
+  
+  drupal_set_message(t('Please review the <a href="@settings">OpenPublish API Key Settings</a>.', array('@settings' => url('admin/settings/openpublish/api-keys'))));
+  
+}
+
+/**
+ * Implementation of hook_requirements().
+ */
+function openpublish_administration_requirements($phase) {
+  // Check that all of our API keys for enabled modules are setup, dispaly a warning/error otherwise
+  $requirements = array();
+  
+  if ($phase == "runtime" && MAINTENANCE_MODE != "install") {
+    $t = get_t();
+
+    $missing_keys = array();
+    $config = _openpublish_api_keys();
+    foreach ($config as $module => $settings) {
+      if(module_exists($module)) {
+        $keys = element_children($settings);
+        foreach ($keys as $key) {
+          if(variable_get($key, NULL) == NULL) {
+            $missing_keys[] = $settings[$key]['#title'];
+          }
+        }
+      }
+    }
+    
+    // If there are any missing keys, alert the user
+    if (count($missing_keys)) {
+      $requirements['openpublish'] = array(
+         'title'       => $t('OpenPublish'),
+         'value'       => $t('API Keys are missing'),
+         'description' => $t('API Key configuration missing for: @missing. Set them at !settings', array('@missing' => implode(", ", $missing_keys), '!settings' => l('OpenPublish API Keys', 'admin/settings/openpublish/api-keys'))),
+         'severity'    => REQUIREMENT_ERROR,
+       );      
+    }
+  }
+  
+  return $requirements;
+}
+
+
+function openpublish_administration_update_6000() {
+  $ret = array();
+  error_log('About to update variables');
+  $ret[] = update_sql("DELETE FROM {variable} WHERE name = 'admin_theme' ");  
+  $theme_name = serialize('rubik');
+  $ret[] = update_sql("INSERT INTO {variable} (value, name) VALUES ('$theme_name', 'admin_theme') ");
+  
+  $ret[] = update_sql("UPDATE {system} SET status = 1 WHERE name IN ('rubik', 'tao') ");
+  return $ret;
+}

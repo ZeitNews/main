@@ -1,0 +1,167 @@
+<?php
+/**
+ * @file topichubs.test
+ */
+
+class TopicHubsTestCase extends DrupalWebTestCase {
+
+	function setUp() {
+		parent::setUp('views', 'content', 'topichubs', 'topichubs_most_recent');		
+	}
+
+	function tearDown() {
+		parent::tearDown();
+	}
+
+	function createVocabulary() {
+		$vocab = array();
+	  $vocab['name'] = $this->randomName(20);
+    taxonomy_save_vocabulary($vocab);
+		return $vocab;
+	}
+	
+	function createTerm($vid, $overrides = array()) {
+		$term = array(
+			'vid' => $vid,
+			'name' => $this->randomName(30),
+			'description' => $this->randomName(200),
+		);
+		$term += $overrides;
+    taxonomy_save_term($term);
+		return (object)$term;
+	}
+	
+	static function stubHubNode($nid = NULL) {
+		$node = new stdClass;
+		$node->nid = $nid;
+		$node->topichub = new stdClass;
+		$node->topichub->config = array();
+		return $node;
+	}
+	
+  function createHubNode($conditions = array()) {
+		$node = $this->drupalCreateNode(array('type' => 'topichub'));
+		$node->topichub = new stdClass;
+		$node->topichub->config = array();
+		$node->topichub->conditions = $conditions;
+		topichub_insert($node);
+		return $node;
+	}
+}
+
+
+class TopicHubViewsFilter extends TopicHubsTestCase {
+	function getInfo() {
+    return array(
+      'name' => t('Topic Hubs Views Filter'),
+      'description' => t('Test the taxonomy expression views filter'),
+      'group' => t('Topic Hubs')
+    );
+  }
+
+	// Test the views filter
+	function testTopicHubViewsFilter() {
+		$vocab1 = $this->createVocabulary();
+		$vocab2 = $this->createVocabulary();
+		$term1 = $this->createTerm($vocab1['vid']);
+		$term2 = $this->createTerm($vocab2['vid']);
+		$th = $this->createHubNode(array(array($term1->tid), array($term2->tid)));
+
+		$node1 = $this->drupalCreateNode();
+		$taxonomy1 = array($term1->tid => $term1);
+		taxonomy_node_save($node1, $taxonomy1);
+
+		$node2 = $this->drupalCreateNode();
+		$taxonomy2 = array($term2->tid => $term2);
+		taxonomy_node_save($node2, $taxonomy2);
+
+		$node3 = $this->drupalCreateNode();
+		$taxonomy3 = array($term1->tid => $term1, $term2->tid => $term2);
+		taxonomy_node_save($node3, $taxonomy3);
+
+		$view = views_get_view('topichub_most_recent');
+    $view->add_item('default', 'filter', 'topichub', 'nid', array('value' => $th->nid));
+		$view->execute('default');
+		$results = $view->result;
+
+		$this->assertEqual(3, count($results), '3 results should be returned but ' . count($results) . ' were');
+		$this->assertEqual($node1->nid, $results[0]->nid, 'Wrong first result');
+		$this->assertEqual($node2->nid, $results[1]->nid, 'Wrong second result');
+		$this->assertEqual($node3->nid, $results[2]->nid, 'Wrong third result');
+	}
+  
+}
+
+class TopicHubViewsArgument extends TopicHubsTestCase {
+	function getInfo() {
+    return array(
+      'name' => t('Topic Hubs Views Argument'),
+      'description' => t('Test the taxonomy expression views argument'),
+      'group' => t('Topic Hubs')
+    );
+  }
+
+	// Test the views filter
+	function testTopicHubViewsArgument() {
+		$vocab1 = $this->createVocabulary();
+		$vocab2 = $this->createVocabulary();
+		$term1 = $this->createTerm($vocab1['vid']);
+		$term2 = $this->createTerm($vocab2['vid']);
+		$th = $this->createHubNode(array(array($term1->tid), array($term2->tid)));
+
+		$node1 = $this->drupalCreateNode();
+		$taxonomy1 = array($term1->tid => $term1);
+		taxonomy_node_save($node1, $taxonomy1);
+
+		$node2 = $this->drupalCreateNode();
+		$taxonomy2 = array($term2->tid => $term2);
+		taxonomy_node_save($node2, $taxonomy2);
+
+		$node3 = $this->drupalCreateNode();
+		$taxonomy3 = array($term1->tid => $term1, $term2->tid => $term2);
+		taxonomy_node_save($node3, $taxonomy3);
+
+		$view = views_get_view('topichub_most_recent');
+		$view->set_arguments(array($th->nid));
+		$view->execute('default');
+		$results = $view->result;
+
+		$this->assertEqual(3, count($results), '3 results should be returned but ' . count($results) . ' were');
+		$this->assertEqual($node1->nid, $results[0]->nid, 'Wrong first result');
+		$this->assertEqual($node2->nid, $results[1]->nid, 'Wrong second result');
+		$this->assertEqual($node3->nid, $results[2]->nid, 'Wrong third result');
+	}
+  
+}
+
+class TopicHubExpression extends TopicHubsTestCase {
+	function getInfo() {
+    return array(
+      'name' => t('Topic Hubs Expression'),
+      'description' => t('Test things that deal with the expression'),
+      'group' => t('Topic Hubs')
+    );
+  }
+
+	// Test that a term delete removes it from the expressions
+	function testTermDelete() {
+		$vocab1 = $this->createVocabulary();
+		$vocab2 = $this->createVocabulary();
+		$term1 = $this->createTerm($vocab1['vid']);
+		$term2 = $this->createTerm($vocab2['vid']);
+		$node = parent::stubHubNode(time());
+		
+		$node->topichub->conditions = array(array($term1->tid), array($term2->tid));
+		topichub_insert($node);
+		
+		taxonomy_del_term($term1->tid);
+		
+		$testnode = parent::stubHubNode();
+		$testnode->nid = $node->nid;		
+		topichub_load($testnode);
+
+		$this->assertEqual(1, count($testnode->topichub->conditions), 'Only one term should exist');
+		$this->assertEqual($term2->tid, $testnode->topichub->conditions[0][0], 'Wrong term id remains');
+	}
+  
+}

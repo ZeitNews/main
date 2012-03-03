@@ -1,0 +1,214 @@
+<?php
+// $Id: distro_client.module,v 1.1.2.9 2009/12/03 17:16:03 inadarei Exp $
+/**
+ * @file
+ * Distro Client.
+ *
+ */
+
+define ('DISTRO_STATE_CACHE_VAR', 'distro_state_cache_var');
+define ('DISTRO_PROTOCOL_VERSION', '2.0');
+
+
+/**
+* hook_cron implementation.
+*/
+function distro_client_cron() {
+  
+  // Cron should check for distro state if there is no state cached or if the
+  // configured time interval has elapsed.
+  $duration = distro_client_cache_duration();
+  $cache = cache_get(DISTRO_STATE_CACHE_VAR);
+  $now = time();
+  if (empty($cache) || (($now - variable_get('distro_last_check', 0)) > $duration)) {
+    distro_client_refresh();
+  }
+
+}
+
+/**
+* hook_menu implementation
+*/
+function distro_client_menu() {
+ $items = array();
+
+  $items['distro/check'] = array(
+    'title' => 'Distribution Check',
+    'page callback' => 'distro_client_recheck',
+    'access arguments' => array('administer site configuration'),    
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+* Status recheck menu callback
+*/
+function distro_client_recheck() {
+
+  distro_client_refresh();
+  drupal_goto(drupal_get_destination());
+  
+}
+
+/**
+* Resync state with the server
+*/
+function distro_client_refresh() { 
+  global $base_url;        
+    
+  $sql = "SELECT type, name FROM {system} WHERE type IN ('module', 'theme') AND status = 1 ORDER BY name";
+  $ret = db_query($sql);
+  
+  $projects = array();
+  
+  while($obj = db_fetch_object($ret)) {
+    $projects[$obj->type][] = $obj->name;
+  }  
+    
+  $data = new stdClass();
+  $data->projects = $projects;
+
+  //-- Set environment information
+  $data->domain = $base_url;
+  $data->profile = variable_get('install_profile', 'default');
+  $data->theme = variable_get('theme_default', 'garland');  
+
+  //-- Installation Profiles set this URL during installation. Typically ends with 'distro/components'
+  $url = distro_get_tracker_server();
+  
+  if (!empty($url)) {
+  
+    $url .= '/'.DISTRO_PROTOCOL_VERSION; //-- Add information about the protol version this client requires
+    $headers = array('Content-Type' => 'application/x-www-form-urlencoded');
+               
+    $data = array (
+      'info' => json_encode($data),
+    );
+           
+    //-- Shut the unnecessary and annoying "check" up:
+    variable_del('drupal_http_request_fails');         
+                   
+    $response = drupal_http_request($url, $headers, 'POST', http_build_query($data, '', '&'));
+    
+    // Prevent JSON from converting array into an object
+    $components = json_decode($response->data, TRUE);     
+
+    $duration =  distro_client_cache_duration();
+    cache_set(DISTRO_STATE_CACHE_VAR, $components, 'cache', time() + $duration);
+    variable_set('distro_last_check', time());
+    
+    return t("Check complete");
+  }     
+  else {
+    return t("Tracker Server URL is missing.");
+  }
+  
+
+
+}
+
+/**
+*
+* Setter for Tracker server URL. Typically called from an installation profile.
+*
+* @arg $url
+*   The Absolute URL of the tracker server.
+*
+*/
+function distro_set_tracker_server($url) {
+  variable_set('distro_tracker_server', $url);
+}
+
+
+/**
+*
+* Getter for tracker server URL.
+*
+*/
+function distro_get_tracker_server() {
+  return variable_get('distro_tracker_server', '');
+}
+
+
+/**
+* duration of cache
+*/
+function distro_client_cache_duration() {
+  //-- last 2 hours, by default.
+  return variable_get('distro_cache_duration', 2 * 60 * 60); 
+}
+
+/**
+* Implementation of hook_requirements
+*/
+function distro_client_requirements($phase) {
+
+  if ($phase == 'runtime') {
+  
+    $cache = cache_get(DISTRO_STATE_CACHE_VAR);
+    
+    if (!is_array($cache->data)) {
+      distro_client_refresh();
+      $cache = cache_get(DISTRO_STATE_CACHE_VAR);      
+    }
+
+    $cache = $cache->data;
+        
+    $profile = variable_get('install_profile', 'default');
+    $requirements = array();
+    
+    if (!empty($cache['error'])) {
+    
+      if ($cache['error'] == 'DISTRO##ERR##UNKNOWN') {
+        $msg = t('Tracker server does not support protocol version provided by the client.');
+      }
+      else {
+        $msg = $cache['error'];
+      }
+      
+      $requirements['distro_extra_comp']['title'] = t('Distribution: %profile.', array('%profile' => $profile));
+      $requirements['distro_extra_comp']['description'] = $msg;
+      $requirements['distro_extra_comp']['value'] = t('Communication Error');      
+      $requirements['distro_extra_comp']['severity'] = REQUIREMENT_ERROR;      
+    }
+    
+    $msg = "";
+    
+    if (is_array($cache)) {
+    foreach ($cache as $action => $elements) {
+      if (is_array($elements)) {
+        foreach ($elements as $type => $components) {
+          if (is_array($components) && sizeof($components) > 0) {
+            $sz_components = implode(', ', $components);
+            $msg .= '<b>' . t(ucfirst($action)) . ' (' . t(ucfirst($type)) . '): ' . '</b>';
+            $msg .= $sz_components; 
+            $msg .= "   ";                
+          }
+        }
+        if (!empty($msg)) {
+          $msg .= "<p>";     
+        } 
+      }      
+    }      
+    }
+
+    $recache = t("Status is cached for performance reasons. Please !link to see most up-to-date status", array('!link' => l('re-check', 'distro/check', array('query' => drupal_get_destination()))));
+    
+    if (!empty($msg)) {
+      $requirements['distro_extra_comp']['title'] = t('%profile distribution: is out of sync.  Please fix:', array('%profile' => ucfirst($profile)));
+      $requirements['distro_extra_comp']['description'] = $msg . '<p>' . $recache;
+      $requirements['distro_extra_comp']['value'] = t('Out of Date');      
+      $requirements['distro_extra_comp']['severity'] = REQUIREMENT_ERROR;
+    }
+    else {
+      $requirements['distro_extra_comp']['title'] = t('%profile distribution', array('%profile' => ucfirst($profile)));
+      $requirements['distro_extra_comp']['description'] = $recache;
+      $requirements['distro_extra_comp']['value'] = t('Status: OK');      
+      $requirements['distro_extra_comp']['severity'] = REQUIREMENT_OK;      
+    }
+    
+    return $requirements;
+  }
+}                    

@@ -1,0 +1,38 @@
+<?php
+//$Id: topichubs_calais_geo.module,v 1.1.2.1 2009/09/02 12:00:21 inadarei Exp $
+
+/**
+ * Implementation of hook_topichubs_plugins().
+ */
+function topichubs_calais_geo_topichubs_plugins() {
+  return array(
+    'calais_geo' => array(
+      'title' => 'Locations',
+      'description' => 'List Nodes referenced by Location.',
+      'handler' => 'topichubs_plugin_calais_geo',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function topichubs_calais_geo_theme() {
+  return array(
+    'topichubs_calais_geo_marker' => array(
+      'arguments' => array('term' => NULL, 'nodes' => NULL),
+      'path' => drupal_get_path('module', 'topichubs_calais_geo'),
+		  'template' => "topichubs-calais-geo-marker",
+    ),
+  );
+}
+
+/**
+ * Default theme function to rendering the text that goes in the Google Map marker bubble.
+ */
+function template_preprocess_topichubs_calais_geo_marker(&$vars) {
+  $term = $vars['term'];
+  $nodes = $vars['nodes'];
+  $vars['title'] = check_plain($term->name);
+  $vars['node_list'] = theme('item_list', $nodes);
+}

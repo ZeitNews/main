@@ -1,0 +1,6 @@
+/* $Id: better_perms.css,v 1.1 2009/04/20 05:37:16 mattman Exp $ */
+
+table#permissions .better-perms-row{
+  text-align: right;
+	cursor: pointer;
+}

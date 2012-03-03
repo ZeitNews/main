@@ -1,0 +1,16 @@
+<?php
+// $Id: flowplayer.install,v 1.1.2.3 2009/09/08 15:03:10 robloach Exp $
+
+/**
+ * @file
+ * Provides the installation and uninstallation features of the Flowplayer Drupal module.
+ */
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function flowplayer_uninstall() {
+  // Remove any saved variables.
+  db_query("DELETE FROM {variable} WHERE name LIKE 'flowplayer_%'");
+  cache_clear_all('variables', 'cache');
+}

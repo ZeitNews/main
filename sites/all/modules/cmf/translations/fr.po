@@ -1,0 +1,355 @@
+# $Id: fr.po,v 1.1.2.1 2009/08/21 16:08:40 nancyw Exp $
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  both.inc,v 1.2.2.11 2009/08/12 15:12:53 nancyw
+#  node.inc,v 1.2.2.13 2009/08/17 13:50:37 nancyw
+#  cmf.module,v 1.2.2.18 2009/08/12 15:38:48 nancyw
+#  comment.inc,v 1.2.2.9 2009/08/12 15:12:53 nancyw
+#  cmf.info,v 1.2.2.5 2009/07/31 02:25:26 nancyw
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-08-19 19:38+0200\n"
+"PO-Revision-Date: 2009-08-19 20:28+0100\n"
+"Last-Translator: Roulion <roulion@afterfoot.com>\n"
+"Language-Team: French <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+
+#: both.inc:23
+#: node.inc:23
+#: cmf.module:117
+msgid "Neutral"
+msgstr "Neutre"
+
+#: both.inc:35
+#: comment.inc:27
+#: node.inc:35
+msgid "Update options"
+msgstr "Options de mise à jour"
+
+#: both.inc:41
+msgid "Publish"
+msgstr "Publier"
+
+#: both.inc:42
+msgid "Unpublish"
+msgstr "Dépublier"
+
+#: both.inc:43
+msgid "Delete"
+msgstr "Supprimer"
+
+#: both.inc:47
+#: comment.inc:40
+#: node.inc:47
+msgid "Update"
+msgstr "Mise à jour"
+
+#: both.inc:63
+#: node.inc:62
+msgid "Node !nid"
+msgstr "Noeud !nid"
+
+#: both.inc:74
+#: node.inc:72
+#: cmf.module:218
+msgid "node"
+msgstr "node"
+
+#: both.inc:85;131
+#: comment.inc:74
+#: node.inc:83
+#: cmf.module:95
+msgid "published"
+msgstr "publié"
+
+#: both.inc:85;131
+#: comment.inc:74
+#: node.inc:83
+#: cmf.module:96
+msgid "not published"
+msgstr "non publié"
+
+#: both.inc:87
+#: node.inc:85
+#: cmf.module:97
+msgid "promoted"
+msgstr "promu"
+
+#: both.inc:90
+#: node.inc:89
+#: cmf.module:99
+msgid "sticky"
+msgstr "épinglé"
+
+#: both.inc:93
+#: node.inc:92
+msgid "moderated"
+msgstr "modéré"
+
+#: both.inc:105;105;137;137
+#: comment.inc:79;80
+#: node.inc:99;100
+msgid "edit"
+msgstr "Modifier"
+
+#: both.inc:113
+#: comment.inc:56
+msgid "Node !nid, Comment !cid"
+msgstr "Noeud !nid, Commentaire !cid"
+
+#: both.inc:121
+#: comment.inc:64
+#: cmf.module:218
+msgid "comment"
+msgstr "Commentaire"
+
+#: both.inc:164
+#: comment.inc:106
+#: node.inc:130
+msgid "No items selected."
+msgstr "Aucun élément sélectionné."
+
+#: both.inc:219
+#: comment.inc:139
+#: node.inc:162
+msgid "The update has been performed."
+msgstr "La mise à jour a été effectuée."
+
+#: both.inc:266
+#: comment.inc:183
+#: node.inc:210
+msgid "Filter returned no results."
+msgstr "La recherche ne retourne aucun resultat."
+
+#: cmf.module:33
+#: cmf.info:0
+msgid "This module adds an easier way for administrators to filter the content on a Drupal site for administration purposes."
+msgstr "Ce module permet aux administrateurs de filtrer facilement les contenus."
+
+#: cmf.module:34
+msgid "It is an improvement over the content page in the administration area of Drupal. It can show on the same page nodes and comments and adds new filters like role and author."
+msgstr "Il s'agit d'une amélioration du module natif de la liste des contenus. Il permet par exemple de montrer sur la même page les noeuds et les commentaires ainsi que de les trier plus finement grâce à de nouveaux critères, comme le rôle ou l'auteur."
+
+#: cmf.module:93
+msgid "node status"
+msgstr "Statut du noeud"
+
+#: cmf.module:98
+msgid "not promoted"
+msgstr "non promu"
+
+#: cmf.module:100
+msgid "not sticky"
+msgstr "non épinglé"
+
+#: cmf.module:103
+msgid "node type"
+msgstr "Type de noeud"
+
+#: cmf.module:107
+msgid "category"
+msgstr "La catégorie"
+
+#: cmf.module:111
+msgid "title/subject"
+msgstr "Titre"
+
+#: cmf.module:112
+msgid "Body contains"
+msgstr "Le corps contient"
+
+#: cmf.module:113
+msgid "created after"
+msgstr "Créé après"
+
+#: cmf.module:114
+msgid "created before"
+msgstr "Créé avant"
+
+#: cmf.module:118
+msgid "language"
+msgstr "Langue"
+
+#: cmf.module:123
+msgid "user list"
+msgstr "Liste des utilisateurs"
+
+#: cmf.module:124
+msgid "user name"
+msgstr "Nom de l'utilisateur"
+
+#: cmf.module:125
+msgid "user role"
+msgstr "Role de l'utilisateur"
+
+#: cmf.module:126
+msgid "user status"
+msgstr "Statut de l'utilisateur"
+
+#: cmf.module:126
+msgid "active"
+msgstr "actif"
+
+#: cmf.module:127;830
+msgid "blocked"
+msgstr "bloqué"
+
+#: cmf.module:192
+msgid "General Settings"
+msgstr "Paramètres généraux"
+
+#: cmf.module:199
+msgid "Max rows"
+msgstr "Nombre maximum de ligne"
+
+#: cmf.module:208
+msgid "Show node ID"
+msgstr "Montrer l'ID du noeud"
+
+#: cmf.module:209
+msgid "No"
+msgstr "Non"
+
+#: cmf.module:209
+msgid "Yes"
+msgstr "Oui"
+
+#: cmf.module:217
+msgid "Content"
+msgstr "Contenu"
+
+#: cmf.module:218
+msgid "both"
+msgstr "Les deux"
+
+#: cmf.module:226;438
+msgid "Apply"
+msgstr "Appliquer"
+
+#: cmf.module:232
+msgid "Show only items where"
+msgstr "Montrer seulement les éléments dont"
+
+#: cmf.module:268
+msgid "<em>and</em> where <strong>%filter_name</strong> contains <strong>%filter_value</strong>"
+msgstr "<em>et</em> où <strong>%filter_name</strong> contient <strong>%filter_value</strong>"
+
+#: cmf.module:271
+msgid "<strong>%filter_name</strong> contains <strong>%filter_value</strong>"
+msgstr "<strong>%filter_name</strong> contient <strong>%filter_value</strong>"
+
+#: cmf.module:276
+msgid "<em>and</em> where <strong>%filter_name</strong> is <strong>%filter_value</strong>"
+msgstr "<em>et</em> où <strong>%filter_name</strong> est égale à <strong>%filter_value</strong>"
+
+#: cmf.module:279
+msgid "<strong>%filter_name</strong> is <strong>%filter_value</strong>"
+msgstr "<strong>%filter_name</strong> est égal à <strong>%filter_value</strong>"
+
+#: cmf.module:357;392
+msgid "Refine"
+msgstr "Affiner"
+
+#: cmf.module:357;391
+msgid "Filter"
+msgstr "Filtre"
+
+#: cmf.module:363;430
+msgid "Undo"
+msgstr "Annuler"
+
+#: cmf.module:367;434
+msgid "Reset"
+msgstr "Réinitialiser"
+
+#: cmf.module:551
+msgid "ID"
+msgstr "Identifiant"
+
+#: cmf.module:556;581
+msgid "Title"
+msgstr "Titre"
+
+#: cmf.module:557;571;582
+msgid "Kind"
+msgstr "Sorte"
+
+#: cmf.module:558;572;583
+msgid "Node Type"
+msgstr "Type de noeud"
+
+#: cmf.module:560;574;585
+msgid "Author"
+msgstr "Auteur"
+
+#: cmf.module:562;576
+msgid "Status"
+msgstr "État"
+
+#: cmf.module:563;577;588
+msgid "Time"
+msgstr "Date"
+
+#: cmf.module:565;590
+msgid "Language"
+msgstr "Langue"
+
+#: cmf.module:570;581
+msgid "Subject"
+msgstr "Sujet"
+
+#: cmf.module:587
+msgid "Node Status"
+msgstr "Statut du noeud"
+
+#: cmf.module:595
+msgid "Operations"
+msgstr "Opérations"
+
+#: cmf.module:706;819
+msgid "anonymous"
+msgstr "anonyme"
+
+#: cmf.module:41
+msgid "filter and manage site content"
+msgstr "Filtre et gère les contenus du site"
+
+#: cmf.module:41
+msgid "view user content list"
+msgstr "Voir la liste des contributions des utilisateurs"
+
+#: cmf.module:50
+msgid "Content Management Filter"
+msgstr "Recherche et gestion des contenus"
+
+#: cmf.module:51
+msgid "All-in-one advanced filter and management of your site content."
+msgstr "Module de filtre et gestion tout en un des contenus publiés sur votre site"
+
+#: cmf.module:57
+msgid "CMF"
+msgstr "Contributions"
+
+#: cmf.module:58
+msgid "User-specific content management filter"
+msgstr "Filtre pour gérer les contributions par utilisateur"
+
+#: cmf.module:66
+msgid "User autocomplete"
+msgstr "Saisie semi-automatique des noms d'utilisateur"
+
+#: cmf.info:0
+msgid "Content management filter"
+msgstr "Recherche et gestion des contenus"
+
+#: cmf.info:0
+msgid "Administration"
+msgstr "Administration"
+

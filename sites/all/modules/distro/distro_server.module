@@ -1,0 +1,177 @@
+<?php
+// $Id: distro_server.module,v 1.1.2.4 2009/11/19 03:03:31 inadarei Exp $
+/**
+ * @file
+ * Distro Server
+ *
+ */
+
+/**
+* hook_menu implementation. Callback for REST JSON calls.
+*/
+function distro_server_menu() {
+ $items = array();
+
+  $items['distro/components'] = array(
+    'title' => 'Distribution Check',
+    'page callback' => 'distro_server_check',
+    'access callback' => 'distro_server_access_check',    
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+* Checks the latest status of components againt the tracker server
+* 
+* @arg $protocol_version
+*   The version of the communication protocol. These may change so we need to allow for backwards compatibility
+*   and simultanous support of several protocols, in order to not break existing clients. Defaults to 1.0 the only
+*   version where we were not, yet, passing explicit version number.
+* @return 
+*   JSON-encoded response
+*/
+function distro_server_check() {
+  
+  $protocol_version = arg(2);
+  
+  $remote = $_POST['info'];
+  $remote = json_decode($remote);
+  $remote->projects = (array) $remote->projects;
+  
+  //-- domain can be empty if client runs cron via drush on default. 
+  if (empty($remote->domain) || trim($remote->domain) == 'http://default') {
+    $remote->domain = $_SERVER['REMOTE_ADDR'];
+  }
+    
+  $ret = distro_server_get_state($remote, $protocol_version);  
+  
+  // We are returning JavaScript, let the the browser know about it.
+  drupal_set_header('Content-Type: text/javascript; charset=utf-8');
+  $encoded = json_encode($ret);
+  echo $encoded;
+  exit();
+}
+
+/**
+* Checks access permission to the distro server. 
+*/
+function distro_server_access_check(){
+  return TRUE;
+}
+
+
+/**
+* Returns list of required and 
+*/
+function distro_server_get_state($remote, $protocol_version) {
+
+  $protocol_version = trim($protocol_version);
+  $fname = 'distro_server_generate_response_' . str_replace('.', '_', $protocol_version);
+  
+  if (function_exists($fname)) {
+    $ret = $fname ($remote, $protocol_version);
+    
+    $mods = module_implements('distro_pre_response');
+    if (is_array($mods)) {
+      foreach ($mods as $m) {
+        $function = $m .'_distro_pre_response';
+        $function($ret, $remote, $protocol_version);
+      }
+    }
+
+  }
+  else {
+    $ret = new stdClass();
+    $ret->error = 'DISTRO##ERR##UNKNOWN';
+  }
+
+  return $ret;
+  
+}
+
+/**
+*
+* Generate response data, given the client data. Protocol v 2.0
+*
+* @arg $remote
+*   client data.
+* @return 
+*   response data.
+*/
+function distro_server_generate_response_2_0 ($remote, $protocol_version) {
+
+  $distro_data = module_invoke_all('distros', $remote->profile, $protocol_version);
+
+  $ret = new stdClass();
+  $allowed_types = array('module', 'theme');
+    
+  if (is_array($remote->projects)) {
+    
+    //-- First determine missing Drupal projects (i.e. components like modules or themes).
+    foreach ($remote->projects as $type => $items) {
+      if (is_array($items) && in_array($type, $allowed_types)) {
+        sort($distro_data['required'][$type]);
+        sort($items);
+        $ret->missing[$type] = array_diff($distro_data['required'][$type], $items);
+      }
+    }
+    
+    //-- Now let's determine the ones that need to be removed.
+    $ret->extra = array();
+    foreach ($remote->projects as $type => $items) {
+      if (in_array($type, $allowed_types)) {
+        $ret->extra[$type] = array();
+        if (is_array($items)) {
+          foreach ($items as $client_component) {
+            if (in_array($client_component, $distro_data['remove'][$type])) {
+              $ret->extra[$type][] = $client_component;
+            }
+          }
+        }
+      }
+    }
+    
+  }
+  else {
+    $ret->error = t('Distribution tracker client sent a request that server could not understand.');
+  }
+  
+  return $ret;
+
+}
+
+function distro_server_diff_2_0 ($remote) {
+}
+
+/**
+*
+* Generate response data, given the client data. Protocol v 1.0
+*
+* @arg $remote
+*   client data.
+* @return 
+*   response data.
+*/
+
+function distro_server_generate_response_1_0 ($remote, $protocol_version) {
+
+  $all_distros = module_invoke_all('distros', $remote->profile, $protocol_version);
+  
+  $distro_prjs = $all_distros[$remote->profile];
+  $client_prjs = $remote->projects;
+  
+  $ret = new stdClass();
+  
+  if (is_array($distro_prjs) && is_array($client_prjs)) {
+    $ret->missing = array_diff($distro_prjs, $client_prjs);
+    $ret->extra = array_diff($client_prjs, $distro_prjs);    
+  }
+  
+  return $ret;
+
+}
+
+
+

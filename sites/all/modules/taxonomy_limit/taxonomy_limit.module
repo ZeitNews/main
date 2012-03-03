@@ -1,0 +1,284 @@
+<?php
+
+/**
+ * @file
+ * Allows restricting the number of taxonomy terms selected for a given
+ * vocabulary and content type.
+ */
+
+/**
+ * Implementation of hook_help()
+ */
+function taxonomy_limit_help($path, $arg) {
+  switch ($path) {
+    case 'admin/settings/taxonomy_limit':
+      $output .= 'Use this to set the maximum number of taxonomy terms which may be selected from a given vocabulary for a particular content type.  Setting a maximum of zero for a category will disable the check.';
+      if (!module_exists('i18nstrings')) {
+        $output .= ' ' . t('To make error messages translatable, install and enable the <a href="!i18n">Internationalization package</a>.', array('!i18n' => url('http://drupal.org/project/i18n', array('absolute' => TRUE))));
+      }
+      else {
+        $output .= ' ' . t('Error messages may be translated by declaring them as multilingual variables; see <a href="!translate">README.txt</a> for details.',
+            array('!translate' => url(drupal_get_path('module', 'taxonomy_limit') .'/README.txt')));
+      }
+      break;
+  }
+  return $output;
+}
+
+/**
+ * @desc Menu hook
+ */
+function taxonomy_limit_menu() {
+  $items['admin/settings/taxonomy_limit'] = array(
+    'title'               => 'Taxonomy Limit',
+    'description'         => 'Limit terms selected in a vocabulary.',
+    'page callback'       => 'drupal_get_form',
+    'page arguments'      => array('taxonomy_limit_settings'),
+    'access arguments'    => array('administer taxonomy'),
+    'type'                => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * @desc This function preforms the magic to add the validation on the
+ * form level, not the element level.  It also appends the description
+ * of the category to provide a useful hint on the limit.
+ */
+function taxonomy_limit_form_alter(&$form, $form_state, $form_id) {
+  // Make sure this form is for editing a node
+  if (!($form['type'] && is_array($form['type']) && $form['type']['#value'])) {
+    return;
+  }
+  // Get the content types we are allowed to work with, if set
+  if (!$limit_types = variable_get('taxonomy_limit_types', NULL)) {
+    return;
+  }
+  // Is this a node type that has been selected?
+  if ($limit_types[$form['#node']->type] .'_node_form' != $form_id) {
+    return;
+  }
+
+  // Load the validation data for the content type
+  if ($tax_limit = variable_get('taxonomy_limit_' . $form['#node']->type, NULL)) {
+    $validate = FALSE;
+    // Go through each configured category
+    foreach ($tax_limit AS $vid => $data) {
+      $max = $data['max'];
+      // Only allow numbers greater than zero (disabled)
+      if (!(is_numeric($max) && $max > 0)) {
+        continue;
+      }
+      // Validate that this category still meets the criteria
+      if (taxonomy_limit_validate_vocabulary($vid)) {
+        $validate = TRUE;
+        $desc = " <strong>".
+          t("Choose up to @max", array("@max" => taxonomy_limit_number($max)))
+          ."</strong>.";
+        if (is_array($form['taxonomy']['tags'][$vid])) {
+          $form['taxonomy']['tags'][$vid]['#description'] .= $desc;
+        }
+        else {
+          $form['taxonomy'][$vid]['#description'] .= $desc;
+        }
+      }
+    }
+    // Only set validation callback if limits have been set.
+    if ($validate) {
+      $form['#validate'][] = '_taxonomy_limit_validate_max_terms';
+    }
+  }
+}
+
+/**
+ * @desc Here is the function the creates the error for the category form
+ * element. We are passed the $all string, which is a concatenated vid/max
+ * series of entries seperated by a single pipe.
+ */
+function _taxonomy_limit_validate_max_terms($form, &$form_state) {
+  // Fetch all limits for vocabs for this type
+  $tax_limit = variable_get('taxonomy_limit_' . $form['#node']->type, NULL);
+  $tax_limit_error = variable_get('taxonomy_limit_' . $form['#node']->type .'_error', NULL);
+  // Loop through all the vocabulary validation items
+  foreach ($tax_limit AS $vid => $data) {
+    $max = $data['max'];
+    // Only allow numbers greater than zero (disabled)
+    if (!(is_numeric($max) && $max > 0)) {
+      continue;
+    }
+    // Validate once again that this vid meets the criteria
+    if (!taxonomy_limit_validate_vocabulary($vid)) {
+      continue;
+    }
+    // Create error message
+    if ($tax_limit_error[$vid]['error']) {
+      // not calling t() because this is user input; see README.txt for how to
+      // translate this
+      $error = $tax_limit_error[$vid]['error'];
+    }
+    else {
+      // default error message
+      $vocab = taxonomy_vocabulary_load($vid);
+      $error = t('Too many terms selected for vocabulary @name', array('@name' => $vocab->name));
+    }
+    // After node has been saved, and is being edited...
+    if ($tags = $form['taxonomy']['tags'][$vid]['#value']) {
+      if (count(explode(',', $tags)) > $max) {
+        form_set_error("taxonomy][tags][$vid", $error);
+      }
+    }
+    // Non freetagging vocabulary
+    // (taxonomy super select sets the values to FALSE, instead of removing
+    // them from the array, so we filter out these values)
+    if (is_array($form['nid']['#post']['taxonomy'][$vid]) &&
+        sizeof(array_filter($form['nid']['#post']['taxonomy'][$vid])) > $max) {
+      form_set_error("taxonomy][$vid", $error);
+    }
+  }
+}
+
+function taxonomy_limit_validate_vocabulary(&$vid, &$terms = array()) {
+  // Were we passed a vid?
+  if (!is_numeric($vid)) {
+    return FALSE;
+  }
+  $vocab = taxonomy_vocabulary_load($vid);
+  // did the vocab load properly?
+  if (!is_object($vocab)) {
+    return FALSE;
+  }
+  // indicate that this is a freetagging vocab, and populates the $terms by ref
+  if ($vocab->tags) {
+    if (!$terms[$vid]) {
+      $terms[$vid] = taxonomy_get_children(NULL, $vid);
+    }
+    return TRUE;
+  }
+  // must allow multiple selections (implicitly allowed for freetagging vocabs)
+  if (!$vocab->multiple) {
+    return FALSE;
+  }
+  // All good, allow this category
+  return TRUE;
+}
+
+function taxonomy_limit_settings() {
+  drupal_add_css(drupal_get_path('module', 'taxonomy_limit') .'/style.css');
+  $types = node_get_types('names');
+  $default_values = $types;
+  foreach ($default_values as $key => $value) {
+    $default_values[$key] = 0;
+  }
+  $limit_types = variable_get('taxonomy_limit_types', $default_values);
+  $form['taxonomy_limit_types'] = array(
+    '#type'           => 'checkboxes',
+    '#options'        => $types,
+    '#title'          => t('Apply to content type'),
+    '#default_value'  => $limit_types,
+    '#description'    =>
+      t("Only content types with vocabularies that have the multiple option enabled are affected by this module.  (Freetagging vocabularies have this enabled implicitly.)"),
+  );
+  if ($limit_types) {
+    foreach ($limit_types AS $key => $type) {
+      if (!is_numeric($type)) {
+        $form['settings']['taxonomy_limit_types']['taxonomy_limit_' . $type] = array(
+          '#type'   => 'fieldset',
+          '#title'  => t('Maximum number of terms for content type %type', array('%type' => $type)),
+          '#tree'   => TRUE,
+          '#collapsible' => TRUE,
+        );
+        $form['settings']['taxonomy_limit_types']['taxonomy_limit_' . $type .'_error'] = array(
+          '#type'   => 'fieldset',
+          '#title'  => t('Error messages for content type %type', array('%type' => $type)),
+          '#tree'   => TRUE,
+          '#collapsible' => TRUE,
+        );
+        $vocabs = taxonomy_get_vocabularies($type);
+        if ($vocabs) {
+          $tax_limit = variable_get('taxonomy_limit_' . $type, array());
+          $tax_limit_error = variable_get('taxonomy_limit_' . $type . '_error', array());
+          $invalid_count = 0;
+          foreach ($vocabs AS $vid => $vocab) {
+            $dummy = array(0 => 0);
+            if (!taxonomy_limit_validate_vocabulary($vid, $dummy)) {
+              $invalid_count++;
+              continue;
+            }
+            if (!$tax_limit[$vid]) {
+              $tax_limit[$vid] = array();
+            }
+            if (!$tax_limit_error[$vid]) {
+              $tax_limit_error[$vid] = array();
+            }
+            $form['settings']['taxonomy_limit_types']['taxonomy_limit_' . $type][$vid]['max'] = array(
+              '#prefix'         => '<div class="taxonomy_limit_types">',
+              '#title'          => t('Maximum number of terms for vocabulary %vocab', array('%vocab' => $vocab->name)),
+              '#type'           => 'textfield',
+              '#size'           => 4,
+              '#default_value'  => $tax_limit[$vid]['max'] ? $tax_limit[$vid]['max'] : 0,
+              '#description'    => t('Set to 0 to allow all terms.'),
+              '#suffix'         => '</div>',
+            );
+            $form['settings']['taxonomy_limit_types']['taxonomy_limit_' . $type. '_error'][$vid]['error'] = array(
+              '#prefix'         => '<div class="taxonomy_limit_types">',
+              '#title'          => t('Error message for vocabulary %vocab', array('%vocab' => $vocab->name)),
+              '#type'           => 'textfield',
+              '#size'           => 60,
+              '#default_value'  => $tax_limit_error[$vid]['error'] ? $tax_limit_error[$vid]['error']
+                                    : t('Too many terms selected for vocabulary @name', array('@name' => $vocab->name)),
+              '#description'    => t('This message will be shown if the user enters more than the allowed number of terms.'),
+              '#suffix'         => '</div>',
+            );
+          }
+          if ($invalid_count == count($vocabs)) {
+            $form['settings']['taxonomy_limit_types']['taxonomy_limit_' . $type][$vid] = array(
+              '#value' => t('None of the vocabularies defined for this content type are valid.')
+              .'<br />',
+            );
+          }
+        }
+        else{
+            $form['settings']['taxonomy_limit_types']['taxonomy_limit_' . $type][$vid] = array(
+              '#value' => t('There are no vocabularies defined for this content type.')
+              .'<br />',
+            );
+
+        }
+      }
+    }
+  }
+  return system_settings_form($form);
+}
+
+function taxonomy_limit_number($number) {
+  $numbers = array(
+    0   => t('zero'),
+    1   => t('one'),
+    2   => t('two'),
+    3   => t('three'),
+    4   => t('four'),
+    5   => t('five'),
+    6   => t('six'),
+    7   => t('seven'),
+    8   => t('eight'),
+    9   => t('nine'),
+    10  => t('ten'),
+    11  => t('eleven'),
+    12  => t('twelve'),
+    13  => t('thirteen'),
+    14  => t('fourteen'),
+    15  => t('fifteen'),
+    16  => t('sixteen'),
+    17  => t('seventeen'),
+    18  => t('eighteen'),
+    19  => t('nineteen'),
+    20  => t('twenty'),
+  );
+  // Return the original number if we don't have it in the list.
+  if (!$numbers[$number]) {
+    return $number;
+  }
+  // Return the word for the number provided
+  return $numbers[$number];
+}

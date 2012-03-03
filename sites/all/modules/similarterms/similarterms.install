@@ -1,0 +1,20 @@
+<?php
+
+// $Id: similarterms.install,v 1.9.2.3 2010/12/18 20:08:12 jjeff Exp $
+
+/**
+ * Implementation of hook_update().
+ */
+function similarterms_update_6200() {
+  $ret = array();
+  
+  // Intentially removed to prevent confusion.
+  //   I don't want administrators to think that their settings have been converted.
+  
+  // only the 'ANY vocabulary' block is converted... without any settings: 
+  //$ret[] = update_sql("UPDATE {blocks} SET module='views', delta='similarterms-block_1' WHERE module='similarterms' AND delta=0");
+  
+  cache_clear_all('*', 'cache_block', TRUE);
+  cache_clear_all('*', 'cache_views', true);
+  return $ret;
+}

@@ -1,0 +1,553 @@
+<?php
+
+/**
+ * Implementation of hook_menu
+ */
+function userqueue_menu() {
+  $items = array();
+  
+  $items['admin/user/userqueue'] = array(
+    'title' => 'User queue',
+    'page callback' => 'userqueue_list_queues',
+    'description' => t('Create and maintain queues of users'),
+    'access arguments' => array('administer user queues'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  
+  $items['admin/user/userqueue/list'] = array(
+    'title' => 'List',
+    'page callback' => 'userqueue_list_queues',
+    'access arguments' => array('administer user queues'),
+    'weight' => -1,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  
+  $items['admin/user/userqueue/add'] = array(
+    'title' => 'Add',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('userqueue_edit_form', NULL),
+    'access arguments' => array('administer user queues'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  
+  $items['admin/user/userqueue/%userqueue/view'] = array(
+    'title' => 'View queue',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('userqueue_view_queue', 3),
+    'access arguments' => array('administer user queues'),
+    'type' => MENU_CALLBACK,
+  );
+  
+  $items['admin/user/userqueue/%userqueue/edit'] = array(
+    'title' => 'Edit queue',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('userqueue_edit_form', 3),
+    'access arguments' => array('administer user queues'),
+    'type' => MENU_CALLBACK,
+  );
+  
+  $items['admin/user/userqueue/%userqueue/delete'] = array(
+    'title' => 'Remove user from queue',
+    'page callback' => 'userqueue_delete_user',
+    'page arguments' => array(3, 5, TRUE),
+    'access arguments' => array('administer user queues'),
+    'type' => MENU_CALLBACK,
+  );
+  
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme
+ */
+function userqueue_theme() {
+  return array(
+    'userqueue_view_queue' => array(
+      'arguments' => array('form' => NULL),
+    ),
+    'userqueue_queue' => array(
+      'arguments' => array('queue' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_perm
+ */
+function userqueue_perm() {
+  return array('administer user queues');
+}
+
+/**
+ * Implementation of hook_block
+ */
+function userqueue_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+    case 'list':
+      $blocks = array();
+      $result = db_query("SELECT * FROM {userqueue}");
+      while ($queue = db_fetch_object($result)) {
+        $blocks[$queue->uqid] = array('info' => 'User queue: ' . $queue->title);
+      }
+      return $blocks;
+    case 'view':
+      $queue = userqueue_load($delta);
+      return array('subject' => $queue->title, 'content' => theme('userqueue_queue', $queue));
+  }
+}
+
+/**
+ * Tool function for %userqueue
+ */
+function userqueue_load($uqid) {
+  return db_fetch_object(db_query("SELECT * FROM {userqueue} WHERE uqid=%d", $uqid));
+}
+
+/**
+ * Return a uqid based on various types of queue representations
+ */
+function userqueue_uqid($queue) {
+  if (is_numeric($queue)) {
+    $uqid = $queue;
+  } 
+  else if (is_string($queue)) {
+    $uqid = db_result(db_query("SELECT uqid FROM {userqueue} WHERE title='%s'", $queue));
+  } 
+  else if (is_object($queue)) {
+    $uqid = $queue->uqid;
+  }
+  
+  if (!$uqid) {
+    return NULL;
+  }
+  
+  return $uqid;
+}
+
+/**
+ * Similar to userqueue_uqid but for users
+ */
+function userqueue_uid($user) {
+  if (is_object($user)) {
+    $uid = $user->uid;
+  } 
+  else if (is_array($user)) {
+    $uid = $user['uid'];
+  }
+  else if (is_numeric($user)) {
+    $uid = $user;
+  }
+  else if (is_string($user)) {
+    $uid = db_result(db_query("SELECT uid FROM {users} WHERE name='%s'", $user));
+  }
+  
+  if (!$uid) {
+    return NULL;
+  }
+  
+  return $uid;
+}
+
+/**
+ * Page callback for the main admin page.
+ */
+function userqueue_list_queues() {
+  $queues = array();
+  $result = db_query("SELECT * FROM {userqueue} WHERE 1");
+  while ($queue = db_fetch_object($result)) {
+    $queues[$queue->uqid] = $queue;
+  }
+  
+  if (empty($queues)) {
+    return t('No user queues found.');
+  }
+
+  $header = array(
+    array('data' => t('Title'), 'field' => 'title', 'sort' => 'asc'),
+    array('data' => t('Queue length'), 'field' => 'size'),
+    array('data' => t('Operation')),
+  );
+  $table_sort = tablesort_init($header);
+
+  $uqids = array();
+  $sort_primary = array();
+  $sort_secondary = array();
+  $sort_direction_regular = array('asc' => SORT_ASC, 'desc' => SORT_DESC);
+  $sort_direction_reverse = array('asc' => SORT_DESC, 'desc' => SORT_ASC);
+  foreach ($queues as $queue) {
+    $sort_secondary[] = $queue->title;
+    switch ($table_sort['sql']) {
+      case 'title':
+      default:
+        $sort_primary[] = $queue->title;
+        $sort_direction = $sort_direction_regular;
+        break;
+      case 'size':
+        $sort_primary[] = $queue->size;
+        $sort_direction = $sort_direction_reverse;
+        break;
+    }
+  }
+  if (!empty($table_sort)) {
+    if (strtolower($table_sort['sort']) == 'desc') {
+      array_multisort($sort_primary, $sort_direction['desc'], $sort_secondary, $queues);
+    }
+    else {
+      array_multisort($sort_primary, $sort_direction['asc'], $sort_secondary, $queues);
+    }
+  }
+
+  $rows = array();
+  foreach ($queues as $queue) {
+    $operations = array();
+    $operations[] = l(t('View'), "admin/user/userqueue/$queue->uqid/view");
+    $operations[] = l(t('Edit'), "admin/user/userqueue/$queue->uqid/edit");
+
+    $rows[] = array(
+      array('class' => 'userqueue-title', 'data' => check_plain($queue->title)),
+      array('class' => 'userqueue-queue-length', 'data' => $queue->size == 0 ? t('Infinite') : $queue->size),
+      array('class' => 'nodequeue-operation', 'data' => implode(' | ', $operations)),
+    );
+  }
+
+  $output .= theme('table', $header, $rows);
+  $output .= theme('pager', NULL, 25);
+
+  return $output;
+}
+
+/**
+ * Machinery for editing queue metadata (not adding/ordering/removing users)
+ */
+function userqueue_edit_form($form_state, $queue) {
+  $form = array();
+  
+  if ($queue->uqid) {
+    $form['#uqid'] = $queue->uqid;
+    drupal_set_title(t("Edit user queue '{$queue->title}'"));
+  } 
+  else {
+    drupal_set_title(t("Create user queue"));
+  }
+  
+  if ($form_state['values']['op'] == t('Delete')) {
+    drupal_set_title(t('Delete profile'));
+    $form['confirm'] = array(
+      '#value' => '<p>' . t("Are you sure you want to delete the profile '@name'?", array('@name' => $queue->title)) . '</p>',
+    );
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete'),
+    );
+    return $form;
+  }
+  
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Queue title'),
+    '#default_value' => $queue->title,
+  );
+  
+  $form['size'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Queue length'),
+    '#size' => 5,
+    '#default_value' => $queue->size,
+    '#description' => t('Maximum number of users allowed in the queue'),
+  );
+  
+  $form['reverse'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show items in reverse'),
+    '#default_value' => $queue->reverse,
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  
+  if ($queue->uqid) {
+    $form['delete'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete'),
+    );
+  }
+  
+  return $form;
+}
+
+/**
+ * Validate/rebuild queue edit form
+ */
+function userqueue_edit_form_validate($form, &$form_state) {
+  if ($form_state['values']['op'] == t('Delete')) {
+    if ($form['confirm']) {
+      // Clear rebuild flag to allow form to proceed to processing
+      $form_state['rebuild'] = FALSE;
+    } 
+    else {
+      // Rebuild the form to confirm deletion.
+      $form_state['rebuild'] = TRUE;
+    }
+    return;
+  }
+  
+  if (!is_numeric($form_state['values']['size'])) {
+    form_set_error('size', 'Queue length must be a number.');
+  }
+}
+
+/**
+ * Submit function for the queue edit form
+ */
+function userqueue_edit_form_submit($form, &$form_state) {
+  if ($form_state['values']['op'] == t('Delete') && $form['#uqid']) {
+    // Delete; remove all userqueue_user records.
+    db_query("DELETE FROM {userqueue_user} WHERE uqid=%d", $form['#uqid']);
+    db_query("DELETE FROM {userqueue} WHERE uqid=%d", $form['#uqid']);
+    drupal_set_message(t('Queue deleted.'));
+    $form_state['redirect'] = 'admin/user/userqueue';
+    return;
+  }
+  
+  if ($form['#uqid']) {
+    // Update
+    $record = $form_state['values'];
+    $record['uqid'] = $form['#uqid'];
+    if (drupal_write_record('userqueue', $record, 'uqid') == SAVED_UPDATED) {
+      drupal_set_message(t("Updated queue '@name'.", array('@name' => $form_state['values']['title'])));
+    } 
+    else {
+      drupal_set_message('Update failed.', 'error');
+    }
+  } 
+  else {
+    // Insert
+    if (drupal_write_record('userqueue', $form_state['values']) == SAVED_NEW) {
+      drupal_set_message(t("Created queue '@name'.", array('@name' => $form_state['values']['title'])));
+    } 
+    else {
+      drupal_set_message('Create failed.', 'error');
+    }
+  }
+  
+  $form_state['redirect'] = 'admin/user/userqueue';
+}
+
+/**
+ * Main API function. Pass either a queue name or ID. Pass TRUE for the second parameter for
+ * fully loaded user objects, else the return value will be an array of the form uid => name.
+ */
+function userqueue_get_users($queue, $load = FALSE) {
+  $uqid = userqueue_uqid($queue);
+  
+  $result = db_query("SELECT uu.*, u.name FROM {userqueue_user} uu LEFT JOIN {users} u ON uu.uid=u.uid WHERE uu.uqid=%d ORDER BY uu.weight", $uqid);
+  $users = array();
+  while ($user = db_fetch_object($result)) {
+    if ($load) {
+      $users[$user->uid] = user_load(array('uid' => $user->uid));
+    } 
+    else {
+      $users[$user->uid] = $user->name;
+    }
+  }
+  
+  return $users;
+}
+
+/**
+ * Form to view a queue and add/order/remove users.
+ */
+function userqueue_view_queue($form_state, $queue) {
+  drupal_set_title(t('Order queue "@name"', array('@name' => $queue->title)));
+  $form = array();
+  
+  $form['#uqid'] = $queue->uqid;
+  $form['#max_size'] = $queue->size;
+  
+  $form['#table_header'] = array(
+    t('User name'),
+    t('Weight'),
+    t('User ID'),
+    t('Operation'),
+  );
+  
+  $form['info'] = array('#value' => t('Drag items up or down in the list to reorder.'));
+  
+  $users = userqueue_get_users($queue->uqid);
+  
+  $form['users'] = array(
+    '#tree' => TRUE,
+  );
+  
+  $weight = 0;
+  foreach ($users as $uid => $name) {
+    $form['users'][$uid] = array(
+      '#tree' => TRUE,
+    );
+    
+    $form['users'][$uid]['weight'] = array(
+      '#type' => 'weight',
+      '#delta' => 100,
+      '#default_value' => $weight,
+    );
+    
+    $form['users'][$uid]['name'] = array(
+      '#value' => $name,
+    );
+    
+    $form['users'][$uid]['uid'] = array(
+      '#value' => $uid,
+    );
+    
+    $form['users'][$uid]['delete'] = array(
+      '#value' => l(t('Remove from queue'), "admin/user/userqueue/{$queue->uqid}/delete/$uid", array('query' => array('token' => drupal_get_token($uid)))),
+    );
+    
+    $weight++;
+  }
+    
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  
+  $form['new_user'] = array(
+    '#type' => 'textfield',
+    '#autocomplete_path' => 'user/autocomplete',
+    '#maxlength' => 60,
+  );
+  
+  $form['add'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add'),
+  );
+
+  return $form;
+}
+
+/**
+ * Theme function for queue order form
+ */
+function theme_userqueue_view_queue($form) {
+  drupal_add_tabledrag('userqueue-table', 'order', 'sibling', 'userqueue-weight');
+  
+  $rows = array();
+  
+  foreach (element_children($form['users']) as $key) {
+    $form['users'][$key]['weight']['#attributes']['class'] = 'userqueue-weight';
+    $row = array(
+      drupal_render($form['users'][$key]['name']),
+      drupal_render($form['users'][$key]['weight']),
+      drupal_render($form['users'][$key]['uid']),
+      drupal_render($form['users'][$key]['delete']),
+    );
+    $rows[] = array('data' => $row, 'class' => 'draggable');
+  }
+  
+  $html = drupal_render($form['info']);
+  $html .= theme('table', $form['#table_header'], $rows, array('id' => 'userqueue-table'));
+  $row = array(
+    drupal_render($form['new_user']),
+    array('data' => drupal_render($form['add']), 'width' => '80%'),
+  );
+  $html .= theme('table', array(t('Add a user'), ''), array($row));
+  $html .= drupal_render($form);
+  return $html;
+}
+
+/**
+ * Submit function for the queue populate/order form.
+ */
+function userqueue_view_queue_submit($form, &$form_state) {
+  if ($form_state['values']['op'] == t('Add')) {
+    if (count($form_state['values']['users']) >= $form['#max_size']) {
+      drupal_set_message(t('No additional users are allowed in this queue.'), 'error');
+      return;
+    }
+    $uid = userqueue_uid($form_state['values']['new_user']);
+    userqueue_add_user($form['#uqid'], $uid, 100);
+    return;
+  }
+  
+  foreach ($form_state['values']['users'] as $uid => $data) {
+    db_query("UPDATE {userqueue_user} SET weight=%d WHERE uqid=%d AND uid=%d", $data['weight'], $form['#uqid'], $uid);
+  }
+}
+
+/**
+ * Clears the queue passed. Pass ids, strings, or objects.
+ */
+function userqueue_clear_queue($queue) {
+  $uqid = userqueue_uqid($queue);
+  if ($uqid) {
+    db_query("DELETE FROM {userqueue_user} WHERE uqid=%d", $uqid);
+  }
+}
+
+/**
+ * Adds a user to a queue. Pass ids, strings, or objects.
+ */
+function userqueue_add_user($queue, $user, $weight = 0) {
+  $uqid = userqueue_uqid($queue);
+  $uid = userqueue_uid($user);
+  
+  if (!$uqid || !$uid) {
+    return;
+  }
+  
+  $record = array(
+    'uqid' => $uqid,
+    'uid' => $uid,
+    'weight' => $weight,
+  );
+  
+  drupal_write_record('userqueue_user', $record);
+}
+
+/**
+ * Removes a user from a queue. Pass ids, strings, or objects.
+ */
+function userqueue_delete_user($queue, $user, $callback = FALSE) {
+  $uqid = userqueue_uqid($queue);
+  $uid = userqueue_uid($user);
+  
+  if (!$uqid || !$uid) {
+    return;
+  }
+  
+  if (!userqueue_check_token($uid)) {
+    drupal_access_denied();
+    return;
+  }
+  
+  db_query("DELETE FROM {userqueue_user} WHERE uqid=%d AND uid=%d", $uqid, $uid);
+  
+  if ($callback) {
+    drupal_goto('admin/user/userqueue/' . $uqid . '/view');
+  }
+}
+
+/**
+ * Query string to prevent spoofing
+ */
+function userqueue_check_token($seed) {
+  $token = drupal_get_token($seed);
+  return ($token == $_GET['token']);
+}
+
+
+/**
+ * Basic theme function for a user queue. Please override to taste.
+ */
+function theme_userqueue_queue($queue) {
+  $users = userqueue_get_users($queue);
+  
+  $items = array();
+  foreach ($users as $uid => $name) {
+    $items[] = l($name, 'user/' . $uid);
+  }
+  
+  return theme('item_list', $items);
+}

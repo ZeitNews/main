@@ -1,0 +1,30 @@
+.document-link {
+  float:left;
+  margin:5px;
+  max-width:190px;
+}
+
+.document-link table, .document-link table tbody {
+  border:0;
+}
+
+.document-link table td
+{
+  text-align:center;
+}
+
+.document-link img
+{
+  border:1px solid #333;
+  margin:0;
+}
+
+.document-link img:hover
+{
+  border-color:#666;
+}
+
+.document-link .document-link-info
+{
+  margin:0;
+}

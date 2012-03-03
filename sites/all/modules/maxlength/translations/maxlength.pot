@@ -1,0 +1,105 @@
+# $Id: maxlength.pot,v 1.1.2.1 2009/04/02 00:04:23 dereine Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  maxlength.module,v 1.11.4.10 2008/10/09 18:26:11 dereine
+#  maxlength.info,v 1.2.4.1 2008/10/09 18:16:08 dereine
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2008-10-09 21:20+0200\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: maxlength.module:25
+msgid "Sets a maximum length for body fields and shows a counter that is updated as you type."
+msgstr ""
+
+#: maxlength.module:41 maxlength.info:0
+msgid "Maxlength"
+msgstr ""
+
+#: maxlength.module:42
+msgid "Set maximum length for body fields."
+msgstr ""
+
+#: maxlength.module:57
+msgid "This page is now deprecated, check the edit page of the relevant content type to edit its settings."
+msgstr ""
+
+#: maxlength.module:122
+msgid "Limit !type length"
+msgstr ""
+
+#: maxlength.module:129
+msgid "!label max length"
+msgstr ""
+
+#: maxlength.module:130
+msgid "characters"
+msgstr ""
+
+#: maxlength.module:134
+msgid "Maximum number of characters allowed for the !type field of this content type. Leave blank for an unlimited size."
+msgstr ""
+
+#: maxlength.module:135
+msgid "Please remember, it counts all characters, including HTML, so may not work as expected with rich text editors e.g. FCKeditor / tinyMCE."
+msgstr ""
+
+#: maxlength.module:139
+msgid "Enable remaining characters countdown for the !label"
+msgstr ""
+
+#: maxlength.module:141
+msgid "This will enable a Javascript based count down, as well as the client side validation for the !type field of this content type. If no limit set this is ignored."
+msgstr ""
+
+#: maxlength.module:145
+msgid "!label count down message"
+msgstr ""
+
+#: maxlength.module:147
+msgid "The text used in the Javascript message under the !type input, where \"!limit\" and \"!remaining\" are replaced by the appropriate numbers."
+msgstr ""
+
+#: maxlength.module:161
+msgid "Enable remaining characters countdown for this field"
+msgstr ""
+
+#: maxlength.module:163
+msgid "This will enable a Javascript based count down, as well as the client side validation for this field. If no limit set this is ignored."
+msgstr ""
+
+#: maxlength.module:168
+msgid "Count down message"
+msgstr ""
+
+#: maxlength.module:170
+msgid "The text used in the Javascript message under the input, where \"!limit\" and \"!remaining\" are replaced by the appropriate numbers."
+msgstr ""
+
+#: maxlength.module:195
+msgid "%body_field_label truncated to %limit characters!"
+msgstr ""
+
+#: maxlength.module:255
+msgid "The !field field has exceeded its maximum number of characters (!limit)."
+msgstr ""
+
+#: maxlength.module:0
+msgid "maxlength"
+msgstr ""
+
+#: maxlength.info:0
+msgid "Set a maximum length for body fields."
+msgstr ""
+

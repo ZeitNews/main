@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Define extra meta tags for Drupal pages.
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function nodewords_extra_form_nodewords_settings_form_alter(&$form, &$form_state) {
+  $form['metatags_creation']['nodewords_add_dc_schema'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Add the Dublin Core schema meta tag'),
+    '#default_value' => variable_get('nodewords_add_dc_schema', FALSE),
+  );
+}
+
+/**
+ * Implements hook_nodewords_api().
+ */
+function nodewords_extra_nodewords_api() {
+  return array(
+    'version' => '1.14',
+    'path' => '',
+  );
+}

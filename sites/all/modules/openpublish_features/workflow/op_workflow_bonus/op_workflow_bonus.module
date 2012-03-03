@@ -1,0 +1,80 @@
+<?php 
+
+function op_workflow_bonus_init() {
+
+  op_workflow_bonus_show_node_status();
+
+}
+
+function op_workflow_bonus_perm() {
+  return array('view content workflow state');
+}
+
+
+function op_workflow_bonus_show_node_status() {
+  static $finished;
+  
+  if ($finished) return;
+
+  $mod_path = drupal_get_path('module', 'op_workflow_bonus');
+  $css_path = $mod_path . '/op_workflow_bonus.css';
+  drupal_add_css($css_path);
+  
+  $arg2 = arg(2);
+  if (arg(0) == 'node' && is_numeric(arg(1)) 
+      && empty($arg2) && user_access('view content workflow state')) {
+      
+    $node = node_load(arg(1));
+    
+    if ($node && is_object($node)) {
+      $state_name = $node->_workflow;
+      if (!empty($state_name)) {
+        $state = workflow_get_state($state_name);
+        //-- can't use label from $state, it's concatenated
+        $workflow_name = $state->workflow_name;
+        $state_labels = workflow_get_state_labels($workflow_name);
+        $state_label = $state_labels[$state_name];      
+      }
+
+      if ($node->status == 1) {
+        if (empty($state_label)) {
+          $state_label = t('Published [No workflow]');
+        } 
+        $state_status_color = 'published';
+      } else {
+        if (empty($state_label)) {
+          $state_label = t('Not published [No workflow]');
+        }       
+        $state_status_color = 'notpublished';
+      }
+
+      $js_variables = array(
+        'node_state' => $state_label,
+        'status_color' => $state_status_color,
+      );
+    }
+     
+  }
+  
+  drupal_add_js(array('op_workflow_bonus' => $js_variables), "setting");
+  
+  $js_path = $mod_path . '/op_workflow_bonus.js';
+  drupal_add_js($js_path);
+  
+  $finished = TRUE;
+  
+}
+
+
+function op_workflow_bonus_form_alter(&$form, &$form_state, $form_id) {
+  if ($form['#id'] == 'node-form') {
+    $node = $form['#node'];
+    $workflow = workflow_get_workflow_for_type($node->type);
+    if (!empty($workflow)) {
+      $form['options']['status']['#type'] = 'hidden';
+      if (empty($node->nid)) {
+        $form['options']['status']['#default_value'] = 0;
+      }
+    }
+  } 
+}

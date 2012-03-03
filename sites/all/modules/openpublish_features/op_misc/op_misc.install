@@ -1,0 +1,28 @@
+<?php
+/**
+* @file op_misc.install
+*/
+
+require_once (dirname(__FILE__) . '/includes/op_misc_init_config.inc');
+
+/**
+* Implementation of hook_install();
+*/
+function op_misc_install() {
+
+  $vocab = array();
+  $vocab['name'] = t('Topic');
+  $vocab['nodes'] = array('article' => TRUE, 'blog' => TRUE, 'video' => TRUE, 'audio' => TRUE, 'slideshow' => TRUE, 'op_image' => TRUE, 'event' => TRUE);
+  $vocab['weight'] = -1;
+  taxonomy_save_vocabulary($vocab);
+  variable_set('op_topic_vid', $vocab['vid']);
+
+  _op_misc_prepopulate_topics_vocabulary($vocab['vid']);
+
+  // Remove title from all views-generated blocks to prevent double-titling.
+  // Added in OP 1.7
+  // Removed in OP 2.0. This is fixed with a tpl now (much more reliable and clean).
+  // update_sql("UPDATE {blocks} SET title = '<none>' WHERE module = 'views' AND theme= 'openpublish_theme' ");
+}
+
+

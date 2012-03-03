@@ -1,0 +1,20 @@
+core = "6.x"
+dependencies[] = "ctools"
+dependencies[] = "features"
+dependencies[] = "imagecrop"
+description = "OpenPublish configuration for the imagecrop Module"
+features[ctools][] = "variable"
+features[variable][] = "imagecrop_field_presets"
+features[variable][] = "imagecrop_fields"
+name = "OP imagecrop Config"
+package = "Features"
+project = "op_imagecrop_config"
+
+
+
+; Information added by drupal.org packaging script on 2010-12-03
+version = "6.x-1.18"
+core = "6.x"
+project = "openpublish_features"
+datestamp = "1291420542"
+

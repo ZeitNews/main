@@ -1,0 +1,75 @@
+<?php
+
+/**
+ * Implementation of hook_schema.
+ */
+function userqueue_schema() {
+  $schema = array();
+  
+  $schema['userqueue'] = array(
+    'description' => t('User queues'),
+    'fields' => array(
+      'uqid' => array(
+        'description' => t('Queue ID'),
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'title' => array(
+        'description' => t('Queue title'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'size' => array(
+        'description' => t('Queue size'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+      ),
+      'reverse' => array(
+        'description' => t('Whether to show the queue in reverse'),
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('uqid'),
+  );
+  
+  $schema['userqueue_user'] = array(
+    'description' => t('Defines members of a user queue'),
+    'fields' => array(
+      'uqid' => array(
+        'description' => t('User queue ID'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+      ),
+      'uid' => array(
+        'description' => t('User ID'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        ),
+        'weight' => array(
+          'description' => t('Weight'),
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+          'size' => 'tiny',
+        ),      
+      ),
+    'indexes' => array(
+      'uqid' => array('uqid'),
+      'uid' => array('uid'),
+    ),
+  );
+  
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install.
+ */
+function userqueue_install() {
+  drupal_install_schema('userqueue');
+}

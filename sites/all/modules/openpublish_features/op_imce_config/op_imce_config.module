@@ -1,0 +1,3 @@
+<?php
+
+include_once('op_imce_config.features.inc');

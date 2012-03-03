@@ -1,0 +1,193 @@
+<?php
+/**
+* @File OpenPublish Menu module file.
+*/
+
+/**
+ * hook_init implementation
+ */
+function openpublish_menu_init() {
+  drupal_add_css(drupal_get_path('module', 'openpublish_menu') . '/openpublish_menu.css');
+  drupal_add_js(drupal_get_path('module', 'openpublish_menu') . '/openpublish_menu.js');
+}
+
+/**
+ * phptemplate_preprocess_page implementation
+ */
+function openpublish_menu_preprocess_page(&$vars) {
+  $menu_map = openpublish_menu_get_menu_top2levels();
+  $menu_parent_children = openpublish_get_menu_children_parents_set();
+  
+  $active_path = $_GET['q'];
+  $active_parent_plid = isset($menu_parent_children[$active_path]) ? $menu_parent_children[$active_path] : NULL;
+  if (!empty($active_parent_plid)) {
+    $menu_map[$active_parent_plid]->active = "on";
+  }
+  else {
+    // Set active for single level items 
+    $menu_map = openpublish_menu_set_active_parent($menu_map, $active_path);
+  }
+  
+  // Add first / last classes
+  if (is_array($menu_map)) {
+    $menu_map[key($menu_map)]->position_class = "first";
+    $menu_map[array_pop(array_keys($menu_map))]->position_class = "last";  
+  }
+  
+  $vars['expanded_primary_links'] = $menu_map;
+}
+
+/**
+ * hook_theme implementation
+ */
+function openpublish_menu_theme() {
+  return array(
+    'openpublish_menu' => array(
+      'arguments' => array('expanded_primary_links' => NULL),
+      'template' => 'openpublish-menu',
+    ),
+  );
+  
+}
+
+/**
+ * Iterates over top-level items and sets the active flag
+ */
+function openpublish_menu_set_active_parent($menu_map, $active_path) {
+  foreach ($menu_map as $id => $menu) {
+    if ($menu->href == $active_path) {
+      $menu_map[$id]->active = "on";
+    }
+  }
+  return $menu_map;
+}
+
+/**
+ * hook_menu_link_alter implementation
+ */
+function openpublish_menu_menu_link_alter(&$item, $menu) {
+  static $cleared = FALSE;
+  if ($item['menu_name'] != 'primary-links' || $cleared == TRUE) {
+    return;
+  }
+  cache_clear_all('openpublish-primary-links-menu', 'cache');
+  $cleared = TRUE;
+}
+
+/**
+ * Returns a structured array representing the entire menu.
+ *
+ * @param $menu_name
+ *    Optional. The name of the menu to find. Defaults to 'primary-links'.
+ * @param $reset
+ *    Optional. Flag to determine if we should reset any existing cache and force going to the database. Defaults to FALSE.
+ * @return
+ *    Structured array representing the entire menu.
+ */
+function openpublish_menu_get_menu_top2levels($menu_name='primary-links', $reset = FALSE) {
+  return _openpublish_menu_top2levels_traverser($menu_name, $reset, "map");
+}
+
+/**
+ * Returns an array representing child/parent relationships of a 2-level menu's items.
+ *
+ * @param $menu_name
+ *    Optional. The name of the menu to find. Defaults to 'primary-links'.
+ * @param $reset
+ *    Optional. Flag to determine if we should reset any existing cache and force going to the database. Defaults to FALSE.
+ * @return
+ *    An array of child/parent relationships for 2-level menus.
+ */
+function openpublish_get_menu_children_parents_set($menu_name='primary-links', $reset = FALSE) {
+  return _openpublish_menu_top2levels_traverser($menu_name, $reset, "set");
+}
+
+/**
+ * Grab 2 levels of a menu from the database (or cache). Used for: main
+ * navigation (top).
+ *
+ * @param $menu_name
+ *    Optional. The name of the menu to find. Defaults to 'primary-links'.
+ * @param $reset
+ *    Optional. Flag to determine if we should reset any existing cache and force going to the database. Defaults to FALSE.
+ * @param $mode
+ *    <ul>
+ *      <li>"map" - a structured array representing the entire menu
+ *      <li>"set" - a simple set of child/parent relationships for 2nd level menus
+ *    </ul>
+ * @return
+ *    An array of the top 2 levels of the provided menu
+ */
+function _openpublish_menu_top2levels_traverser($menu_name='primary-links', 
+                                              $reset=FALSE,
+                                              $mode="map") {
+
+  $cache_name = 'openpublish-' . $menu_name . '-menu';
+  
+  if ($mode != "map" && $mode != "set") {
+    return array();
+  }
+  
+  // Only calculate once per HTTP request
+  static $link_maps;    
+  
+  if (!$reset) {  
+    // Have we grabbed menu in this HTTP request already?
+    if (!empty($link_maps[$cache_name]->$mode)) {
+      return $link_maps[$cache_name]->$mode;  
+    }
+  
+    $from_cache = cache_get($cache_name);
+        
+    if (!empty($from_cache)) { // && is_array($from_cache->data->map) && sizeof($from_cache->data->map)>0) { // valid cache
+      $link_maps[$cache_name] = $from_cache->data; //static-var cache
+      return $from_cache->data->$mode;
+    }
+  }
+  
+  $query = "SELECT mlid, link_title, link_path 
+            FROM {menu_links} 
+            WHERE menu_name = '%s' AND plid =0 AND hidden=0
+            ORDER BY weight";
+            
+  $res = db_query($query, $menu_name);
+  
+  $top_link_ids = array();
+  $menu_map = array(); 
+  $orderno = 0; 
+  
+  while ($row = db_fetch_object($res)) {
+    $top_link_ids[] = $row->mlid;
+    $menu_map[$row->mlid] = (object) array( 
+      'title' => t($row->link_title), 
+      'href' => $row->link_path,
+      'sublinks' => array(),
+    );
+    $orderno++;
+  }
+  
+  $str_top_link_ids = implode(',', $top_link_ids);
+
+  $query = "SELECT plid, link_path as href, link_title as title
+            FROM {menu_links} 
+            WHERE hidden =0 AND menu_name = '%s' AND plid in (%s)
+            ORDER by plid DESC, weight ASC";
+            
+  $res = db_query($query, $menu_name, $str_top_link_ids);
+
+  $menu_set = array();
+
+  while ($row = db_fetch_object($res)) {
+    $row->html_title = '<span>' . $row->title . '</span>';      
+    $menu_map[$row->plid]->sublinks[] = $row;
+    if (!empty($row->href)) {
+      $menu_set[$row->href] = $row->plid;
+    }    
+  }  
+
+  $link_maps[$cache_name]->map = $menu_map; //static-var cache
+  $link_maps[$cache_name]->set = $menu_set; //static-var cache
+  
+  cache_set($cache_name, $link_maps[$cache_name]);
+  return $link_maps[$cache_name]->$mode;
+}

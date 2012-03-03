@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ *   Install and related hooks for apachesolr_commentsearch.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function apachesolr_commentsearch_install() {
+  // Set apachesolr_index_comments_with_node so that comments aren't
+  // indexed twice. This module indexes modules for itself.
+  variable_set('apachesolr_index_comments_with_node', FALSE);
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function apachesolr_commentsearch_uninstall() {
+  variable_del('apachesolr_index_comments_with_node');
+}

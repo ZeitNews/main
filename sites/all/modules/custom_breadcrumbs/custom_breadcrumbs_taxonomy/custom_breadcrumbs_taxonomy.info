@@ -1,0 +1,14 @@
+; $Id: custom_breadcrumbs_taxonomy.info,v 1.1.2.2 2009/05/30 22:02:07 mgn Exp $
+name = Custom Breadcrumbs for Taxonomy
+description = "Enables taxonomy based breadcrumbs and allows for node assosciations with taxonomy terms."
+package = Custom Breadcrumbs
+dependencies[] = custom_breadcrumbs
+dependencies[] = taxonomy
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-01-08
+version = "6.x-2.0-rc1"
+core = "6.x"
+project = "custom_breadcrumbs"
+datestamp = "1294462254"
+

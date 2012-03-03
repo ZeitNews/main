@@ -1,0 +1,11 @@
+; $Id: memcache.info,v 1.1.2.3 2007/07/31 08:37:26 robertDouglass Exp $
+name = Memcache
+description = High performance integration with memcache.
+package = Caching
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "6.x-1.8"
+core = "6.x"
+project = "memcache"
+datestamp = "1296591123"
+

@@ -1,0 +1,9 @@
+.suggestions { padding:5px; line-height:normal; }
+.keywords_available { background-color: #ccffbb; }
+label.calais_keyword { display:inline; padding:2px 5px; margin:5px; }
+label.calais_keyword:hover { text-decoration:underline;; }
+label.calais_keyword_selected { color:#006699; background:#ADD8E6; }
+.suggestions label.score-1 { font-size:.8em;}
+.suggestions label.score-2 { font-size:1.2em;}
+.suggestions label.score-3 { font-size:1.6em;}
+

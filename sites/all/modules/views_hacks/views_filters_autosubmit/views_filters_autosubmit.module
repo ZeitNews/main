@@ -1,0 +1,81 @@
+<?php
+
+/**
+ * Implementation of hook_form_FORMID_alter() for views_exposed_form.
+ */
+function views_filters_autosubmit_form_views_exposed_form_alter(&$form, &$form_state) {
+  // Evaluate visibility.
+  $enabled_views = variable_get('views_filters_autosubmit', array());
+  if (empty($enabled_views[$form_state['view']->name])) {
+    return;
+  }
+    
+  drupal_add_js(drupal_get_path('module', 'views_filters_autosubmit') . '/views_filters_autosubmit.js');
+
+  // Inject the necessary Javascript.
+  static $forms = array();
+  if (!isset($forms[$form['#id']])) {
+    $exceptions = module_invoke_all('views_filters_autosubmit_exceptions', $form, $form_state['view']);
+    drupal_add_js(array('vfas' => array($form['#id'] => array('exceptions' => implode(',', $exceptions)))), 'setting');
+    $forms[$form['#id']] = TRUE;
+  }
+	
+	// Add hidden field to support field re-focus.
+	$form['views_exposed_form_focused_field']['#type'] = 'hidden';
+}
+
+/**
+ * Implementation of hook_views_filters_autosubmit_exceptions().
+ */
+function views_filters_autosubmit_views_filters_autosubmit_exceptions($form, $view) {
+  $exceptions = array();
+  foreach (element_children($form) as $child) {
+    // Find filters that have min and max value: disable auto-submit on min.
+    if (isset($form[$child]['min']) && isset($form[$child]['max'])) {
+      $exceptions[] = '#edit-' . str_replace('_', '-', $child) . '-min';
+    }
+  }
+  return $exceptions;
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function views_filters_autosubmit_menu() {
+  $items['admin/settings/views_filters_autosubmit'] = array(
+    'title' => 'Views Filters Auto-submit',
+    'description' => 'Configure which views support the auto-submit functionality.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('views_filters_autosubmit_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+  $items['admin/build/views/tools/filters_autosubmit'] = array(
+    'title' => 'Filters Auto-submit',
+    'description' => 'Configure which views support the auto-submit functionality.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('views_filters_autosubmit_settings'),
+    'access arguments' => array('administer site configuration'),
+    'weight' => 5,
+    'type' => MENU_LOCAL_TASK
+  );
+  return $items;
+}
+
+function views_filters_autosubmit_settings() {
+  $views = views_get_all_views();
+  $options = array();
+  foreach ($views as $view) {
+    $options[$view->name] = $view->name;
+  }
+  asort($options);
+
+  $form['views_filters_autosubmit'] = array(
+    '#title' => t('Enable auto-submit for the following views'),
+    '#type' => 'checkboxes',
+    '#options' => $options,
+    '#default_value' => variable_get('views_filters_autosubmit', array()),
+  );
+
+  return system_settings_form($form);
+}
+

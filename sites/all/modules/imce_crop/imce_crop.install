@@ -1,0 +1,30 @@
+<?php
+// $Id: imce_crop.install,v 1.1 2008/05/11 13:00:06 ufku Exp $
+
+/**
+ * Implementation of hook_install()
+ */
+function imce_crop_install() {
+  $profiles = variable_get('imce_profiles', array());
+  //set crop permissions. make profile#1 have access by default.
+  foreach ($profiles as $i => $profile) {
+    foreach ($profile['directories'] as $j => $directory) {
+      $profiles[$i]['directories'][$j]['crop'] = $i == 1 ? 1 : 0;
+    }
+  }
+  variable_set('imce_profiles', $profiles);
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function imce_crop_uninstall() {
+  $profiles = variable_get('imce_profiles', array());
+  //delete crop permissions.
+  foreach ($profiles as $i => $profile) {
+    foreach ($profile['directories'] as $j => $directory) {
+      unset($profiles[$i]['directories'][$j]['crop']);
+    }
+  }
+  variable_set('imce_profiles', $profiles);
+}

@@ -1,0 +1,13 @@
+; $Id $
+name = Calais API
+description = "Calais Web Service API - Allows any Drupal code to integrate with Calais using a simple API"
+package = "Calais"
+core = 6.x
+dependencies[] = rdf
+
+; Information added by drupal.org packaging script on 2011-11-30
+version = "6.x-3.6"
+core = "6.x"
+project = "opencalais"
+datestamp = "1322685643"
+

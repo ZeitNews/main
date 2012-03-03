@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function topterms_install() {
+  variable_set('topterms_limit', '20');
+  variable_set('topterms_order', 'name');
+  variable_set('topterms_frequency', '86400');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function topterms_uninstall() {
+  variable_del('topterms_lastupdate_timestamp');
+  variable_del('topterms_limit');
+  variable_del('topterms_order');
+  variable_del('topterms_frequency');
+}
+
+
+

@@ -1,0 +1,15 @@
+; $Id: op_workflow_bonus.info,v 1.1.2.1 2010/10/27 20:55:22 inadarei Exp $
+
+core = "6.x"
+name = "OpenPublish Bonus Pack for Workflow"
+description = "OpenPublish Bonus Pack for Workflow"
+dependencies[] = "workflow"
+dependencies[] = "rules"
+package = "OpenPublish"
+
+; Information added by drupal.org packaging script on 2010-12-03
+version = "6.x-1.18"
+core = "6.x"
+project = "openpublish_features"
+datestamp = "1291420542"
+

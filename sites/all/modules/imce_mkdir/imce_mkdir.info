@@ -1,0 +1,13 @@
+; $Id: imce_mkdir.info,v 1.1.2.1 2009/02/10 15:56:24 ufku Exp $
+name = "IMCE Mkdir"
+description = "Allows users manage directories in IMCE"
+core = "6.x"
+dependencies[] = imce
+
+
+; Information added by drupal.org packaging script on 2010-10-09
+version = "6.x-1.1"
+core = "6.x"
+project = "imce_mkdir"
+datestamp = "1286608867"
+

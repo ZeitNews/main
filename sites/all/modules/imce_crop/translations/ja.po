@@ -1,0 +1,66 @@
+# $Id: ja.po,v 1.1.2.1 2008/05/12 15:05:14 imagine Exp $
+#
+# Japanese translation of Drupal (imce_crop)
+# Copyright 2008 0829 <hixarg+0829@gmail.com>
+# Generated from files:
+#  imce_crop.info,v 1.1 2008/05/11 13:00:06 ufku Exp
+#  imce_crop.js,v 1.1 2008/05/11 13:00:06 ufku Exp
+#  imce_crop.module,v 1.1 2008/05/11 12:59:50 ufku Exp
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Drupal 6.x\n"
+"POT-Creation-Date: 2008-05-12 12:14+0900\n"
+"PO-Revision-Date: 2008-05-12 12:31+0900\n"
+"Last-Translator: 0829 <hixarg+0829@gmail.com>\n"
+"Language-Team: DRUPAL*DRUPAL <hixarg+0829@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: modules/imce_crop/imce_crop.info:0
+msgid "IMCE Crop"
+msgstr "IMCE クロップ"
+
+#: modules/imce_crop/imce_crop.info:0
+msgid "Adds image cropping functionality to IMCE"
+msgstr "IMCE に画像のクロップ機能を追加します。"
+
+#: modules/imce_crop/imce_crop.js:0
+#: modules/imce_crop/imce_crop.module:111
+msgid "Crop must be inside the image boundaries."
+msgstr "クロップは画像の内側で指定する必要があります。"
+
+#: modules/imce_crop/imce_crop.module:15;26;68;163
+msgid "Crop"
+msgstr "クロップ"
+
+#: modules/imce_crop/imce_crop.module:41
+msgid "Start from (X:Y)"
+msgstr "開始座標（X:Y）"
+
+#: modules/imce_crop/imce_crop.module:55
+msgid "Width x Height"
+msgstr "幅 x 高さ"
+
+#: modules/imce_crop/imce_crop.module:91
+msgid "Image cropping successful: %files."
+msgstr "画像のクロップが成功しました。： %files"
+
+#: modules/imce_crop/imce_crop.module:105
+msgid "%filename is not an image."
+msgstr "%filename は画像ではありません。"
+
+#: modules/imce_crop/imce_crop.module:118
+msgid "%filename cannot be cropped."
+msgstr "%filename がクロップできませんでした。"
+
+#: modules/imce_crop/imce_crop.module:135
+msgid "The selected file %file could not be copied."
+msgstr "選択されたファイル %file をコピーできませんでした。"
+
+#: modules/imce_crop/imce_crop.module:0
+msgid "imce_crop"
+msgstr "IMCE クロップ"
+

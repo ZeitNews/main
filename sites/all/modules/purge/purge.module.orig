@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @file
+ * Purge clears url's from reverse proxy caches like Varnish and Squid by issuing HTTP PURGE requests.
+ */
+
+/**
+ * Implementation of hook_menu().
+ *
+ * Set up admin settings callbacks, etc.
+ */
+function purge_menu() {
+  $items = array();
+  $items['admin/settings/purge'] = array(
+    'title' => 'Purge settings',
+    'description' => 'Configure proxy cache purges.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('purge_admin_settings_form'),
+    'access arguments' => array('administer purge'),
+  );
+  return $items;
+}
+
+/**
+ * Menu callback for purge admin settings.
+ */
+function purge_admin_settings_form() {
+  $form = array();
+  $form['purge_proxy_urls'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Proxy Url'),
+    '#default_value' => variable_get('purge_proxy_urls', 'http://localhost:80'),
+    '#description' => t('Set this to the server IP or hostname that your proxy server(s) runs on (e.g. http://127.0.0.1:80). Use the optional method parameter for nginx support like http://192.168.1.76:8080/purge?purge_method=get For Acquia Hosting platforms configure like http://yoursite.com/?purge_method=ah Separate multiple servers with spaces.')
+  );
+  return system_settings_form($form);
+}
+
+/**
+ * Validate the Purge settings
+ */
+function purge_admin_settings_form_validate($form, &$form_state) {
+  // Fill an array with the proxy server settings
+  $proxy_urls = explode(' ', $form_state['values']['purge_proxy_urls']);
+  // Check all proxy server urls
+  foreach ($proxy_urls as $proxy_url) {
+    // Check if it's a valid url
+    if (!valid_url($proxy_url, TRUE)) {
+      form_set_error('purge_proxy_urls', t('This is not a valid URL: !url.', array('!url' => $proxy_url)));
+    }
+    // Check for the Acquia Hosting environment setting
+    if (strstr(parse_url($proxy_url, PHP_URL_QUERY), 'purge_method=ah')) {
+      if (!isset($_SERVER['AH_SITE_NAME'])) {
+        form_set_error('purge_proxy_urls', t('Acquia Hosting environment variable not found.'));
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_perm().
+ *
+ * Allows admins to control access to purge settings.
+ */
+function purge_perm() {
+  return array('administer purge');
+}
+
+/**
+ * Implementation of hook_expire_cache().
+ *
+ * Takes an array from expire.module and issues purges.
+ */
+function purge_expire_cache($expire_urls) {
+  module_load_include('inc', 'purge');
+  $results = purge_urls($expire_urls);
+  purge_logging($results);
+}

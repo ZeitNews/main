@@ -1,0 +1,12 @@
+name = Extra meta tags
+description = Define extra meta tags for Drupal pages.
+package = Meta tags
+core = 6.x
+dependencies[] = nodewords
+
+; Information added by drupal.org packaging script on 2011-05-03
+version = "6.x-2.0-alpha1"
+core = "6.x"
+project = "nodewords"
+datestamp = "1304452316"
+

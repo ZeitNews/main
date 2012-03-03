@@ -1,0 +1,13 @@
+; $Id: collapsiblock.info,v 1.2 2010/04/02 16:10:55 nedjo Exp $
+name =  Collapsiblock
+description = Makes blocks collapsible.
+package = User interface
+dependencies[] = jstools
+core = 6.x
+
+; Information added by drupal.org packaging script on 2010-10-02
+version = "6.x-1.0"
+core = "6.x"
+project = "collapsiblock"
+datestamp = "1285981861"
+

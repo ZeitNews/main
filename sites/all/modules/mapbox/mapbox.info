@@ -1,0 +1,10 @@
+name = MapBox
+description = MapBox Layers for OpenLayers and GMaps
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-09-01
+version = "6.x-2.0-alpha1"
+core = "6.x"
+project = "mapbox"
+datestamp = "1314876722"
+

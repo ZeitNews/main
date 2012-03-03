@@ -1,0 +1,94 @@
+<?php
+
+// $Id: openpublish_core.install,v 1.1.2.5 2010/09/03 21:22:10 e2thex Exp $
+
+/**
+* @File install file for openpublish_core
+*/
+
+require_once( dirname(__FILE__) . '/openpublish_core_init_config.inc');
+
+/**
+* hook_install implementation
+*/
+function openpublish_core_install() {
+
+  // these functions are locsated in openpublish_core_init_config.inc file! 
+  openpublish_core_init_config_roles();
+  openpublish_core_init_config_ckeditor();
+  
+}
+
+
+
+/**
+* Add support to CKeditor, moving away from FCKeditor.
+*/
+function openpublish_core_update_6101() {
+  $ret = array();
+
+  // We introduced dependency on "ckeditor" but can't just put that in the .info file because that will block update.
+  if (!module_exists('ckeditor')) {
+    $filename = drupal_get_filename('module', 'ckeditor');
+    
+    if (!empty($filename)) {
+      module_enable(array('ckeditor'));
+    }
+    else {
+      $ret['#abort'] = array('success' => FALSE, 'query' => 'You need to install ckeditor module before you can run this update.');
+      return $ret;    
+    }         
+  }
+  
+  //-- remove fckeditor
+  $ret = update_sql ("DELETE FROM {system} WHERE name = 'fckeditor' AND type='module' ");
+  
+  module_load_include('module', 'ckeditor', 'ckeditor');
+
+  openpublish_core_init_config_ckeditor(); 
+  
+  //-- make sure .module is included and we have access to functions
+  require_once(dirname(__FILE__) . '/openpublish_core.module'); 
+  
+  $openpublish_perms = array(       
+    'access ckeditor' => array(
+       '0' => 'administrator',
+       '3' => 'author',
+       '4' => 'editor',
+       '5' => 'web editor',
+     ),
+     'administer ckeditor' => array(
+       '0' => 'administrator',
+     ),
+  );       
+  
+  $role_perms = openpublish_core_reverse_perm_array($openpublish_perms);
+  // Import the permissions for each role
+  foreach ($role_perms as $role => $perms) {
+    $rid = openpublish_core_get_rid_by_name($role);
+    openpublish_core_add_permissions($rid, $perms);
+  }
+  
+  return $ret; 
+}
+
+/**
+* Re-configure CKEditor to add exclusion for comment forms.
+*/
+function openpublish_core_update_6102() {
+    module_load_include('module', 'ckeditor', 'ckeditor');
+    openpublish_core_init_config_ckeditor(); 
+}
+/**
+* Update noderelationships keys
+*/
+function openpublish_core_update_6103() {
+global $db_type;
+  if ($db_type == 'mysql' || $db_type == 'mysqli') {
+    $ret[] = update_sql("UPDATE {noderelationships_settings} SET export_key = concat(type_name, '__',relation_type, '__', related_type, '__', field_name)");
+  }
+  else {
+    $ret[] = update_sql("UPDATE {noderelationships_settings} SET export_key = type_name||'__'||relation_type||'__'||related_type||'__'||field_name");
+  }
+
+}

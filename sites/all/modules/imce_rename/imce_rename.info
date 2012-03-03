@@ -1,0 +1,11 @@
+; $Id: imce_rename.info,v 1.1 2010/10/05 10:07:33 aaron1234nz Exp $
+name = "IMCE Rename"
+description = "Adds image renaming functionality to IMCE"
+core = "6.x"
+dependencies[] = imce
+; Information added by drupal.org packaging script on 2011-01-04
+version = "6.x-1.2"
+core = "6.x"
+project = "imce_rename"
+datestamp = "1294170954"
+

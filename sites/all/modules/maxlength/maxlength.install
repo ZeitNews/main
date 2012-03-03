@@ -1,0 +1,85 @@
+<?php
+// $Id: maxlength.install,v 1.5.4.4.2.3 2011/02/16 13:30:20 aronnovak Exp $
+/**
+ * @file
+ * Install file for the maxlenght module
+ */
+
+/**
+ * Implementation of hook_update_N().
+ */
+function maxlength_update_1() {
+  foreach (node_get_types() as $type => $name) {
+    $code_old = 'maxlength_node_type_'. $type;
+    $code_new = 'maxlength_' . $type;
+
+    $max_title = variable_get($code_old .'_maxlength_title', '');
+    $max_body  = variable_get($code_old .'_maxlength_body', '');
+
+    variable_set($code_new . '_t', $max_title);
+    variable_set($code_new . '_b', $max_body);
+
+    variable_del($code_old . '_maxlength_title');
+    variable_del($code_old . '_maxlength_body');
+
+    // old variables, not used anymore
+    variable_del($code_old . '_limit');
+    variable_del($code_old . '_maxlength');
+  }
+
+  return array();
+}
+
+/**
+ * Implementation of hook_update_N().
+ */
+function maxlength_update_2() {
+  foreach (node_get_types() as $type => $name) {
+    $code_old = 'maxlength_' . $type;
+
+    $max_title = variable_get($code_old .'_t', '');
+    $max_body  = variable_get($code_old .'_b', '');
+
+    variable_set('maxlength_title_'. $type, $max_title);
+    variable_set('maxlength_body_'. $type, $max_body);
+
+    variable_del($code_old .'_t');
+    variable_del($code_old .'_b');
+  }
+
+  return array();
+}
+
+/**
+ * Implementation of hook_update_N().
+ */
+function maxlength_update_3() {
+  $ret = array();
+  $ret[] = update_sql("UPDATE {system} SET weight = 1 WHERE name = 'maxlength'");
+
+  return $ret;
+}
+
+/**
+ * Implementation of hook_istall().
+ */
+function maxlength_install() {
+  db_query("UPDATE {system} SET weight = 1 WHERE name = 'maxlength'");
+}
+
+/**
+ * Implementation of hook_unistall().
+ *
+ * @todo clean up CCK field variables as well
+ */
+function maxlength_uninstall() {
+  foreach (node_get_types() as $type => $name) {
+    $labels = array('title', 'js_title', 'text_title',
+                    'body', 'js_body', 'text_body');
+
+    foreach ($labels as $label) {
+      variable_del('maxlength_'  . $label . '_' . $type);
+    }
+  }
+}
+

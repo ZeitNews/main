@@ -1,0 +1,77 @@
+/* $ID$ */
+
+/**
+ * @file
+ * Content management filter style sheet.
+ */
+#node-admin-filter em {
+  font-weight: bold;
+}
+
+#node-admin-filter label.option {
+  white-space: pre;
+}
+
+#node-admin-filter dl.multiselect dt  {
+  margin: 2px 1em 0 1em;
+  vertical-align: top;
+}
+
+#node-admin-filter dl.multiselect label  {
+  vertical-align: top;
+}
+
+#node-admin-filter dl.multiselect dd .form-item {
+  margin-top: 2px;
+  width: 18em;
+}
+
+#node-admin-filter dl.multiselect dd.b select {
+  width: 18em;
+}
+
+#node-admin-filter dl.multiselect dd.b input {
+  width: 21.2em; 
+}
+
+#node-admin-buttons {
+  margin-left: 5em;
+}
+
+.date-inline .form-item select {
+  margin-right: 3px;
+  float: left;
+  width: auto !important;
+}
+
+.cmf-radios .form-item label.option {
+  margin-left: 1em;
+  white-space: normal;
+}
+
+.cmf-radios .form-item .description {
+  clear: both;
+  margin-left: 1.5em;
+}
+
+/* For colorful buttons, remove the trailing comment start. */ /*
+#edit-submit {
+  color: #008000;
+  border: 2px outset #008000;
+}
+
+#edit-undo {
+  color: #fc8c00;
+  border: 2px outset #fc8c00;
+}
+
+#edit-reset, #edit-submit-1 {
+  color: #990000;
+  border: 2px outset #990000;
+}
+
+#edit-apply {
+  color: #000088;
+  border: 2px outset #000088;
+  margin-left: 3em;
+}  /* */

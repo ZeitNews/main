@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function taxonomy_limit_install() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      break;
+    case 'pgsql':
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function taxonomy_limit_uninstall() {
+  // Loop through all content types
+  $types = node_get_types('names');
+  foreach ($types AS $type => $name) {
+    variable_del('taxonomy_limit_'. $type);
+  }
+  variable_del('taxonomy_limit_types');
+}

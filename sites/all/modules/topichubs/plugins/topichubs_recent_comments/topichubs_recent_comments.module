@@ -1,0 +1,22 @@
+<?php
+//$Id: topichubs_recent_comments.module,v 1.1.2.1 2009/09/02 12:00:21 inadarei Exp $
+
+/**
+ * Implementation of hook_topichubs_plugins().
+ */
+function topichubs_recent_comments_topichubs_plugins() {
+  return array(
+    'recent_comments' => array(
+      'title' => 'Recent Comments',
+      'description' => 'Recent comments on nodes in this Topic Hub.',
+      'handler' => 'topichubs_plugin_recent_comments',
+    ),
+  );
+}
+
+/**
+ * Declare the views version we support (and provide views)
+ */
+function topichubs_recent_comments_views_api() {
+  return array('api' => 2.0);
+}

@@ -1,0 +1,480 @@
+<?php
+function semantic_cck_settings_form($settings, $type) {
+  $form = array();
+
+  $form['semantic_cck_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Semantic CCK settings'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#weight' => 3,
+    '#attributes' => array('class' => 'semantic-cck'),
+    '#tree' => TRUE,
+  );
+  $form['semantic_cck_settings']['enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use semantic HTML for field output'),
+    '#description' => t('Check this box to output the field using the semantic HTML settings below. Leave this box unchecked to use default CCK field output.'),
+    '#return_value' => 1,
+    '#default_value' => isset($settings['enabled']) ? $settings['enabled'] : 0,
+    '#required' => FALSE,
+  );
+  $form['semantic_cck_settings']['use_widget_settings'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use semantic HTML settings below for this instance only'),
+    '#description' => t('Check this box to output the field using the semantic HTML settings below <strong>only for this instance of the field</strong>.'),
+    '#return_value' => 1,
+    '#default_value' => isset($settings['use_widget_settings']) ? $settings['use_widget_settings'] : 0,
+    '#required' => FALSE,
+  );
+  $form['semantic_cck_settings']['field_container_fieldset'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Field container'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#parents' => array('semantic_cck_settings'),
+  );
+  $form['semantic_cck_settings']['field_container_fieldset']['field_element'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Surround the entire field with'),
+    '#description' => t('Insert the desired <abbr title="Hyper Text Markup Language">HTML</abbr> element that will be the container for the entire field. Leave blank for no surrounding element.'),
+    '#default_value' => isset($settings['field_element']) ? $settings['field_element'] : 'div',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['field_container_fieldset']['field_class'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Choose field element class(es)'),
+    '#description' => t('The field element automatically gets field, field type and specific field classes (ie. <em>field field-type-text field-field-my-field-name</em>).'),
+    '#default_value' => isset($settings['field_class']) ? $settings['field_class'] : '',
+    '#required' => FALSE,
+  );
+  $form['semantic_cck_settings']['field_container_fieldset']['field_prefix'] = array(
+    '#type' => 'textfield',
+    '#title' => t('And a prefix of'),
+    '#default_value' => isset($settings['field_prefix']) ? $settings['field_prefix'] : '',
+    '#description' => t('Insert the desired character(s) to output before the field.'),
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['field_container_fieldset']['field_suffix'] = array(
+    '#type' => 'textfield',
+    '#title' => t('And a suffix of'),
+    '#default_value' => isset($settings['field_suffix']) ? $settings['field_suffix'] : '',
+    '#description' => t('Insert the desired character(s) to output after the field.'),
+    '#required' => FALSE,
+  );
+  $form['semantic_cck_settings']['label_fieldset'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Field label'),
+    '#description' => t('<strong>Please note that the placement or appearance of the label is still determined by the CCK !display_fields_settings.</strong>', array('!display_fields_settings' => l(t('Display fields settings'), 'admin/content/node-type/' . str_replace("_", "-", $type) . '/display'))),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => 'semantic-cck-labels'),
+  );
+  $form['semantic_cck_settings']['label_fieldset']['above'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Labels above field value(s)'),
+    '#description' => t('How to render the label when located above the field value(s).'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#attributes' => array('class' => 'semantic-cck-labels-above'),
+    '#parents' => array('semantic_cck_settings'),
+  );
+  $form['semantic_cck_settings']['label_fieldset']['above']['label_element_above'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Surround the label with'),
+    '#description' => t('Insert the desired <abbr title="Hyper Text Markup Language">HTML</abbr> element that will surround the label.'),
+    '#default_value' => ($settings['label_element_above'] != '') ? $settings['label_element_above'] : 'h3',
+    '#required' => TRUE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['label_fieldset']['above']['label_class_above'] = array(
+    '#type' => 'textfield',
+    '#title' => t('And a class of'),
+    '#description' => t('The label automatically gets a class of <em>field-label</em>.'),
+    '#default_value' => isset($settings['label_class_above']) ? $settings['label_class_above'] : '',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['label_fieldset']['above']['label_suffix_above'] = array(
+    '#type' => 'textfield',
+    '#title' => t('And a suffix of'),
+    '#description' => t('Insert the desired suffix character, eg. a colon'),
+    '#default_value' => isset($settings['label_suffix_above']) ? $settings['label_suffix_above'] : '',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['label_fieldset']['inline'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Inline labels'),
+    '#description' => t('How to render the label when located inline with the field value(s).'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#attributes' => array('class' => 'semantic-cck-labels-inline'),
+    '#parents' => array('semantic_cck_settings'),
+  );
+  $form['semantic_cck_settings']['label_fieldset']['inline']['label_element_inline'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Surround the label with'),
+    '#description' => t('Insert the desired <abbr title="Hyper Text Markup Language">HTML</abbr> element that will surround the label.'),
+    '#default_value' => ($settings['label_element_inline'] != '') ? $settings['label_element_inline'] : 'span',
+    '#required' => TRUE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['label_fieldset']['inline']['label_class_inline'] = array(
+    '#type' => 'textfield',
+    '#title' => t('And a class of'),
+    '#description' => t('The label automatically gets a class of <em>field-label-inline</em>.'),
+    '#default_value' => isset($settings['label_class_inline']) ? $settings['label_class_inline'] : '',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['label_fieldset']['inline']['label_suffix_inline'] = array(
+    '#type' => 'textfield',
+    '#title' => t('And a suffix of'),
+    '#description' => t('Insert the desired suffix character, eg. a colon'),
+    '#default_value' => isset($settings['label_suffix_inline']) ? $settings['label_suffix_inline'] : ':',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['items_fieldset'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Field value(s)'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => 'semantic-cck-multiple-values'),
+    '#parents' => array('semantic_cck_settings'),
+  );
+  $form['semantic_cck_settings']['items_fieldset']['multivalue'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Multiple value field'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#attributes' => array('class' => 'field-values'),
+    '#attributes' => array('class' => 'semantic-cck-multiple-values-all'),
+  );
+  $form['semantic_cck_settings']['items_fieldset']['multivalue']['items_element'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#attributes' => array('class' => 'semantic-cck-multiple-values-fields'),
+    '#parents' => array('semantic_cck_settings'),
+  );
+  $form['semantic_cck_settings']['items_fieldset']['multivalue']['items_element']['multiple_items_element'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Surround all field values with'),
+    '#description' => t('Insert the desired <abbr title="Hyper Text Markup Language">HTML</abbr> element that will be the container for all field values. Leave blank for no surrounding element.'),
+    '#default_value' => isset($settings['multiple_items_element']) ? $settings['multiple_items_element'] : 'div',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['items_fieldset']['multivalue']['items_element']['multiple_items_class'] = array(
+    '#type' => 'textfield',
+    '#title' => t('And a class of'),
+    '#description' => t('The surrounding fields element automatically gets the <em>field-items</em> class.'),
+    '#default_value' => isset($settings['multiple_items_class']) ? $settings['multiple_items_class'] : '',
+    '#required' => FALSE,
+  );
+  $form['semantic_cck_settings']['items_fieldset']['multivalue']['item_element'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#attributes' => array('class' => 'semantic-cck-multiple-values-field'),
+    '#parents' => array('semantic_cck_settings'),
+  );
+  $form['semantic_cck_settings']['items_fieldset']['multivalue']['item_element']['multiple_item_element'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Surround each field value with'),
+    '#description' => t('Insert the desired <abbr title="Hyper Text Markup Language">HTML</abbr> element that will be the container for each field value. Leave blank for no surrounding element.'),
+    '#default_value' => isset($settings['multiple_item_element']) ? $settings['multiple_item_element'] : 'div',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['items_fieldset']['multivalue']['item_element']['multiple_item_class'] = array(
+    '#type' => 'textfield',
+    '#title' => t('And a class of'),
+    '#description' => t('Each field instance automatically gets the <em>field-item</em> class. Insert a # where you want enumeration (ie field-item-#).'),
+    '#default_value' => isset($settings['multiple_item_class']) ? $settings['multiple_item_class'] : '',
+    '#required' => FALSE,
+  );
+  $form['semantic_cck_settings']['items_fieldset']['multivalue']['item_element']['multiple_item_separator'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Separate each field value with'),
+    '#description' => t('Insert the desired character(s) to use as a separator between each field value. For example, this could be used to display the field values as a comma separated list.'),
+    '#default_value' => isset($settings['multiple_item_separator']) ? $settings['multiple_item_separator'] : '',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['items_fieldset']['singlevalue'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Single value field'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => 'semantic-cck-single-values-settings'),
+    '#parents' => array('semantic_cck_settings'),
+  );
+  $form['semantic_cck_settings']['items_fieldset']['singlevalue']['use_singlevalue_settings'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use the following settings when the field contains only one value'),
+    '#description' => t('Leave this unchecked to use multiple value field settings when the field contains only one value.'),
+    '#return_value' => 1,
+    '#default_value' => isset($settings['use_singlevalue_settings']) ? $settings['use_singlevalue_settings'] : 0,
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['items_fieldset']['singlevalue']['singlevalues'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#attributes' => array('class' => 'semantic-cck-single-values-item'),
+    '#parents' => array('semantic_cck_settings'),
+  );
+  $form['semantic_cck_settings']['items_fieldset']['singlevalue']['singlevalues']['single_item_element'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Surround field value with'),
+    '#description' => t('Insert the desired <abbr title="Hyper Text Markup Language">HTML</abbr> element that will be the container for a single field value. Leave blank for no surrounding element.'),
+    '#default_value' => isset($settings['single_item_element']) ? $settings['single_item_element'] : 'div',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['items_fieldset']['singlevalue']['singlevalues']['single_item_class'] = array(
+    '#type' => 'textfield',
+    '#title' => t('And a class of'),
+    '#default_value' => isset($settings['single_item_class']) ? $settings['single_item_class'] : '',
+    '#description' => t('The field instance will automatically get a <em>field-item</em> class.'),
+    '#required' => FALSE,
+  );
+  $form['semantic_cck_settings']['items_fieldset']['nth_fieldset'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('First and last classes'),
+    '#description' => t('If the <em>FIRST/LAST every n<sup>th</sup></em> option is empty or zero, the <em>FIRST class attribute</em> and <em>LAST class attribute</em> are added once to only the first and last field values. If this option is greater than or equal to 1, these classe are added to every n<sup>th</sup> row, which may be useful for grid layouts where the initial and final unit\'s lateral margins must be 0.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => 'semantic-cck-nth-settings'),
+    '#parents' => array('semantic_cck_settings'),
+  );
+  $form['semantic_cck_settings']['items_fieldset']['nth_fieldset']['last_every_nth'] = array(
+    '#type' => 'textfield',
+    '#title' => t('FIRST/LAST every n<sup>th</sup>'),
+    '#default_value' => is_numeric($settings['last_every_nth']) ? $settings['last_every_nth'] : '0',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['items_fieldset']['nth_fieldset']['first_class'] = array(
+    '#type' => 'textfield',
+    '#title' => t('FIRST class attribute'),
+    '#default_value' => isset($settings['first_class']) ? $settings['first_class'] : 'first',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['items_fieldset']['nth_fieldset']['last_class'] = array(
+    '#type' => 'textfield',
+    '#title' => t('LAST class attribute'),
+    '#default_value' => isset($settings['last_class']) ? $settings['last_class'] : 'last',
+    '#required' => FALSE,
+    '#size' => 20,
+  );
+  $form['semantic_cck_settings']['items_fieldset']['striping_classes'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Striping class attributes'),
+    '#description' => t('One striping class attribute is applied to each row. Separate multiple attributes with a space.'),
+    '#default_value' => isset($settings['striping_classes']) ? $settings['striping_classes'] : 'odd even',
+    '#required' => FALSE,
+  );
+
+  return $form;
+}
+
+function semantic_cck_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == "content_field_edit_form" && isset($form['#field'])) {
+    // Add Semantic CCK settings to the field settings form
+    $type = content_types($form['type_name']['#value']);
+    $field = $type['fields'][$form['field_name']['#value']];
+    if ($field['widget']['semantic_cck_widget_settings']['use_widget_settings']) {
+      $settings = $field['widget']['semantic_cck_widget_settings'];
+      $settings['enabled'] = $field['semantic_cck_field_settings']['enabled'];
+    }
+    else {
+      $settings = $field['semantic_cck_field_settings'];
+      $settings['use_widget_settings'] = 0;
+    }
+    $form = array_merge($form, semantic_cck_settings_form($settings, $form['type_name']['#value']));
+
+    // Ensure that the submit button appears at the bottom of the form
+    $form['submit']['#weight'] = 10;
+
+    // Add a submit handler before the CCK submit handler so the Semantic CCK form fields can be manipulated
+    // before they are saved by CCK.
+    array_unshift($form['#submit'], "semantic_cck_content_form_submit");
+
+    drupal_add_css(drupal_get_path('module', 'semantic_cck') . '/theme/semantic_cck.css');
+  }
+}
+
+function semantic_cck_content_form_submit($form, &$form_state) {
+  if ($form_state['values']['semantic_cck_settings']['use_widget_settings']) {
+    $previous_field = unserialize($form_state['values']['previous_field']);
+    $form_state['values']['semantic_cck_widget_settings'] = $form_state['values']['semantic_cck_settings'];
+    $form_state['values']['semantic_cck_field_settings'] = $previous_field['semantic_cck_field_settings'];
+
+    unset($form_state['values']['semantic_cck_widget_settings']['enabled']);
+  }
+  else {
+    $form_state['values']['semantic_cck_widget_settings'] = array(
+      'use_widget_settings' => 0,
+    );
+    $form_state['values']['semantic_cck_field_settings'] = $form_state['values']['semantic_cck_settings'];
+
+    unset($form_state['values']['semantic_cck_field_settings']['use_widget_settings']);
+  }
+}
+
+function semantic_cck_widget_settings_alter(&$additions, $op, $field) {
+  switch ($op) {
+    case 'save':
+      $setting_names = array(
+        'semantic_cck_widget_settings',
+      );
+      $additions = array_merge($additions, $setting_names);
+      break;
+  }
+}
+
+function semantic_cck_field_settings_alter(&$additions, $op, $field) {
+  switch ($op) {
+    case 'save':
+      $setting_names = array(
+        'semantic_cck_field_settings',
+      );
+      $additions = array_merge($additions, $setting_names);
+      break;
+  }
+}
+
+function semantic_cck_theme_registry_alter(&$theme_registry) {
+  $theme_registry['content_field']['theme paths'][] = drupal_get_path('module', 'semantic_cck') . '/theme';
+}
+
+function semantic_cck_preprocess_content_field(&$variables) {
+  $element = $variables['element'];
+  $field = content_fields($element['#field_name'], $element['#node']->type);
+  $num_items = count($variables['items']);
+
+  if (!isset($field['semantic_cck_field_settings']) || !$field['semantic_cck_field_settings']['enabled']) {
+    return;
+  }
+
+  if ($field['widget']['semantic_cck_widget_settings']['use_widget_settings']) {
+    $settings = $field['widget']['semantic_cck_widget_settings'];
+  }
+  else {
+    $settings = $field['semantic_cck_field_settings'];
+  }
+
+  // Provide semantic CCK field template suggestions
+  $variables['template_files'][] = 'semantic-content-field';
+  $variables['template_files'][] = 'semantic-content-field-' . $element['#field_name'];
+  $variables['template_files'][] = 'semantic-content-field-' . $element['#node']->type;
+  $variables['template_files'][] = 'semantic-content-field-' . $element['#field_name'] .'-' . $element['#node']->type;
+
+  // Field
+  $variables['field_element'] = $settings['field_element'];
+  $variables['field_prefix'] = $settings['field_prefix'];
+  $variables['field_suffix'] = $settings['field_suffix'];
+  $field_classes = array(
+    'field',
+    'field-type-' . $variables['field_type_css'],
+    'field-' . $variables['field_name_css'],
+    $settings['field_class'],
+  );
+  $variables['field_attributes'] = array(
+    'class' => trim(implode(' ', $field_classes)),
+  );
+
+  // Label
+  $variables['label_element'] = ($variables['label_display'] == "above") ? $settings['label_element_above'] : $settings['label_element_inline'];
+  $variables['label_class'] = ($variables['label_display'] == "above") ? $settings['label_class_above'] : $settings['label_class_inline'];
+  $variables['label_suffix'] = ($variables['label_display'] == "above") ? $settings['label_suffix_above'] : $settings['label_suffix_inline'];
+  $variables['label_attributes'] = array();
+  foreach ($variables['items'] as $delta => $item) {
+    $label_classes = array(
+      'field-label' . ($variables['label_display'] == "inline" ? ($delta ? "-inline" : "-inline-first") : ""),
+    );
+    if (!empty($settings['label_class'])) {
+      $label_classes[] = $variables['label_class'];
+    }
+    $variables['label_attributes'][$delta] = array(
+      'class' => implode(' ', $label_classes),
+    );
+  }
+  
+  // Items
+  if ($num_items == 1) {
+    if (!$settings['use_singlevalue_settings']) {
+      $variables['items_element'] = $settings['multiple_items_element'];
+    }
+    else {
+      $variables['items_element'] = '';
+    }
+    $variables['items_attributes'] = array();
+  }
+  else {
+    $variables['items_element'] = $settings['multiple_items_element'];
+    $items_classes = array('field-items', $settings['multiple_items_class']);
+    $variables['items_attributes'] = array(
+      'class' => trim(implode(' ', $items_classes)),
+    );
+  }
+
+  // Item
+  if ($num_items == 1 && $settings['use_singlevalue_settings']) {
+    $variables['item_element'] = $settings['single_item_element'];
+    $variables['item_separator'] = '';
+  }
+  else {
+    $variables['item_element'] = $settings['multiple_item_element'];
+    $variables['item_separator'] = ($num_items > 1 ? $settings['multiple_item_separator'] : '');
+  }
+
+  $last_every_nth = !empty($settings['last_every_nth']) ? $settings['last_every_nth'] : 0;
+  $variables['item_attributes'] = array();
+  foreach ($variables['items'] as $delta => $item) {
+    $variables['item_attributes'][$delta] = array();
+
+    $item_classes = array('field-item');
+    if ($num_items == 1) {
+      if ($settings['use_singlevalue_settings'] && $settings['single_item_class']) {
+        $item_classes[] = $settings['single_item_class'];
+      }
+      elseif (!$settings['use_singlevalue_settings'] && $settings['multiple_item_class']) {
+        $item_classes[] = $settings['multiple_item_class'];
+      }
+    }
+    elseif ($num_items > 1) {
+      if ($settings['multiple_item_class']) {
+        $item_classes[] = $settings['multiple_item_class'];
+      }
+    }
+
+    // Striping
+    $striping_classes = array();
+    if (trim($settings['striping_classes'])) {
+      $striping_classes = explode(' ', trim($settings['striping_classes']));
+      $item_classes[] = $striping_classes[$delta % count($striping_classes)];
+    }
+
+    if ($settings['first_class']) {
+      if (($last_every_nth && $delta % $last_every_nth == 0) || (!$last_every_nth && $delta == 0)) {
+        $item_classes[] = $settings['first_class'];
+      }
+    }
+    if ($settings['last_class']) {
+      if (($last_every_nth && ($delta + 1) % $last_every_nth == 0) || (!$last_every_nth && ($delta + 1) == $num_items)) {
+        $item_classes[] = $settings['last_class'];
+      }
+    }
+
+    $variables['item_attributes'][$delta]['class'] = str_replace('#', $delta, implode(' ', $item_classes));
+  }
+}

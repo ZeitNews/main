@@ -1,0 +1,40 @@
+<?php
+// $Id:
+// "Filter Check" module for Drupal 6.
+// Utility module to show which filters and input formats are not cacheable.
+
+// Support: Commercial support and further development is available from www.netgenius.co.uk
+// Contact: www.netgenius.co.uk/contact or email drupal at netgenius.co.uk
+
+/*
+ * Implement hook_form_FORM_ID_alter for form_filter_admin_format_form
+ */
+function filtercheck_form_filter_admin_format_form_alter(&$form, &$form_state) {
+
+  // We use an asterisk as a marker - change this line to use something else.
+  $mark = ' *';
+
+  // Add to the description of the 'Filters' section of the form.
+  $msg = t('Non-cacheable filters are indicated with %mark.', array('%mark' => $mark));
+  $form['filters']['#description'] .= ' ' . $msg;
+
+  // Are we posting the form?
+  $post = isset($form_state['post']['filters'])? $form_state['post'] : FALSE;
+
+  // Scan available filter modules to see which do not allow caching, updating the form as needed.
+  foreach(filter_list_all() as $filter_id => $filter) {
+    $no_cache = module_invoke($filter->module, 'filter', 'no cache', $filter->delta, $form['format']['#value']);
+    if ($no_cache) {
+      $element =& $form['filters'][$filter_id];
+      $element['#title'] .= $mark;
+      $non_cacheable |= $post? $post['filters'][$filter_id] : $element['#default_value'];
+    }
+  }
+
+  // Set format name with or without an asterisk.
+  $name = $post? $post['name'] : $form['name']['#default_value'];
+  $name = preg_replace(sprintf('/%s$/m', preg_quote($mark)), '', $name);
+  $form['name']['#value'] = $non_cacheable? $name.$mark : $name;
+}
+
+// --- Drupal docs advise NOT closing PHP tags ---

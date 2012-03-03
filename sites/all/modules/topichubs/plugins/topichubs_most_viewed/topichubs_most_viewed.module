@@ -1,0 +1,22 @@
+<?php
+//$Id: topichubs_most_viewed.module,v 1.1.2.1 2009/09/02 12:00:21 inadarei Exp $
+
+/**
+ * Implementation of hook_topichubs_plugins().
+ */
+function topichubs_most_viewed_topichubs_plugins() {
+  return array(
+    'most_viewed' => array(
+      'title' => 'Most Viewed',
+      'description' => 'Most Viewed Nodes for the Topic Hub. Requires Statistics module.',
+      'handler' => 'topichubs_plugin_most_viewed',
+    ),
+  );
+}
+
+/**
+ * Declare the views version we support (and provide views)
+ */
+function topichubs_most_viewed_views_api() {
+  return array('api' => 2.0);
+}

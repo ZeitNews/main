@@ -1,0 +1,419 @@
+<?php
+
+class ViewsContentCacheTest extends DrupalWebTestCase {
+
+  function getInfo() {
+    return array(
+      'name' => t('Views content cache segment tests'),
+      'description' => t('Segment handling tests for the Views content cache module.'),
+      'group' => t('Views content cache'),
+    );
+  }
+
+  /**
+   * Test that when a node is added the appropriate cache segment is updated.
+   */
+  function testStoryContentAdded() {
+    $cid = array('node' => array('story'));
+    //$this->verbose(views_content_cache_update_get($cid));
+    $this->assertFalse(views_content_cache_update_get($cid, TRUE), t('Ensure that the no timestamp has been set against the story cache segment.'));
+
+    $timestamp_before = time();
+    sleep(1);
+    $this->node = $this->drupalCreateNode(array('type' => 'story'));
+    sleep(1);
+    $timestamp_after = time();
+
+    // Now need to make sure that views content cache recorded the correct time:
+    $cid = array('node' => array('story'), 'node_only' => array('node_changed'));
+    $updated = views_content_cache_update_get($cid, TRUE);
+    $result = ($updated < $timestamp_after) && ($updated > $timestamp_before);
+    $this->assertTrue($result, t('Ensure that the timestamp against the story cache segment is updated.'));
+
+    $timestamp_before = time();
+    sleep(1);
+    $this->node = $this->drupalCreateNode(array('type' => 'story'));
+    sleep(1);
+    $timestamp_after = time();
+
+    // Now need to make sure that views content cache recorded the correct time:
+    $cid = array('node' => array('story'), 'node_only' => array('node_changed'));
+    $updated = views_content_cache_update_get($cid, TRUE);
+    $result = ($updated < $timestamp_after) && ($updated > $timestamp_before);
+    $this->assertTrue($result, t('Ensure that the timestamp against the story cache segment is updated.'));
+
+    // Make sure the page segment was untouched:
+    $this->assertFalse(views_content_cache_update_get(array('node' => array('page')), TRUE), t('Ensure that the no timestamp has been set against the page cache segment.'));
+  }
+
+  /**
+   * Test that when a comment is added to a story the timestamp is recorded.
+   *
+   * We'll create a node and then post a comment on it, making sure that:
+   * - The comment segment has no timestamp associated with it before we begin.
+   * - The global comment segment is updated when posting a comment.
+   * - The comment segment for stories is updated.
+   * - The comment segment for pages is not updated.
+   */
+  function testCommentAdded() {
+    $cid = array('comment' => array('changed'));
+    $this->assertFalse(views_content_cache_update_get($cid, TRUE), t('Ensure that the no timestamp has been set against the global comment cache segment.'));
+
+    // Create the node we'll be posting against.
+    $this->node = $this->drupalCreateNode(array('type' => 'story'));
+
+    $timestamp_before = time();
+    $this->comment = $this->postComment($this->node, $this->randomName(32));
+    $timestamp_after = time();
+
+    // Now need to make sure that views content cache recorded the correct time:
+    // In the global comment segment.
+    $cid = array('comment' => array('changed'));
+    $updated = views_content_cache_update_get($cid, TRUE);
+    $result = ($updated <= $timestamp_after) && ($updated >= $timestamp_before);
+    $this->assertTrue($result, t('Ensure that the timestamp against the global comment cache segment is updated.'));
+
+    // In the story node comment segment.
+    $cid = array('node' => array('story'), 'comment' => array('changed'));
+    $updated = views_content_cache_update_get($cid, TRUE);
+    $result = ($updated <= $timestamp_after) && ($updated >= $timestamp_before);
+    $this->assertTrue($result, t('Ensure that the timestamp against the story node comment cache segment is updated.'));
+
+    // In the story only node comment segment.
+    $cid = array('node' => array('story'), 'node_only' => array('node_changed'));
+    $updated = views_content_cache_update_get($cid, TRUE);
+    $this->assertFalse($updated, t('Ensure that the timestamp against the story only node comment cache segment is not updated.'));
+
+    // In the page node comment segment.
+    $cid = array('node' => array('page'), 'comment' => array('changed'));
+    $updated = views_content_cache_update_get($cid, TRUE);
+    $this->assertFalse($updated, t('Ensure that the timestamp against the page node comment cache segment is not updated.'));
+
+  }
+
+  public function setUp() {
+    parent::setUp('views_content_cache', 'ctools', 'views', 'comment');  // Enable any modules required for the test
+    // Create and log in our privileged user.
+    $this->privileged_user = $this->drupalCreateUser(array(
+      'create story content',
+      'edit own story content',
+      ));
+    $this->drupalLogin($this->privileged_user);
+  }
+
+    /**
+   * Post comment.
+   *
+   * @param $node
+   *   Node to post comment on.
+   * @param $comment
+   *   Comment body.
+   * @param $subject
+   *   Comment subject.
+   * @param $contact
+   *   Set to NULL for no contact info, TRUE to ignore success checking, and
+   *   array of values to set contact info.
+   */
+  function postComment($node, $comment, $subject = '', $contact = NULL) {
+    $edit = array();
+    $edit['comment'] = $comment;
+
+    $preview_mode = variable_get('comment_preview_' . $node->type, COMMENT_PREVIEW_REQUIRED);
+    $subject_mode = variable_get('comment_subject_field_' . $node->type, 1);
+
+    // Must get the page before we test for fields.
+    if ($node !== NULL) {
+      $this->drupalGet('comment/reply/' . $node->nid);
+    }
+
+    if ($subject_mode == TRUE) {
+      $edit['subject'] = $subject;
+    }
+
+    if ($contact !== NULL && is_array($contact)) {
+      $edit += $contact;
+    }
+    switch ($preview_mode) {
+      case COMMENT_PREVIEW_REQUIRED:
+        // Preview required so no save button should be found.
+        $this->assertNoFieldByName('op', t('Save'), t('Save button not found.'));
+        $this->drupalPost(NULL, $edit, t('Preview'));
+        // Don't break here so that we can test post-preview field presence and
+        // function below.
+      case COMMENT_PREVIEW_OPTIONAL:
+        $this->assertFieldByName('op', t('Preview'), t('Preview button found.'));
+        $this->assertFieldByName('op', t('Save'), t('Save button found.'));
+        $this->drupalPost(NULL, $edit, t('Save'));
+        break;
+
+    }
+    $match = array();
+    // Get comment ID
+    preg_match('/#comment-([0-9]+)/', $this->getURL(), $match);
+
+    // Get comment.
+    if ($contact !== TRUE) { // If true then attempting to find error message.
+      if ($subject) {
+        $this->assertText($subject, 'Comment subject posted.');
+      }
+      $this->assertText($comment, 'Comment body posted.');
+      $this->assertTrue((!empty($match) && !empty($match[1])), t('Comment id found.'));
+    }
+
+    if (isset($match[1])) {
+      return (object) array('id' => $match[1], 'subject' => $subject, 'comment' => $comment);
+    }
+  }
+}
+
+class ViewsContentCacheViewsPluginTest extends DrupalWebTestCase {
+
+  function getInfo() {
+    return array(
+      'name' => t('Views content cache views plugin'),
+      'description' => t('Tests if the caching plugin for views is working.'),
+      'group' => t('Views content cache'),
+    );
+  }
+
+  /**
+   * In this test we'll add some page and story content, and a dummy view to ensure it is rendered correctly.
+   */
+  function testCachedViewStoryAdd() {
+    // Add a story
+    $first_story = $this->drupalCreateNode(array('type' => 'story'));
+    sleep(1);
+
+    // Ensure it appears in the view
+    $this->drupalGet('views_content_cache/latest_stories', array('query' => array('step' => 'add_first')));
+    $this->assertText($first_story->title, t('Ensure first story is rendered by the view.'));
+    // Ensure the view was not served from cache.
+    $this->assertNoText('[Served output from views_content_cache]', t("Ensure the view didn't come from the cache."));
+
+    // Ensure the view was served from cache.
+    $this->drupalGet('views_content_cache/latest_stories', array('query' => array('step' => 'get_first_cached')));
+    $this->assertText('[Served output from views_content_cache]', t('Ensure the view came from the cache.'));
+
+    // Add another story
+    $second_story = $this->drupalCreateNode(array('type' => 'story'));
+    sleep(1);
+
+    // Ensure the second story appears in the view
+    $this->drupalGet('views_content_cache/latest_stories', array('query' => array('step' => 'add_second')));
+    $this->assertText($second_story->title, t('Ensure second story is rendered by the view.'));
+
+    // Ensure the view was not served from cache.
+    $this->assertNoText('[Served output from views_content_cache]', t("Ensure the view didn't come from the cache."));
+
+    // Ensure the view was served from cache.
+    $this->drupalGet('views_content_cache/latest_stories', array('query' => array('step' => 'get_second_cached')));
+    $this->assertText('[Served output from views_content_cache]', t('Ensure the view came from the cache.'));
+
+  }
+
+  /**
+   * In this test we'll add some story content, and make sure we can use a pager.
+   */
+  function testCachedPagedView() {
+    // Add some stories.
+    for ($i = 0;$i < 4; $i++) {
+      $stories[] = $this->drupalCreateNode(array('type' => 'story'));
+    }
+    sleep(1);
+
+    // Ensure it appears in the view
+    $this->drupalGet('views_content_cache/latest_stories/paged');
+    // This should now be cached.
+    $this->drupalGet('views_content_cache/latest_stories/paged');
+    $this->assertText('[Served output from views_content_cache]', t('Ensure the view came from the cache.'));
+
+    $this->assertText($stories[0]->title, t('Ensure First story is rendered by the view.'));
+    $this->assertText($stories[1]->title, t('Ensure Second story is rendered by the view.'));
+    $this->assertNoText($stories[2]->title, t('Ensure Third story is not rendered by the view.'));
+
+    // Click the next link on the page.
+    $this->clickLink('next ›');
+    $this->assertNoText('[Served output from views_content_cache]', t("Ensure the view didn't come from the cache."));
+
+    $this->assertText($stories[2]->title, t('Ensure Third story is rendered by the view.'));
+    $this->assertNoText($stories[0]->title, t('Ensure Second story is not rendered by the view.'));
+
+    // Reload the page:
+    $this->drupalGet($this->getUrl());
+    // Ensure the view was served from cache.
+    $this->assertText('[Served output from views_content_cache]', t('Ensure the view came from the cache.'));
+    $this->assertText($stories[3]->title, t('Ensure Fourth story is rendered by the view.'));
+    $this->assertNoText($stories[1]->title, t('Ensure Second story is not rendered by the view.'));
+
+    // Now add a fifth node, and make sure the pager increases to three pages.
+    $stories[] = $this->drupalCreateNode(array('type' => 'story'));
+    sleep(1);
+    // Reload the page:
+    $this->drupalGet($this->getUrl());
+    $this->assertNoText('[Served output from views_content_cache]', t("Ensure the view didn't come from the cache."));
+    $this->assertText($stories[3]->title, t('Ensure Fourth story is rendered by the view.'));
+    $this->assertNoText($stories[4]->title, t('Ensure Fifth story is not rendered by the view.'));
+    $this->assertLink('next ›', 0, 'Ensure that the pager has an additional page');
+  }
+
+  public function setUp() {
+    parent::setUp('views_content_cache', 'ctools', 'views', 'views_content_cache_test');  // Enable any modules required for the test
+    // Create and log in our privileged user.
+    $this->privileged_user = $this->drupalCreateUser(array(
+      'create story content',
+      'edit own story content',
+      'create page content',
+      'edit own page content',
+      ));
+    $this->drupalLogin($this->privileged_user);
+  }
+
+}
+
+
+
+class ViewsContentCacheUnitTest extends DrupalUnitTestCase {
+
+  function getInfo() {
+    return array(
+      'name' => t('Views content cache unit tests'),
+      'description' => t('Unit tests for the Views content cache module.'),
+      'group' => t('Views content cache'),
+    );
+  }
+
+  public function setUp() {
+    parent::setUp('views_content_cache', 'ctools', 'views', 'comment');  // Enable any modules required for the test
+  }
+
+  function testQueryBuilder() {
+    $query_arrays = array(
+      // First test
+      array(
+        '#glue' => 'AND',
+        array(
+          '#clause' => 'FIELDA = %d',
+          '#args' => array(1),
+        ),
+        array(
+          '#clause' => 'FIELDB = %d',
+          '#args' => array(2),
+        ),
+        array(
+          '#clause' => 'FIELDC = %d',
+          '#args' => array(3),
+        ),
+      ),
+
+      //Second test:
+      array(
+        '#glue' => 'OR',
+        array(
+          '#clause' => 'FIELDA = %d',
+          '#args' => array(3),
+        ),
+        array(
+          '#clause' => 'FIELDB = %d',
+          '#args' => array(2),
+        ),
+        array(
+          '#clause' => 'FIELDC = %d',
+          '#args' => array(1),
+        ),
+      ),
+
+      // Third test:
+      array(
+        '#glue' => 'OR',
+        array(
+        '#glue' => 'AND',
+          array(
+            '#clause' => 'FIELDA = %d',
+            '#args' => array(1, 2),
+          ),
+          array(
+            '#clause' => 'FIELDB = %d',
+            '#args' => array(3, 4),
+          ),
+        ),
+        array(
+          '#clause' => 'FIELDC = %d',
+          '#args' => array(5, 6),
+        ),
+      ),
+
+      // Fourth test:
+      array(
+        '#glue' => 'OR',
+        array(
+          '#clause' => 'FIELDA = %d',
+          '#args' => array(5, 6),
+        ),
+        array(
+        '#glue' => 'AND',
+          array(
+            '#clause' => 'FIELDB = %d',
+            '#args' => array(1, 2),
+          ),
+          array(
+            '#clause' => 'FIELDC = %d',
+            '#args' => array(3, 4),
+          ),
+        ),
+      ),
+
+      // Fifth test:
+      array(
+        '#glue' => 'OR',
+        array(
+          '#clause' => 'FIELDA = %d',
+          '#args' => array(5, 6),
+        ),
+        array(
+        '#glue' => 'AND',
+          array(
+            '#clause' => 'FIELDB = %d',
+            '#args' => array(1, 2),
+          ),
+          array(
+            '#glue' => 'OR',
+            array(
+              '#clause' => 'FIELDC = %d',
+              '#args' => array(3, 4),
+            ),
+            array(
+              '#clause' => 'FIELDD = %d',
+              '#args' => array(7, 8),
+            ),
+          ),
+          array(
+            '#clause' => 'FIELDE = %d',
+            '#args' => array(9, 10),
+          ),
+        ),
+      ),
+
+    );
+    $expected_where = array(
+      '(FIELDA = %d AND FIELDB = %d AND FIELDC = %d)',
+      '(FIELDA = %d OR FIELDB = %d OR FIELDC = %d)',
+      '((FIELDA = %d AND FIELDB = %d) OR FIELDC = %d)',
+      '(FIELDA = %d OR (FIELDB = %d AND FIELDC = %d))',
+      '(FIELDA = %d OR (FIELDB = %d AND (FIELDC = %d OR FIELDD = %d) AND FIELDE = %d))',
+
+    );
+    $expected_args = array(
+      array(1, 2, 3),
+      array(3, 2, 1),
+      array(1, 2, 3, 4, 5, 6),
+      array(5, 6, 1, 2, 3, 4),
+      array(5, 6, 1, 2, 3, 4, 7, 8, 9, 10),
+    );
+    foreach ($query_arrays as $key => $query) {
+      $built = views_content_cache_query_builder($query);
+      $this->assertEqual($built['#clause'], $expected_where[$key], t('Built the query: "@query", expected: "@expected".', array('@query' => $built['#clause'], '@expected' => $expected_where[$key])));
+      $this->assertIdentical($built['#args'], $expected_args[$key], t('Built the query arguments.'));
+    }
+  }
+
+}

@@ -1,0 +1,174 @@
+<?php
+// $Id: collapsiblock.module,v 1.5 2010/08/24 18:38:22 gagarine Exp $
+
+/**
+ * @file
+ * Make blocks collapsible.
+ */
+
+/**
+ * Implementation of hook_init().
+ */
+function collapsiblock_init() {
+  collapsiblock_load();
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function collapsiblock_menu() {
+  $items = array();
+
+  $items['admin/settings/collapsiblock'] = array(
+    'title' => 'Collapsiblock',
+    'description' => 'Configuration for collapsible blocks',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('collapsiblock_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+
+  return $items;
+}
+
+/**
+ * Admin settings.
+ */
+function collapsiblock_admin_settings() {
+  $form = array();
+  $form['collapsiblock_help'] = array(
+    '#type' => 'item',
+    '#value' => t('Change selectors from <a href="!url">Themes configuration</a>.',array('!url'=>url('admin/build/themes/settings'))),
+  );
+
+  $form['collapsiblock_default_state'] = array(
+    '#type' => 'radios',
+    '#title' => t('Default block collapse behavior'),
+    '#options' => array(1 => t('None.'), 2 => t('Collapsible, expanded by default.'), 3 => t('Collapsible, collapsed by default.'), 4 => t('Collapsible, collapsed all the time.')),
+    '#default_value' => variable_get('collapsiblock_default_state', 1),
+  );
+  $form['collapsiblock_slide_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Default animation type'),
+    '#options' => array(1 => t('Slide'), 2 => t('Fade and slide')),
+    '#description' => t('Slide is the Drupal default while Fade and slide adds a nice fade effect.'),
+    '#default_value' => variable_get('collapsiblock_slide_type', 1),
+  );
+  $form['collapsiblock_slide_speed'] = array(
+    '#type' => 'select',
+    '#title' => t('Animation speed'),
+    '#options' => drupal_map_assoc(array('50', '100', '200', '300', '400', '500', '700', '1000', '1300')),
+    '#description' => t('The animation speed in milliseconds.'),
+    '#default_value' => variable_get('collapsiblock_slide_speed', 200),
+  );
+  $form = system_settings_form($form);
+  return $form;
+}
+
+/**
+ * Load needed files.
+ */
+function collapsiblock_load() {
+  static $loaded = FALSE;
+  if (!$loaded) {
+    global $theme;
+    $current_theme = $theme ? $theme : variable_get('theme_default', 'garland');
+    $collapsiblock_path = drupal_get_path('module', 'collapsiblock');
+    $theme_settings = theme_get_settings($current_theme);
+    $theme_settings = array_merge(collapsiblock_default_settings(),$theme_settings, array());
+    jstools_add_js(drupal_get_path('module', 'collapsiblock') . '/collapsiblock.js');
+    drupal_add_js(drupal_get_path('module', 'jstools') .'/jquery.cookie.js');
+    drupal_add_js(array(
+        'collapsiblock' => array(
+            'blocks' => variable_get('collapsiblock_settings', array()),
+            'default_state' => variable_get('collapsiblock_default_state', 1),
+            'slide_type' => variable_get('collapsiblock_slide_type', 1),
+            'slide_speed' => variable_get('collapsiblock_slide_speed', 200),
+            'block_title' => $theme_settings['collapsiblock_title'],
+            'block' => $theme_settings['collapsiblock_block'],
+            'block_content' => $theme_settings['collapsiblock_content'],
+            )), 'setting'
+    );
+    drupal_add_css($collapsiblock_path .'/collapsiblock.css');
+    $loaded = TRUE;
+  }
+}
+
+/**
+ * Default theme's settings
+ */
+function collapsiblock_default_settings() {
+  $defaults = array(
+  'collapsiblock_block' => 'div.block',
+  'collapsiblock_content' => 'div.content',
+  'collapsiblock_title' => ':header:first',
+  );
+  return $defaults;
+}
+
+ /**
+ * Implementation of hook_form_alter().
+ */
+function collapsiblock_form_alter(&$form, $form_state, $form_id) {
+ 
+  if ($form_id == 'system_theme_settings') {
+    if ($key = $form['#parameters'][2]) {
+      $settings = theme_get_settings($key);
+      $themes = system_theme_data();
+      $features = $themes[$key]->info['features'];
+      $settings = array_merge(collapsiblock_default_settings(), $settings, array());
+    } else {
+      $settings = theme_get_settings('');
+      $settings = array_merge(collapsiblock_default_settings(), $settings, array());
+    }
+
+    collapsiblock_default_settings();
+    //$settings = theme_get_settings();
+    $form['collapsiblock'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Collapsiblock selectors'),
+        '#description' => t("Force <a href='http://api.jquery.com/category/selectors/'>CSS selector</a> if collapsiblock doesn't work out of the box"),
+        '#weight' => 0,
+        '#attributes' => array('id' => 'collapsiblock_form'),
+    );
+    $form['collapsiblock']['collapsiblock_block'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Block'),
+        '#default_value' => $settings['collapsiblock_block'],
+    );
+    $form['collapsiblock']['collapsiblock_title'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Title'),
+        '#default_value' => $settings['collapsiblock_title'],
+    );
+
+    $form['collapsiblock']['collapsiblock_content'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Block content'),
+        '#default_value' => $settings['collapsiblock_content'],
+    );
+  }
+
+  if ($form_id == 'block_admin_configure') {
+    $settings = variable_get('collapsiblock_settings', array());
+    $form['#submit'][] = 'collapsiblock_submit';
+    $form['collapsiblock'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Collapsible'),
+      '#collapsible' => TRUE,
+      '#weight' => -5
+    );
+    $form['collapsiblock']['collapse_type'] = array(
+      '#type' => 'radios',
+      '#title' => t('Block collapse behavior'),
+      '#options' => array(1 => t('None.'), 2 => t('Collapsible, expanded by default.'), 3 => t('Collapsible, collapsed by default.'), 4 => t('Collapsible, collapsed all the time.')),
+      '#default_value' => $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']] ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']] : variable_get('collapsiblock_default_state', 1),
+    );
+  }
+}
+
+function collapsiblock_submit($form, &$form_state) {
+  $settings = variable_get('collapsiblock_settings', array());
+  $settings['block-'. $form_state['values']['module'] .'-'. $form_state['values']['delta']] = $form_state['values']['collapse_type'];
+  variable_set('collapsiblock_settings', $settings);
+}
+

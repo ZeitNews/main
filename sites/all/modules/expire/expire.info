@@ -1,0 +1,12 @@
+name = "Cache Expiration"
+description = "Logic for expiring page caches"
+recommends[] = nodereferrer
+package = "Performance and scalability"
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-12-30
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "expire"
+datestamp = "1325204479"
+

@@ -1,0 +1,324 @@
+<?php
+
+/**
+ * Implementation of hook_taxonomy().
+ */
+function lineage_taxonomy($op, $type, $array = NULL) {
+  // we care not about vocabularies
+  if ($type == 'vocabulary') {
+    return;
+  }
+
+  switch ($op) {
+    case 'delete':
+      lineage_delete_term($array['tid']);
+      break;
+    case 'insert':
+    case 'update':
+      // Skip if we are on the admin reordering pages;
+      // it will happen be triggered by our submit handler after processing.
+      if (arg() != array('admin', 'content', 'taxonomy', $array['vid'])) {
+        lineage_update_term($array);
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_form_taxonomy_overview_terms_alter().
+ */
+function lineage_form_taxonomy_overview_terms_alter(&$form, &$form_state) {
+  // Override submit handler.
+  $form['#submit'] = array('lineage_taxonomy_overview_terms_submit');
+}
+
+/**
+ * Submit handler for taxonomy_overview_terms (the admin term reordering form).
+ * Overrides handling so that we can update lineages after the new term
+ * weights are processed.
+ * This function is mostly a clone of taxonomy_overview_terms_submit, with
+ * the addition of lineage_update_all calls in the appropriate places.
+ */
+function lineage_taxonomy_overview_terms_submit(&$form, &$form_state) {
+  if ($form_state['clicked_button']['#value'] == t('Reset to alphabetical')) {
+    // Execute the reset action.
+    if ($form_state['values']['reset_alphabetical'] === TRUE) {
+      taxonomy_vocabulary_confirm_reset_alphabetical_submit($form, $form_state);
+      lineage_update_all($form_state['values']['vid']);
+      return;
+    }
+    // Rebuild the form to confirm the reset action.
+    $form_state['rebuild'] = TRUE;
+    $form_state['confirm_reset_alphabetical'] = TRUE;
+    return;
+  }
+
+  $order = array_flip(array_keys($form['#post'])); // Get the $_POST order.
+  $form_state['values'] = array_merge($order, $form_state['values']); // Update our original form with the new order.
+
+  $vocabulary = $form['#vocabulary'];
+  $hierarchy = 0; // Update the current hierarchy type as we go.
+
+  $changed_terms = array();
+  $tree = taxonomy_get_tree($vocabulary['vid']);
+
+  if (empty($tree)) {
+    return;
+  }
+
+  // Build a list of all terms that need to be updated on previous pages.
+  $weight = 0;
+  $term = (array) $tree[0];
+  while ($term['tid'] != $form['#first_tid']) {
+    if ($term['parents'][0] == 0 && $term['weight'] != $weight) {
+      $term['parent'] = $term['parents'][0];
+      $term['weight'] = $weight;
+      $changed_terms[$term['tid']] = $term;
+    }
+    $weight++;
+    $hierarchy = $term['parents'][0] != 0 ? 1 : $hierarchy;
+    $term = (array) $tree[$weight];
+  }
+
+  // Renumber the current page weights and assign any new parents.
+  $level_weights = array();
+  foreach ($form_state['values'] as $tid => $values) {
+    if (isset($form[$tid]['#term'])) {
+      $term = $form[$tid]['#term'];
+      // Give terms at the root level a weight in sequence with terms on previous pages.
+      if ($values['parent'] == 0 && $term['weight'] != $weight) {
+        $term['weight'] = $weight;
+        $changed_terms[$term['tid']] = $term;
+      }
+      // Terms not at the root level can safely start from 0 because they're all on this page.
+      elseif ($values['parent'] > 0) {
+        $level_weights[$values['parent']] = isset($level_weights[$values['parent']]) ? $level_weights[$values['parent']] + 1 : 0;
+        if ($level_weights[$values['parent']] != $term['weight']) {
+          $term['weight'] = $level_weights[$values['parent']];
+          $changed_terms[$term['tid']] = $term;
+        }
+      }
+      // Update any changed parents.
+      if ($values['parent'] != $term['parent']) {
+        $term['parent'] = $values['parent'];
+        $changed_terms[$term['tid']] = $term;
+      }
+      $hierarchy = $term['parent'] != 0 ? 1 : $hierarchy;
+      $weight++;
+    }
+  }
+
+  // Build a list of all terms that need to be updated on following pages.
+  for ($weight; $weight < count($tree); $weight++) {
+    $term = (array) $tree[$weight];
+    if ($term['parents'][0] == 0 && $term['weight'] != $weight) {
+      $term['parent'] = $term['parents'][0];
+      $term['weight'] = $weight;
+      $changed_terms[$term['tid']] = $term;
+    }
+    $hierarchy = $term['parents'][0] != 0 ? 1 : $hierarchy;
+  }
+
+  // Save all updated terms.
+  foreach ($changed_terms as $term) {
+    taxonomy_save_term($term);
+  }
+
+  // Update the vocabulary hierarchy to flat or single hierarchy.
+  if ($vocabulary['hierarchy'] != $hierarchy) {
+    $vocabulary['hierarchy'] = $hierarchy;
+    taxonomy_save_vocabulary($vocabulary);
+  }
+
+  lineage_update_all($vocabulary['vid']);
+}
+
+function lineage_enable() {
+  drupal_set_message(t("Updated @number taxonomy records.", array('@number' => lineage_update_all())));
+}
+
+/**
+ * Updates all lineage records.
+ * @param $vid=false If passed, limit to records for only one vocabulary.
+ * @return $count The number of records updated.
+ */
+function lineage_update_all($vid = FALSE) {
+  // If we are only updating one vocabulary, select only those terms.
+  $base_q = "SELECT td.tid, td.name, td.weight, td.vid FROM {term_data} td LEFT JOIN {term_hierarchy} th ON th.tid = td.tid WHERE th.parent = 0";
+
+  if ($vid) {
+    $result = db_query($base_q . " AND td.vid = %d", $vid);
+  }
+  else {
+    $result = db_query($base_q);
+  }
+
+  $count = 0;
+  while ($term = db_fetch_object($result)) {
+    $count += lineage_update_term($term, TRUE);
+  }
+  return $count;
+}
+
+function lineage_update_term($term, $all = FALSE) {
+  if (is_array($term)) {
+    $term = (object) $term;
+  }
+
+  // If we are in the middle of updating all lineages, skip this.
+  if (!$all) {
+    // Select lineage for a different term in this vocab arbitrarily.
+    $r = db_query("
+      SELECT tl.lineage, td.tid, td.name, td.weight, td.vid, th.parent 
+        FROM {term_data} td
+          LEFT JOIN {term_lineage} tl ON tl.tid = td.tid 
+          LEFT JOIN {term_hierarchy} th ON td.tid = th.tid 
+        WHERE td.vid = %d
+          AND td.tid <> %d
+        LIMIT 1;",
+      $term->vid, $term->tid);
+
+    $other_term = db_fetch_object($r);
+
+    // If the lineage string doesn't match what we think it should be,
+    // an update is required.
+    if ($other_term->lineage != lineage_string($other_term)) {
+      $count = lineage_update_all($term->vid);
+      return $count;
+    }
+  }
+
+  // Else, just update this term.
+  $base = _lineage_get_parent_lineage($term->parent);
+  return count(lineage_update_term_r($term, $base));
+}
+
+function lineage_update_term_r($term, $base, $tids = array()) {
+  // Extend the base.
+  $base['base'] .= lineage_string($term);
+
+  // Update the hierarchy for the current tid.
+  db_query("DELETE FROM {term_lineage} WHERE tid = %d", $term->tid);
+  db_query("INSERT INTO {term_lineage} (tid, lineage, depth) VALUES (%d, '%s', %d)", $term->tid, $base['base'], $base['depth']);
+
+  $base['depth']++;
+  // Mark that we've done this one to prevent looping.
+  $tids[$term->tid] = TRUE;
+
+  // Update all the children.
+  $result = db_query("SELECT td.tid, td.name, td.weight, td.vid FROM {term_hierarchy} th INNER JOIN {term_data} td ON td.tid = th.tid WHERE th.parent = %d", $term->tid);
+  while ($child = db_fetch_object($result)) {
+    // loop protection, just in case.
+    if (!isset($tids[$child->tid])) {
+      $tids = lineage_update_term_r($child, $base, $tids);
+    }
+  }
+  return $tids;
+}
+
+function lineage_delete_term($tid) {
+  db_query("DELETE FROM {term_lineage} WHERE tid = %d", $tid);
+}
+
+function lineage_string($term) {
+  // Ensure positive weights with enough digits so that all sort properly.
+  $w = _lineage_weights($term->vid);
+  return sprintf("%0" . $w['digits'] . "d", $term->weight + $w['offset'])
+    . "-" . $term->name . "\n";
+}
+
+/**
+ * Strip the weight from the beginning of a lineage term string.
+ * @param term_string one line of a lineage, with weight
+ * @return one line of a lineage, with the weight removed
+ */
+function lineage_strip_weight($term_string) {
+  // Remove numbers 0-9 followed by a hyphen, at most once.
+  $term_name = preg_replace("([0-9]+-)", "", $term_string, 1);
+  if ($term_name != $term_string) {
+    return $term_name;
+  }
+  else {
+    // Passed string did not include a proper weight; set a warning.
+    _lineage_format_warning();
+    return FALSE;
+  }
+}
+
+/** Get the weight string from the beginning of a lineage term string.
+ * @param term_string one line of a lineage, with weight
+ * @return The weight from term_string, or false on failure.
+ */
+function lineage_get_weight($term_string) {
+  $matches = array();
+  if (preg_match("([0-9]+-)", $term_string, $matches)) {
+    // Return the matched weight pattern, minus the hyphen at the end.
+    return substr($matches[0], 0, -1);
+  }
+  else {
+    // Passed string did not include a proper weight; set a warning.
+    _lineage_format_warning();
+    return FALSE;
+  }
+}
+
+function _lineage_get_parent_lineage($tid) {
+  $result = db_query("SELECT td.tid, td.name, td.weight, td.vid, th.parent FROM {term_hierarchy} th LEFT JOIN {term_data} td ON td.tid = th.tid WHERE td.tid = %d", $tid);
+
+  if ($term = db_fetch_object($result)) {
+    $ret = _lineage_get_parent_lineage($term->parent);
+
+    $ret['base'] .= lineage_string($term);
+    $ret['depth'] += 1;
+
+    return $ret;
+  }
+
+  return array();
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function lineage_views_api() {
+  return array(
+    'api' => 2.0,
+  );
+}
+
+
+/**
+ * Determine how many digits to use in weights.
+ * @param vid the vocabulary.
+ * @return array of min weight, max weight, offset to use, and # digits.
+ */
+function _lineage_weights($vid) {
+  // Keep static array with weight info to prevent unneeded queries.
+  static $weights = array();
+
+  if (!isset($weights[$vid])) {
+    $min_r = db_query("SELECT MIN(weight) FROM {term_data} WHERE vid = %d", $vid);
+    $weights[$vid]['min'] = db_result($min_r);
+    $weights[$vid]['offset'] = ($weights[$vid]['min'] < 0) ? abs($weights[$vid]['min']) : 0;
+
+    $max_r = db_query("SELECT MAX(weight) FROM {term_data} WHERE vid = %d", $vid);
+    $weights[$vid]['max'] = db_result($max_r);
+    $weights[$vid]['digits'] = floor(log($weights[$vid]['max'] + $weights[$vid]['offset'] + 1));
+    if ($weights[$vid]['digits'] == 0) {
+      $weights[$vid]['digits']++;
+    }
+  }
+
+  return $weights[$vid];
+}
+
+/**
+ * Displays a warning if appears that lineage strings are in the wrong format.
+ */
+function _lineage_format_warning() {
+  drupal_set_message(
+    t("Warning: your lineage data appears to be in an old format.  Try disabling and re-enabling the module, or run update.php."),
+    'warning',
+    FALSE
+  );
+}

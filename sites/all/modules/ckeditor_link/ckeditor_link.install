@@ -1,0 +1,9 @@
+<?php
+// $Id: ckeditor_link.install,v 1.1 2010/07/20 17:01:13 anrikun Exp $
+
+/**
+ * Implementation of hook_install().
+ */
+function ckeditor_link_install() {
+  db_query("UPDATE {system} SET weight = %d WHERE name = '%s'", 1, 'ckeditor_link');
+}

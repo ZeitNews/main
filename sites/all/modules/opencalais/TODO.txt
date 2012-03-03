@@ -1,0 +1,11 @@
+Add
+ - Add API documentation (talk about the various way to access the data)
+ - Linked Data integration 
+ 
+Test
+- Migrate Processing == NONE to Retrieve == NONE & Processing == SUGGEST
+- Better way to associate nodes and vocabs using taxonomy functions instead of direct DB inserts
+
+
+
+

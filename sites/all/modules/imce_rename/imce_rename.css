@@ -1,0 +1,8 @@
+/* $Id: imce_rename.css,v 1.1 2010/10/19 08:57:42 aaron1234nz Exp $ */
+
+#op-item-rename a, #imce-content #edit-rename {
+  background-image: url(rename.png);
+  /*For IMCE 1.x*/
+  background-repeat: no-repeat;
+  padding-left: 20px;
+}

@@ -1,0 +1,13 @@
+<?php
+/**
+ * Implementation of hook_install().
+ */
+function audiofield_install() {
+  drupal_load('module', 'content');
+  content_notify('install', 'audiofield');
+}
+
+function audiofield_uninstall() {
+  drupal_load('module', 'content');
+  content_notify('uninstall', 'audiofield');
+}

@@ -1,0 +1,19 @@
+<?php
+/**
+ * Implementation of hook_install().
+ */
+function filtercheck_install() {
+  $msg = 'Filter Formats which cannot be cached will be marked when their configuration is saved. '
+       . 'Go to !link to do that now.';
+  $tvars['!link'] = l('Input formats', 'admin/settings/filters');
+  drupal_set_message(t($msg, $tvars), 'warning');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+
+function filtercheck_uninstall() {
+//  db_query('DELETE FROM {variable} WHERE name LIKE "filtercheck_%"');
+}
+

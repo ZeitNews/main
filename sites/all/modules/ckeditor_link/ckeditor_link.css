@@ -1,0 +1,18 @@
+/* $Id: ckeditor_link.css,v 1.1 2010/07/22 10:45:38 anrikun Exp $ */
+
+/**
+ * @file
+ * Written by Henri MEDOT <henri.medot[AT]absyx[DOT]fr>
+ * http://www.absyx.fr
+ */
+
+div.cke_dialog_ui_input_text #autocomplete li.selected *
+{
+  cursor: default;
+  color: #fff;
+}
+
+input.cke_dialog_ui_input_text.form-autocomplete
+{
+  min-height: 16px;
+}

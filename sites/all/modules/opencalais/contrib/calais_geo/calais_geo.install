@@ -1,0 +1,213 @@
+<?php
+/*
+  Copyright (C) 2008 by Phase2 Technology.
+  Author(s): Frank Febbraro
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY. See the LICENSE.txt file for more details.
+
+ */
+/**
+ * @file
+ */
+
+require_once dirname(__FILE__) . '/../../calais_api.module';
+require_once dirname(__FILE__) . '/../../calais.module';
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function calais_geo_uninstall() {
+  drupal_uninstall_schema('calais_geo');
+
+  variable_del('calais_geo_vocabularies');
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function calais_geo_install() {
+  drupal_install_schema('calais_geo');
+  
+  // Module weights: put after calais (which is 10)
+  db_query("UPDATE {system} SET weight = 15 WHERE name = 'calais_geo'");
+  
+  // Setup a default/minimal configuration
+  $entities = calais_get_entity_vocabularies();
+    
+  $geo_vocabs = array();
+  $default_vocabs = array('City', 'ProvinceOrState', 'Country');
+  foreach ($default_vocabs as $vocab) {
+    $readable = calais_api_make_readable($vocab);
+    if(isset($entities[$vocab])) {
+      $geo_vocabs[$entities[$vocab]] = $entities[$vocab];
+    }
+    else if(isset($entities[$readable])) {
+      $geo_vocabs[$entities[$readable]] = $entities[$readable];
+    }
+  }
+  variable_set('calais_geo_vocabularies', $geo_vocabs);
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function calais_geo_schema() {
+  $schema['calais_geo'] = array(
+    'description' => 'Data associated with Calais Geomapping for nodes',
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => t('The node id')
+      ),
+      'vid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => t('The node revision id')
+      ),
+      'center_tid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'description' => t('The Calais Term id to use as the map center')
+      ),
+      'center_latitude' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'description' => t('The manual latitude center')
+      ),
+      'center_longitude' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'description' => t('The manual longitude center')
+      ),
+      'width' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'description' => t('Width of the map')
+      ),
+      'height' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'description' => t('Height of the map')
+      ),
+    ),
+    'indexes' => array(
+      'nid' => array('nid'),
+    ),
+    'primary key' => array('vid'),
+  );
+  $schema['calais_geo_term'] = array(
+    'description' => 'Data associated with Calais Geo terms',
+    'fields' => array(
+      'gtid' => array(
+        'description' => t('The primary identifier for a geo term.'),
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'nid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => t('The node id')
+      ),
+      'vid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => t('The node revision id')
+      ),
+      'tid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE,
+        'description' => t('The Calais Term id')
+      ),
+    ),
+    'indexes' => array(
+      'nid' => array('nid'),
+      'vid' => array('vid'),
+      'tid' => array('tid'),
+    ),
+    'primary key' => array('gtid'),
+  );
+  return $schema;
+}
+
+function calais_geo_update_6300() {
+  $ret = array();
+  
+  // Add default for nodes enabled to all, users can then turn them off instead of having them all disappear
+  $enabled_types = array();
+  foreach(node_get_types() as $key => $type) {
+    $enabled_types[$key] = $key;
+  }
+  variable_set('calais_geo_nodes_enabled', $enabled_types);
+  
+  // Zoom was not working, lets get rid of it
+  db_drop_field($ret, 'calais_geo', 'zoom');
+  _cg_migrate_manual_center($ret);
+  _cg_migrate_term_center($ret);  
+  _cg_migrate_terms($ret); 
+  return $ret; 
+}
+
+
+// ------------------- HELPERS -------------------------------------
+function _cg_migrate_manual_center(&$ret) {
+  // We will be repurposing these
+  db_drop_field($ret, 'calais_geo', 'center_lat');
+  db_drop_field($ret, 'calais_geo', 'center_lon');
+
+  // Add new center columns to be actual numeric fields
+  db_add_field($ret, 'calais_geo', 'center_latitude', array('type' => 'numeric', 'precision' => 10, 'scale' => 6));
+  db_add_field($ret, 'calais_geo', 'center_longitude', array('type' => 'numeric', 'precision' => 10, 'scale' => 6));
+  
+  // Migrate the manual center terms to the center lat/lon fields (make sure they are the proper type)
+  $result = db_query("SELECT * FROM {calais_geo} WHERE latlon_center IS NOT NULL AND latlon_center <> ''");
+  while($geo = db_fetch_object($result)) {
+    list($lat, $lon) = explode(',', $geo->latlon_center);
+    if(is_numeric($lat) && is_numeric($lon)) {
+      $ret[] = update_sql("UPDATE {calais_geo} SET center_latitude = $lat, center_longitude = $lon WHERE vid = {$geo->vid}");      
+    }
+  }
+
+  // Remove the previous manual center
+  db_drop_field($ret, 'calais_geo', 'latlon_center');
+}
+
+function _cg_migrate_term_center(&$ret) {
+  // Add the term relation for center
+  db_add_field($ret, 'calais_geo', 'center_tid', array('type' => 'int', 'unsigned' => TRUE, 'default' => 0));
+
+  // Update center term id by matching in the calais_term table for the particular node in question
+  $ret[] = update_sql("UPDATE {calais_geo} cg SET cg.center_tid = (SELECT ct.tid FROM {calais_term} ct INNER JOIN {calais_term_node} ctn ON ctn.tid = ct.tid WHERE ct.name = cg.term_center AND ctn.nid = cg.nid AND ct.resolved_type = 'geo' LIMIT 1)");
+
+  // Remove the previous term center
+  db_drop_field($ret, 'calais_geo', 'term_center');
+}
+
+function _cg_migrate_terms(&$ret) {
+  // Add the term relation
+  db_add_field($ret, 'calais_geo_term', 'tid', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE));
+
+  // Update center term id by matching in the calais_term table for the particular node in question
+  $ret[] = update_sql("UPDATE {calais_geo_term} cgt SET cgt.tid = (SELECT ct.tid FROM {calais_term} ct INNER JOIN {calais_term_node} ctn ON ctn.tid = ct.tid WHERE ct.name = cgt.term AND ctn.nid = cgt.nid AND ct.resolved_type = 'geo' LIMIT 1)");
+
+  // Add an index on the tid column
+  db_add_index($ret, 'calais_geo_term', 'tid', array('tid'));
+
+  // Remove the previous columns
+  db_drop_field($ret, 'calais_geo_term', 'term');
+  db_drop_field($ret, 'calais_geo_term', 'lat');
+  db_drop_field($ret, 'calais_geo_term', 'lon');
+}

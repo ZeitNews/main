@@ -1,0 +1,301 @@
+<?php
+
+/**
+ * Implementation of hook_content_default_fields().
+ */
+function op_event_content_default_fields() {
+  $fields = array();
+
+  // Exported field: field_event_date
+  $fields['event-field_event_date'] = array(
+    'field_name' => 'field_event_date',
+    'type_name' => 'event',
+    'display_settings' => array(
+      'weight' => '-3',
+      'parent' => '',
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'label' => array(
+        'format' => 'above',
+      ),
+      'teaser' => array(
+        'format' => 'long',
+        'exclude' => 0,
+      ),
+      'full' => array(
+        'format' => 'long',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'datetime',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'date',
+    'active' => '1',
+    'granularity' => array(
+      'year' => 'year',
+      'month' => 'month',
+      'day' => 'day',
+      'hour' => 'hour',
+      'minute' => 'minute',
+    ),
+    'timezone_db' => '',
+    'tz_handling' => 'none',
+    'todate' => 'optional',
+    'repeat' => 0,
+    'repeat_collapsed' => '',
+    'default_format' => 'medium',
+    'widget' => array(
+      'default_value' => 'blank',
+      'default_value_code' => '',
+      'default_value2' => 'same',
+      'default_value_code2' => '',
+      'input_format' => 'F j, Y - g:ia',
+      'input_format_custom' => '',
+      'increment' => '1',
+      'text_parts' => array(),
+      'year_range' => '-3:+3',
+      'label_position' => 'above',
+      'label' => 'Event Date',
+      'weight' => '-3',
+      'description' => '',
+      'type' => 'date_popup',
+      'module' => 'date',
+    ),
+  );
+
+  // Exported field: field_main_image
+  $fields['event-field_main_image'] = array(
+    'field_name' => 'field_main_image',
+    'type_name' => 'event',
+    'display_settings' => array(
+      'weight' => '3',
+      'parent' => '',
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'label' => array(
+        'format' => 'above',
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      '0' => array(
+        'format' => 'above',
+        'exclude' => 0,
+      ),
+      '1' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'filefield',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'filefield',
+    'active' => '1',
+    'list_field' => '0',
+    'list_default' => 1,
+    'description_field' => '0',
+    'widget' => array(
+      'file_extensions' => 'jpg jpeg png gif',
+      'file_path' => '',
+      'progress_indicator' => 'bar',
+      'max_filesize_per_file' => '',
+      'max_filesize_per_node' => '',
+      'max_resolution' => '0',
+      'min_resolution' => '0',
+      'alt' => '',
+      'custom_alt' => 0,
+      'title' => '',
+      'custom_title' => 0,
+      'title_type' => 'textfield',
+      'default_image' => NULL,
+      'use_default_image' => 0,
+      'imagecrop' => 0,
+      'imagecrop_presets' => array(
+        'author_photo' => 0,
+      ),
+      'filefield_sources' => array(
+        'remote' => 'remote',
+        'imce' => 'imce',
+        'reference' => 0,
+      ),
+      'filefield_source_autocomplete' => NULL,
+      'filefield_source_attach_path' => NULL,
+      'filefield_source_attach_absolute' => NULL,
+      'filefield_source_attach_mode' => NULL,
+      'label' => 'Main Image',
+      'weight' => '2',
+      'description' => 'Appears at the top of detail pages and as a thumbnail on list pages.',
+      'type' => 'imagefield_widget',
+      'module' => 'imagefield',
+    ),
+  );
+
+  // Exported field: field_main_image_credit
+  $fields['event-field_main_image_credit'] = array(
+    'field_name' => 'field_main_image_credit',
+    'type_name' => 'event',
+    'display_settings' => array(
+      'weight' => '5',
+      'parent' => '',
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'label' => array(
+        'format' => 'above',
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'text',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'text',
+    'active' => '1',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'widget' => array(
+      'rows' => 5,
+      'size' => '60',
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+          '_error_element' => 'default_value_widget][field_main_image_credit][0][value',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Main Image Credit',
+      'weight' => '4',
+      'description' => '',
+      'type' => 'text_textfield',
+      'module' => 'text',
+    ),
+  );
+
+  // Exported field: field_teaser
+  $fields['event-field_teaser'] = array(
+    'field_name' => 'field_teaser',
+    'type_name' => 'event',
+    'display_settings' => array(
+      'weight' => '1',
+      'parent' => '',
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'label' => array(
+        'format' => 'above',
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'text',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'text',
+    'active' => '1',
+    'text_processing' => '1',
+    'max_length' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'widget' => array(
+      'rows' => '5',
+      'size' => 60,
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+          'format' => '2',
+          '_error_element' => 'default_value_widget][field_teaser][0][value',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Teaser',
+      'weight' => '-1',
+      'description' => '',
+      'type' => 'text_textarea',
+      'module' => 'text',
+    ),
+  );
+
+  // Translatables
+  // Included for use with string extractors like potx.
+  t('Event Date');
+  t('Main Image');
+  t('Main Image Credit');
+  t('Teaser');
+
+  return $fields;
+}

@@ -1,0 +1,68 @@
+<?php
+// $Id: tagorder.install,v 1.2.4.4 2009/03/27 18:42:49 kiwinyc Exp $
+
+/**
+ * @file
+ * The install and uninstall code for the tagorder module.
+ *
+ * @ingroup token
+ */
+
+  function tagorder_install() {
+    //Use schema API to create database table
+    drupal_install_schema('tagorder');
+  }
+  
+  function tagorder_schema() {
+    $schema['tagorder'] = array(
+      'description' => t('Stores order (weight) information for taxonomy terms per node revision'),
+      'fields' => array(
+        'nid' => array(
+          'type' => int,
+          'unsigned' => TRUE,
+          'not_null' => TRUE,
+          'default' => 0,
+          'description' => t('The {node}.nid which this taxonomy term is associated with.'),
+        ),
+        'vid' => array(
+          'type' => int,
+          'unsigned' => TRUE,
+          'not_null' => TRUE,
+          'default' => 0,
+          'description' => t('The {node}.vid which this taxonomy term is associated with.'),
+        ),
+        'vocabid' => array(
+          'type' => int,
+          'unsigned' => TRUE,
+          'not_null' => TRUE,
+          'default' => 0,
+          'description' => t('The {vocabulary}.vid which this taxonomy term is associated with.'),
+        ),
+        'tid' => array(
+          'type' => int,
+          'unsigned' => TRUE,
+          'not_null' => TRUE,
+          'default' => 0,
+          'description' => t('The tid for this taxonomy term.'),
+        ),
+        'weight' => array(
+          'type' => int,
+          'unsigned' => TRUE,
+          'not_null' => TRUE,
+          'default' => 0,
+          'description' => t('The weight (order) for this taxonomy term and this {node}.vid.'),
+        ),
+      ),
+      'primary key' => array(
+        'nid', 'vid', 'tid'
+      ),
+    );
+    
+    return $schema;
+  }
+
+  function tagorder_uninstall() {
+    //Use schema API to create database table
+    drupal_uninstall_schema('tagorder');
+    variable_del('tagorder_vocab');
+  }

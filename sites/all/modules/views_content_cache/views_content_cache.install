@@ -1,0 +1,113 @@
+<?php
+
+/**
+ * @file
+ *   Install file for views content cache.
+ */
+
+/**
+* Implementation of hook_schema().
+*/
+function views_content_cache_schema() {
+  return views_content_cache_schema_6001();
+}
+
+/**
+ * Schema version 6001.
+ *
+ * We'va added a table here that can store timestamps against various cache
+ * segments. These get dynamically mapped to real cache segments, like node type
+ * or organic group ID.
+ */
+function views_content_cache_schema_6001() {
+  $schema = array();
+  $schema['views_content_cache'] = array(
+    'description' => 'Stores timestamps for various cache segments showing the last time the segment changed.',
+    'fields' => array(
+      'timestamp' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Updated timestamp for a given cache segment.',
+      ),
+      'c1' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => NULL,
+        'description' => 'Cache segment 1.',
+      ),
+      'c2' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => NULL,
+        'description' => 'Cache segment 2.',
+      ),
+      'c3' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => NULL,
+        'description' => 'Cache segment 3.',
+      ),
+      'c4' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => NULL,
+        'description' => 'Cache segment 4.',
+      ),
+      'c5' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => NULL,
+        'description' => 'Cache segment 5.',
+      ),
+      'c6' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => NULL,
+        'description' => 'Cache segment 6.',
+      ),
+      'c7' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => NULL,
+        'description' => 'Cache segment 7.',
+      ),
+      'c8' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => NULL,
+        'description' => 'Cache segment 8.',
+      ),
+    ),
+    'indexes' => array(
+      'timestamp' => array('timestamp'),
+      'c1' => array('c1'),
+      'c2' => array('c2'),
+      'c3' => array('c3'),
+      'c4' => array('c4'),
+      'c5' => array('c5'),
+      'c6' => array('c6'),
+      'c7' => array('c7'),
+      'c8' => array('c8'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function views_content_cache_install() {
+  drupal_install_schema('views_content_cache');
+}
+
+/**
+ * Update 6001: Create tables for schema version 6001.
+ */
+function views_content_cache_update_6001() {
+  $ret = array();
+  foreach (views_content_cache_schema_6001() as $name => $table) {
+    db_create_table($ret, $name, $table);
+  }
+  return $ret;
+}

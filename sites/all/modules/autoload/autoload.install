@@ -1,0 +1,20 @@
+<?php
+// $Id: autoload.install,v 1.1.2.2 2010/06/03 03:33:11 crell Exp $
+
+/**
+ * Implementaton of hook_enable().
+ */
+function autoload_enable() {
+  db_query("UPDATE {system} SET weight = -100 WHERE name = 'autoload' AND type = 'module'");
+
+  spl_autoload_register('autoload_class');
+}
+
+/**
+ * Set a low module weight to ensure this module is enabled before those that depend on it.
+ */
+function autoload_update_6001() {
+  db_query("UPDATE {system} SET weight = -100 WHERE name = 'autoload' AND type = 'module'");
+
+  return array();
+}

@@ -1,0 +1,41 @@
+<?php
+//$Id: topichubs_contributors.module,v 1.1.2.1 2009/09/02 12:00:21 inadarei Exp $
+
+/**
+ * Implementation of hook_topichubs_plugins().
+ */
+function topichubs_contributors_topichubs_plugins() {
+  return array(
+    'contributors' => array(
+      'title' => 'Top Contributors',
+      'description' => 'Users that have authored the most stories in this Topic Hub',
+      'handler' => 'topichubs_plugin_contributors',
+    ),
+  );
+}
+
+/**
+ * Provide the form settings
+ * return the form
+ */
+function topichubs_contributors_topichubs_plugins_settings() {
+  $form = array();
+  $options = array();
+
+  $result = db_query("SELECT uid, name from {users}");
+    
+  while($item = db_fetch_object($result)) {
+    $options[$item->uid] = $item->name;
+  }
+
+  $form['topichubs_contrib_ignore'] = array(
+    '#type' => 'select',
+    '#title' => t('Ignore the following'),
+    '#options' => $options,
+    '#multiple' => true,
+    '#default_value' => variable_get('topichubs_contrib_ignore', 1),
+    '#description' => t('Selected Users will not appear as contributors'),
+  );
+  
+  return $form;
+}

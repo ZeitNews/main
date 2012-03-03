@@ -1,0 +1,553 @@
+<?php
+/*
+  Copyright (C) 2008 by Phase2 Technology.
+  Author(s): Frank Febbraro, Irakli Nadareishvili
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY. See the LICENSE.txt file for more details.
+
+ */
+/**
+ * @file
+ */
+
+require_once dirname(__FILE__) . '/calais_api.module';
+require_once dirname(__FILE__) . '/calais.module';
+
+/**
+ * Implementation of hook_requirements(). 
+ * Check to make sure settings form has been saved.
+ */
+function calais_requirements($phase) {
+
+  $requirements = array();
+  $t = get_t();
+
+  if ($phase == 'runtime') {
+    $settings = variable_get('calais_applied_entities_global', FALSE);
+    if ($settings === FALSE || empty($settings)) {
+
+      $settings_uri = array(
+        '!calaissetturi' => l(t('Calais Node Settings'),
+        'admin/settings/calais/calais-node')
+      );
+
+      $requirements['calais'] = array(
+        'title' => $t('Calais Node Settings'),
+        'value' => $t('Settings not saved.'),
+        'description' => $t('Calais integration module is enabled, but the settings have not been saved.
+                              The module will not function properly until the !calaissetturi page has been saved.', 
+                              $settings_uri),
+        'severity' => REQUIREMENT_ERROR);
+    }
+  }
+
+  return $requirements;
+}
+
+/**
+ * hook_install implementation
+ *
+ * Create the vocabularies for all know Calais Entities.
+ */
+function calais_install() {
+  drupal_install_schema('calais');
+  calais_create_vocabularies();
+
+  // Module weights: put calais after taxonomy for form altering.
+  db_query("UPDATE {system} SET weight = 10 WHERE name = 'calais'");
+  
+  calais_install_rdf_repository($ret);
+}
+
+/**
+ * Create the RDF repository for Calais RDF storage.
+ */
+function calais_install_rdf_repository(&$ret) {
+  module_load_include('inc', 'rdf', 'rdf.db');
+  rdf_db_create_repository(CALAIS_RDF_REPOSITORY, array('dc:title' => t('Calais Node'), 'dc:description' => t('Stores a node\'s RDF data as provided from the Calais Web Service.')));
+  $ret[] = array('success' => TRUE, 'query' => 'Added Calais Node RDF repository');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function calais_schema() {
+
+  $schema['calais_term'] = array(
+    'description' => 'Holds retrieved Calais terms and the Drupal vocabulary to which they are associated',
+    'fields' => array(
+      'tid' => array(
+        'type' => 'serial', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE,
+        'description' => t('Identifier for a Calais term')
+      ),
+      'name' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'not null' => TRUE,
+        'description' => t('The value of the term')
+      ),
+      'vid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => t('The Vocabulary this term is in')
+      ),
+      'tdid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'description' => t('The Term Data ID for this mapping')
+      ),
+      'guid' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'not null' => TRUE,
+        'description' => t('The Calais GUID of this term')
+      ),
+      'resolved_guid' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'description' => t('The Disambiguated Calais GUID of this term (if it exists)')
+      ),
+      'resolved_name' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'description' => t('The normalized/resolved name of the term')
+      ),
+      'resolved_type' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'description' => t('The Disambiguated type of this Entity')
+      ),
+    ),
+    'indexes' => array(
+      'vid'    => array('vid'),
+      'tdid'    => array('tdid'),
+    ),
+    'primary key' => array('tid'),
+  );
+
+  // Table to store the association b/w a calais term and the node for which it was retrieved 
+  $schema['calais_term_node'] = array(
+    'description' => 'Holds the association between a retrieved Calais term and a Node',
+    'fields' => array(
+      'tid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => t('The term identifier')
+      ),
+      'nid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => t('The node for this term')
+      ),
+      'relevance' => array(
+        'type' => 'numeric', 
+        'size' => 'normal', 
+        'not null' => TRUE, 
+        'default' => 0.0, 
+        'precision' => 5, 
+        'scale' => 3,
+        'description' => t('The relevence score from Calais for this term/node combination')
+        ),
+    ),
+    'indexes' => array(
+      'tid'    => array('tid'),
+      'nid'    => array('nid'),
+    ),
+    'primary key' => array('tid', 'nid'),
+  );
+
+  // Table to store the resolved geo data 
+  $schema['calais_term_data_geo'] = array(
+    'description' => 'Holds the Disambiguated Geo data for an Entity',
+    'fields' => array(
+      'did' => array(
+        'type' => 'serial', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE,
+        'description' => t('Data id')
+      ),
+      'tid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => t('The term identifier')
+      ),
+      'latitude' => array(
+        'type' => 'numeric',
+        'precision' => 10,
+        'scale' => 6,
+        'default' => 0.0,
+        'description' => t('The latitude value of the Entity')
+      ),
+      'longitude' => array(
+        'type' => 'numeric',
+        'precision' => 10,
+        'scale' => 6,
+        'default' => 0.0,
+        'description' => t('The longitude value of the Entity')
+      ),
+      'shortname' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'description' => t('The short name of the Entity')
+      ),
+      'containedbystate' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'description' => t('The State that contains this Entity')
+      ),
+      'containedbycountry' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'description' => t('The Country that contains this Entity')
+      ),
+    ),
+    'unique keys' => array(
+      'tid' => array('tid')
+    ),
+    'primary key' => array('did'),
+  );
+
+  // Table to store the resolved company data 
+  $schema['calais_term_data_company'] = array(
+    'description' => 'Holds the Disambiguated company data for an Entity',
+    'fields' => array(
+      'did' => array(
+        'type' => 'serial', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE,
+        'description' => t('Data id')
+      ),
+      'tid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => t('The term identifier')
+      ),
+      'ticker' => array(
+        'type' => 'varchar', 
+        'length' => 25, 
+        'description' => t('The ticker symbol of the Entity')
+      ),
+      'score' => array(
+        'type' => 'numeric', 
+        'size' => 'normal', 
+        'default' => 0.0, 
+        'precision' => 5, 
+        'scale' => 3,
+        'description' => t('Confidence score (range: 0 lowest - 1 highest)')
+      ),
+    ),
+    'unique keys' => array(
+      'tid' => array('tid')
+    ),
+    'primary key' => array('did'),
+  );
+
+  // Table to store the resolved product data 
+  $schema['calais_term_data_product'] = array(
+    'description' => 'Holds the Disambiguated Product data for a term',
+    'fields' => array(
+      'did' => array(
+        'type' => 'serial', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE,
+        'description' => t('Data id')
+      ),
+      'tid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => t('The term identifier')
+      ),
+      'score' => array(
+        'type' => 'numeric', 
+        'size' => 'normal', 
+        'default' => 0.0, 
+        'precision' => 5, 
+        'scale' => 3,
+        'description' => t('Confidence score (range: 0 lowest - 1 highest)')
+      ),
+    ),
+    'unique keys' => array(
+      'tid' => array('tid')
+    ),
+    'primary key' => array('did'),
+  );
+
+  $schema['calais_term_uri'] = array(
+    'description' => 'Holds Linked Open Data URIs for disambiguated terms',
+    'fields' => array(
+      'uid' => array(
+        'type' => 'serial', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE,
+        'description' => t('Identifier for a URI')
+      ),
+      'tid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE,
+        'description' => t('Identifier for a term')
+      ),
+      'service' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'not null' => TRUE,
+        'description' => t('The service that hosts this URI (typically the domain name)')
+      ),
+      'uri' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'description' => t('The Disambiguated Linked Open Data URI')
+      ),
+    ),
+    'indexes' => array(
+      'service'    => array('service'),
+    ),
+    'primary key' => array('uid'),
+  );
+  
+  $schema['calais_node_queue'] = array(
+    'description' => t('Stores a listing of nodes to get processed by Calais.'),
+    'fields' => array(
+      'nid' => array(
+        'description' => t('The primary identifier for a node.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'type' => array(
+        'description' => 'The type of this node.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'changed' => array(
+        'description' => t('The timestamp when a node property was changed.'),
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'process_type' => array(
+        'description' => t('How to process the tagging on this node.'),
+        'type' => 'varchar',
+        'length' => 32,
+      ),
+      'threshold' => array(
+        'description' => t('The relevancy threshold for tagging this node.'),
+        'type' => 'numeric', 
+        'size' => 'normal', 
+        'precision' => 5, 
+        'scale' => 3,
+      ),
+    ),
+    'indexes' => array(
+      'type' => array('type'),
+      'changed' => array('changed'),
+    ),
+    'primary key' => array('nid'),
+  );
+	  
+  return $schema;
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function calais_uninstall() {
+  drupal_uninstall_schema('calais');
+  calais_remove_vocabularies();
+
+  if (function_exists('rdf_db_delete_repository')) {
+    rdf_db_delete_repository(CALAIS_RDF_REPOSITORY);
+  }
+}
+
+// Update to 6.x-2.x (and migrate from 5.x if needed)
+function calais_update_6200() {
+  $ret = array();
+  
+  if(!db_column_exists('calais_term', 'guid')) {
+    db_add_field($ret, 'calais_term', 'guid', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'initial' => ''));
+  }
+  
+  if(!db_column_exists('calais_term_node', 'relevance')) {
+    db_add_field($ret, 'calais_term_node', 'relevance', array('type' => 'numeric', 'size' => 'normal', 'not null' => TRUE, 'default' => 0.0, 'precision' => 5, 'scale' => 3, 'initial' => 1.000));
+  }
+  
+  if(!db_column_exists('term_data', 'guid')) {
+    db_add_field($ret, 'term_data', 'guid', array('type' => 'varchar', 'length' => 255, 'description' => 'Holds the GUID from Calais for this term.'));  
+  }
+  return $ret;
+}
+
+// Add columns for geo disambiguation
+function calais_update_6201() {
+  $ret = array();
+  db_add_field($ret, 'calais_term', 'resolved_name', array('type' => 'varchar', 'length' => 255));
+  db_add_field($ret, 'calais_term', 'latitude', array('type' => 'varchar', 'length' => 25));
+  db_add_field($ret, 'calais_term', 'longitude', array('type' => 'varchar', 'length' => 25));
+  return $ret;
+}
+
+// Migrate towards RDF storage
+function calais_update_6202() {
+  $ret = array();
+  calais_install_rdf_repository($ret);
+  return $ret;
+}
+
+// Normalize data strucutre
+// Support for disambiguated guids/data
+function calais_update_6300() {
+  $ret = array();
+  
+  // Add new columns
+  if (!db_column_exists('calais_term', 'tdid')) {
+    db_add_field($ret, 'calais_term', 'tdid', array(
+      'type' => 'int', 
+      'unsigned' => TRUE, 
+      'description' => t('The term id for a mapping to a record in the term_data table.')
+    ));  
+    db_add_index($ret, 'calais_term', 'tdid', array('tdid'));
+  }
+  if (!db_column_exists('calais_term', 'resolved_guid')) {
+    db_add_field($ret, 'calais_term', 'resolved_guid', array(
+      'type' => 'varchar', 
+      'length' => 255, 
+      'description' => 'Holds the Disambiguated GUID from Calais for this term.'
+    ));  
+  }
+  if (!db_column_exists('calais_term', 'resolved_type')) {
+    db_add_field($ret, 'calais_term', 'resolved_type', array(
+      'type' => 'varchar', 
+      'length' => 255, 
+      'description' => t('The Disambiguated type of this Entity.')
+    ));  
+  }
+
+  // Cleanup records that were created via processing terms with vocabs that were supposed to be ignored
+  $ret[] = update_sql("DELETE FROM {calais_term} WHERE vid = 0");
+  $ret[] = update_sql("DELETE FROM {term_data} WHERE vid = 0 AND guid IS NOT NULL");
+
+  // Add indexes first as this could take a while
+  db_add_index($ret, 'term_data', 'guid', array('guid'));
+  db_add_index($ret, 'calais_term', 'guid', array('guid'));
+
+  // Create a temp field to help select the most used records in cases where there a duplicates
+  db_add_field($ret, 'term_data', 'termcount', array(
+    'type' => 'int', 
+    'unsigned' => TRUE,
+  ));  
+  $ret[] = update_sql("UPDATE {term_data} td SET td.termcount = (SELECT count(*) FROM {term_node} tn WHERE td.tid = tn.tid)");
+  
+  // Populate the term id in the calais term table, the complex subquery is for the cases I have seen
+  // where more than one tax term has the same guid. This subquery joins the temp talbe form above to 
+  // make sure that the term data record with the most uses is the one that is selected.
+  $ret[] = update_sql("UPDATE {calais_term} ct SET ct.tdid = (SELECT td.tid FROM {term_data} td WHERE td.guid = ct.guid ORDER BY td.termcount DESC LIMIT 1)");
+  $ret[] = update_sql("UPDATE {calais_term} ct SET ct.tdid = (SELECT td.tid FROM {term_data} td WHERE td.vid = ct.vid AND lower(td.name) = lower(ct.name) AND (td.guid IS NULL OR td.guid = '') ORDER BY td.termcount DESC LIMIT 1) WHERE ct.tdid IS NULL");
+
+  // Remove the columns from term_data
+  db_drop_field($ret, 'term_data', 'guid');
+  db_drop_field($ret, 'term_data', 'termcount');
+  
+  // Create new tables for disambiguated data
+  $schema = calais_schema();
+  db_create_table($ret, 'calais_term_data_geo', $schema['calais_term_data_geo']);
+  db_create_table($ret, 'calais_term_data_company', $schema['calais_term_data_company']);
+  db_create_table($ret, 'calais_term_data_product', $schema['calais_term_data_product']);
+
+  // Migrate lat/lon data out of calais_term
+  $ret[] = update_sql("INSERT INTO {calais_term_data_geo} (tid, latitude, longitude) SELECT tid, latitude, longitude FROM {calais_term} WHERE latitude IS NOT NULL AND longitude IS NOT NULL");
+  $ret[] = update_sql("UPDATE {calais_term} SET resolved_type = 'geo' WHERE latitude IS NOT NULL AND longitude IS NOT NULL");
+  db_drop_field($ret, 'calais_term', 'latitude');
+  db_drop_field($ret, 'calais_term', 'longitude');
+  
+  return $ret;
+}
+
+/**
+ * Add new queue table for bulk processing and migrate configuration to support manual Calais requests.
+ */
+function calais_update_6301() {
+  $ret = array();
+  
+  $schema = calais_schema();
+  db_create_table($ret, 'calais_node_queue', $schema['calais_node_queue']);
+  
+  $node_types = node_get_types();
+  foreach ($node_types as $nt) {
+    $key = drupal_strtolower($nt->type);
+  
+    // If Calais should not process the node, migrate to no request
+    $process = calais_get_processing_type($key);
+    if ($process == 'NO') {
+      variable_set("calais_node_{$key}_request", CALAIS_REQUEST_NO);
+      variable_set("calais_node_{$key}_process", CALAIS_PROCESS_MANUAL);
+    }
+    //If Calais should process the node, move it to automatic request and keep the current process settings.
+    else {
+      variable_set("calais_node_{$key}_request", CALAIS_REQUEST_AUTO);
+    }
+  }
+  
+  $ret[] = update_sql("DELETE FROM {variable} WHERE name like 'calais_api_allow_%'");
+  return $ret;
+}
+
+/**
+ * Add new table for flexibly storing Linked Open Data URIs for disambiguated Calais Terms
+ */
+function calais_update_6302() {
+  $ret = array();
+  
+  $schema = calais_schema();
+  db_create_table($ret, 'calais_term_uri', $schema['calais_term_uri']);
+  
+  return $ret;
+}
+
+/******************************** Helpers ****************************/
+/**
+ * Create new vocabularies for all currently known Calais Entities
+ */
+function calais_create_vocabularies() {
+  $entities = calais_api_get_all_entities();
+  $vocabularies = array();
+
+  foreach ($entities as $e) {
+    $vid = calais_create_entity_vocabulary(calais_api_make_readable($e));
+    $vocabularies[$e] = $vid;
+  }
+
+  variable_set('calais_vocabulary_names', $vocabularies);
+  cache_clear_all();
+}
+
+/**
+ * Remove vocabularies for all currently known Calais Entities
+ */
+function calais_remove_vocabularies() {
+  $entities = calais_get_entity_vocabularies();
+  foreach ($entities as $key => $value) {
+    taxonomy_del_vocabulary($value);
+  }
+
+  cache_clear_all();
+}

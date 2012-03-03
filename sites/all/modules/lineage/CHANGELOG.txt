@@ -1,0 +1,42 @@
+// $Id: CHANGELOG.txt,v 1.4.2.16 2011/02/07 18:17:23 xjm Exp $
+
+Lineage 6.x-1.x, xxxx-xx-xx
+---------------------------
+
+Lineage 6.x-1.1, 2010-02-07
+---------------------------
+o #916394 by xjm: Fix extra header depth increment with grouping fields.
+o #866552 by xjm: Escape quotes properly when using eval().
+o #795996 by kenorb, xjm: Fix additional views preview error.
+o #795954 by kenorb: Fix error when plugin options are not set.
+o #783488 by kenorb: Fix error on view edit pages.
+o #746336 by xjm: Fixed bug introduced in #733992 that was causing all rows 
+   of the style plugin to be rendered as the final row in each grouping.
+o #723326 by xjm: Added style plugin option to allow omitting redundant 
+   headers when a term ID filter or argument is used.
+o #733992 by xjm: Fixed plugin with grouping for Views 2.8.
+o #721744 by xjm: Changed nesting plugin to allow user to specify starting 
+   header depth.
+o #733760 by xjm: Added hook_update_N() to update weight strings to the 
+   new format.
+o #733738 by xjm: Code cleanup.
+o #612908 by xjm: Added lineage nested list style plugin.
+o #707314 by praseodym: Fixed translation issue in lineage.views.inc.
+o #555316 by xjm: Improved field handler.
+o #699198 by xjm: Added lineage_strip_weight and refactored field handler to 
+   use this.
+o #611994 by xjm: Fetching null "data" for tid 0 may cause duplicate, 
+   malformed lineage
+o #613372 by xjm: Added hook_form_FORM_ID_alter() to override processing at 
+   admin/content/taxonomy so it triggers lineage_update_all().
+o #507472 by xjm: Fixed weight string handling for D6.
+o Some coding standards cleanup.
+
+Lineage 5.x
+---------------------------
+Lineage 1.4
+  o #110861: Fix a bug which caused lineage to think that any new terms had no
+  parents
+Lineage 1.1
+  o #83580: Provide missing lineage_term_delete function.
+  o #93249: Add sortable field to views data

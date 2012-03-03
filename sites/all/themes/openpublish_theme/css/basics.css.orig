@@ -1,0 +1,135 @@
+@charset "UTF-8";
+
+
+
+/* Handy font size definitions 
+font-size: .833em;   12px x .833   = 10px 
+font-size: .917em;   12px x .917   = 11px 
+font-size: 1em;      12px x 1      = 12px 
+font-size: 1.083em   12px x 1.083  = 13px 
+font-size: 1.167em;  12px x 1.167  = 14px
+font-size: 1.25em;   12px x 1.125  = 15px
+font-size: 1.417em;  12px x 1.417  = 17px
+font-size: 2em;      12px x 2       = 24px
+*/
+
+/************ Basic styles used in many places across the site *************/
+
+
+
+/** Clearfix */
+.clearfix:after {
+  clear: both;
+  content: ".";
+  display: block;
+  height: 0;
+  line-height: 0;
+  visibility: hidden;
+}
+.clearfix {
+  display: inline-block;
+}
+html[xmlns] .clearfix {
+  display: block;
+}
+* html .clearfix {
+  height: 1%;
+}
+/** End Clearfix */
+
+
+.bold          { font-weight: bold; }
+.italic        { font-style: italic; }
+.underline     { border-bottom: 1px solid; }
+.highlight     { background: #ffc; }
+.img-left      { float: left; margin: 4px 10px 4px 0; }
+.img-right     { float: right; margin: 4px 0 4px 10px; }
+.nopadding     { padding: 0 }
+.noindent      { margin-left: 0; padding-left: 0 }
+.nobullet      { list-style: none; list-style-image: none; }
+
+.messages, .preview { margin: .75em 0; padding: .5em 1em; }
+.messages      { background-color: #fff; border: 1px solid #b8d3e5; }
+.messages ul   { margin: 0; }
+.preview       { background-color: #fcfce8; border: 1px solid #e5e58f; }
+.preview .node { background-color: #fcfce8; }
+
+span.clear     { clear: both; display: block; font-size: 0; height: 1px; line-height: 0; margin-bottom: -1px; }
+.clear         { clear: both; }
+.clear-block   { display: block; }
+.float-left    { float: left; }
+.float-right   { float: right; }
+
+.text-left     { text-align: left; }
+.text-right    { text-align: right; }
+.text-center   { text-align: center; }
+.text-justify  { text-align: justify; }
+
+#outer-wrapper .form-item {
+  margin: 0px;
+}
+
+.menu { 
+  margin: 0; 
+  padding: 0; 
+}
+
+ul.menu, ul.menu li {
+  list-style-type: none;
+  list-style-image: none;
+  display: inline;
+}
+
+/**Fix issues with Admin menu in Chrome**/
+#admin-toolbar ul.menu, #admin-toolbar ul.menu ul, #admin-toolbar ul.menu li, #admin-toolbar ul.menu li a {
+  display:block;
+}
+
+.item-list ul {
+  margin: .35em 0 0 0;
+  padding: 0;
+}
+
+.item-list ul ul {
+  margin-left: 0;
+}
+
+ul li.leaf, .item-list ul li {
+  list-style-image: none;
+  list-style-type: none;
+}
+
+ul.links li {
+  background: none;
+  margin: 0 10px 0 0;
+  padding: 0;
+}
+
+ul.primary, ul.primary li, ul.secondary, ul.secondary li {
+  background: none;
+  border: 0;
+}
+ul.secondary {
+  border-bottom: 1px solid #b4d7f0;
+  clear: both; 
+  text-align: left;
+}
+
+ul.primary li a, ul.primary li.active a, 
+ul.primary li a:hover, ul.primary li a:visited, 
+ul.secondary li a, ul.secondary li.active a, 
+ul.secondary li a:hover, ul.secondary li a:visited {
+  background: none;
+  border: 0;
+  margin: 0;
+  padding: 0 1em 0 0;
+  text-decoration: none;
+}
+
+ul.primary li.active a, ul.secondary li.active a {
+  font-weight: 700;
+}
+
+.div {
+  zoom: 1;
+}

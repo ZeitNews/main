@@ -1,0 +1,12 @@
+name = User Locations
+description = Associate locations with users.
+dependencies[] = location
+package = Location
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-12-22
+version = "6.x-3.x-dev"
+core = "6.x"
+project = "location"
+datestamp = "1324513735"
+

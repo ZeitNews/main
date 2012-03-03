@@ -1,0 +1,16 @@
+<?php
+/**
+ * @file openpublish_menu.install
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function openpublish_menu_enable() {
+  /*
+   * The module needs a weight lower than openpublish_core given that the preprocess
+   * variable we are setting up needs to be available to the $variables sent to
+   * $page_header
+   */ 
+  db_query("UPDATE {system} SET weight = -1 WHERE name = 'openpublish_menu'");
+}

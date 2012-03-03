@@ -1,0 +1,11 @@
+name = "Content Profile User Registration"
+description = "Enable content profile features during user registration"
+package = "Content Profile"
+core = 6.x
+dependencies[] = content_profile
+; Information added by drupal.org packaging script on 2011-10-19
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "content_profile"
+datestamp = "1319025869"
+

@@ -1,0 +1,130 @@
+<?php
+
+/**
+* @file
+* Random glue code.
+*/
+
+// Make Workflow/Rules change the node creation date on Publish state change.
+
+/**
+* Implementation of hook_action_info().
+*/
+function glue_module_action_info() {
+  return array(
+    'glue_module_node_update_date_action' => array(
+      'description' => t('Update node creation date to match scheduled workflow state change'),
+      'type' => 'node',
+      'configurable' => FALSE,
+      'hooks' => array('nodeapi' => array('presave', 'insert', 'update')),
+      )
+  );
+}
+
+function glue_module_node_update_date_action(&$node, $context = array()) {
+    if ($node->_workflow != ''){
+        $node->created = $node->_workflow_scheduled_timestamp;
+    }
+    node_save($node);
+    watchdog('action', 'Update @type %title creation datestamp to scheduled publication time.', array('@type' => node_get_types('name', $node), '%title' => $node->title));
+}
+
+/**
+* Implementation of hook_nodeapi().
+*/
+function glue_module_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  global $base_url;
+  
+  switch ($op) {
+    // Found at http://drupal.org/node/174359 for RSS creator tag.
+    case 'alter':
+      // Alter nodes for RSS feeds.
+      if ($node->build_mode == NODE_BUILD_RSS) {
+        // This is where you can set your custom title and creator.
+        if ($node->field_op_author[0]['nid']) {
+          foreach ($node->field_op_author as $author) {
+            $str_author .= $author['safe']['title'] . ', ';
+          }
+          $node->name = trim($str_author, ', ');
+        }
+      }
+    break;
+    
+    //case 'rss item':
+    //  $title = 'test';
+    //break;
+    
+  }
+}
+
+// For use with the usort function to reverse sort taxonomy terms (weight).
+// This is done in openpublish_theme_preprocess_views_view_row_rss__feed_3
+// Found here: http://drupal.org/node/381620
+// add a unique prefix to the function to avoid clashes with other functions
+function glue_module_term_compare($a, $b) {
+  $order = -1; // This is just to reverse the natural sort order (ie make it descending)
+  // if you want a case sensitive sort, swap out strcasecmp() for strcmp()
+  return $order * strcasecmp($a->name, $b->name);
+}
+
+//http://stackoverflow.com/questions/124266/sort-object-in-php
+//function glue_module_cmp($a, $b){ 
+//  if($a->tid ==  $b->tid){
+//    return 0;
+//  } 
+//  return ($a->tid < $b->tid) ? -1 : 1;
+//} 
+
+/**
+* Implementation of hook_form_alter().
+*/
+function glue_module_form_alter(&$form, $form_state, $form_id) {
+  // YOU MUST MAKE YOUR HOOK (MODULE) A HIGHER WEIGHT (10 works) THAN CCK IN THE SYSTEM TABLE.
+  
+  // Instead of hook_form_alter with if/switch statements, you can also use hook_form_FORM_ID_alter.
+  switch ($form_id) {
+    
+    // Check for a particular node type's form.
+    // $form_id is the "value" of the "form_id" <input/> on the node/edit form.
+    // <INPUT TYPE="HIDDEN" NAME="FORM_ID" id="edit-clients-node-form" value="clients_node_form"  />
+    case 'blog_node_form':
+      
+      // For Devel module array walking.
+      //$output .= dsm($form);
+      
+      // When it works the normal Drupal core way:
+      $form['group_authors']['field_op_author'][0]['#required'] = 'TRUE';
+      $form['group_authors']['field_op_author'][0]['#title'] = 'Author';
+      
+      // When it doesn't (file upload fields):
+      
+      // Just for making the asterisk.
+      //$form['group_gallery_images']['field_gallery_images']['#required'] = '1';
+      //$form['group_featured_teaser_image']['field_featured_teaser_image'][0]['#required'] = '1';
+      
+      // Uses Filefield functionality to make the field required.
+      //$form['#field_info']['field_gallery_images']['required'] = '1';
+      //$form['#field_info']['field_featured_teaser_image']['required'] = '1';
+      
+      break;
+    
+    case 'author_node_form':
+      
+      //$output .= dsm($form);
+      
+      // Make Fields of Expertise vocab required. Notice the dsm dumped value won't change, but it works.
+      $form['taxonomy']['tags']['128']['#required'] = 1;
+      
+      break;
+  }
+}
+
+function glue_module_expertise($taxonomy) {
+  if (!empty($taxonomy)) {
+    foreach ($taxonomy as $term) {
+      $fields_of_expertise[] = l($term->name, 'authors', array('query' => 'tid[]=' . $term->tid, 'attributes' => array('rel' => 'tag')));
+    }
+    $expertise = implode(', ', $fields_of_expertise);
+    return $expertise;
+  }
+}

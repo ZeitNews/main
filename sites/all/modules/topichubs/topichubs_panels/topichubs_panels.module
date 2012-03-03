@@ -1,0 +1,165 @@
+<?php
+
+require_once( dirname(__FILE__). '/topichubs_panels.crud.inc' );
+require_once( dirname(__FILE__). '/topichubs_panels.provider.inc' );
+
+/**
+* implementation of hook_topichubs_render_plugin
+*/
+function topichubs_panels_topichubs_render_plugin() {
+  return TRUE; // In this version, what this function impl. returns is actually not relevant as far as it exists
+}
+
+function topichubs_panels_access($op, $node = NULL) {
+  if (user_access('administer topichubs')) {
+    return TRUE;
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function topichubs_panels_topichubs_render_menu() {
+
+  $items = array();
+  
+  $items['admin/content/topichubs/topichub-pages'] = array(
+    'title' => 'Topic Hub Pages',
+    'access arguments' => array('administer topichubs'),
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'topichubs_panels_admin',
+    'description' => 'Topic Hub Pages represent pages of Topic Hub nodes.',
+  );
+
+  $items['admin/content/topichubs/topichub-pages/information'] = array(
+    'title' => 'Information',
+    'access arguments' => array('administer topichubs'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  $items['admin/content/topichubs/topichub-pages/settings'] = array(
+    'title' => 'Topic Hub Pages Settings',
+    'description' => 'Configure which content is available to add to Topic Hub page displays.',
+    'access arguments' => array('administer topichubs'),
+    'page callback' => 'panels_node_settings',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  // Avoid some repetition on these:
+  $base = array(
+    'access callback' => 'panels_node_edit_node',
+    'access arguments' =>  array('administer topichubs'),
+    'page arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['node/%node/topic_panel_layout'] = array(
+    'title' => 'TopicHub layout',
+    'page callback' => 'topichubs_panels_edit_layout',
+    'weight' => 2,
+  ) + $base;
+
+  $items['node/%node/topic_panel_settings'] = array(
+    'title' => 'TopicHub layout settings',
+    'page callback' => 'topichubs_panels_edit_layout_settings',
+    'weight' => 2,
+  ) + $base;
+
+  $items['node/%node/topic_panel_content'] = array(
+    'title' => 'TopicHub content',
+    'page callback' => 'topichubs_panels_edit_content',
+    'weight' => 3,
+  ) + $base;
+
+  $items['node/add/topichub_panel/choose-layout'] = array(
+    'title' => 'Choose layout',
+    'access arguments' => array('administer topichubs'),
+    'page callback' => 'topichubs_panels_add',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function topichubs_panels_settings() {
+  panels_load_include('common');
+  return drupal_get_form('panels_common_settings', 'panels_node');
+}
+
+function topichubs_panels_admin() {
+  $output = '<p>';
+  $output .= t('Topic Hub Pages do not have/need this');
+  $output .= '</p>';
+  return $output;
+}
+
+//topichubs_panels
+
+
+// ---------------------------------------------------------------------------
+// Meat of the Panels API; almost completely passing through to panels.module
+
+/**
+ * Pass through to the panels layout editor.
+ */
+function topichubs_panels_edit_layout($node) {
+  panels_load_include('plugins');
+  $display = panels_load_display($node->panels_node['did']);
+  $display->context = array('panel-node' => panels_context_create('node', $node));
+  return panels_edit_layout($display, t('Save'), "node/$node->nid/panel_layout"); 
+}
+
+/**
+ * Pass through to the panels layout settings editor.
+ */
+function topichubs_panels_edit_layout_settings($node) {
+  return panels_node_edit_layout_settings($node);
+}
+
+/**
+ * Pass through to the panels content editor.
+ */
+function topichubs_panels_edit_content($node) {
+  panels_node_edit_content($node);
+}
+
+/*
+ * implimentaiton of hook_theme()
+ * Creates page for the topichubs panel layout
+ */
+
+function topichubs_panels_theme() {
+  return array(
+    'topichubs_layout' => array(
+      'arguments' => array('id'=>NULL, 'content'=>array()),
+      'template' =>'topichubs-layout',
+    ),
+  );
+
+}
+/*
+ * implimantation of hook_panels_layouts() for the topichubs panel layout
+ */
+function topichubs_panels_panels_layouts() {
+  $items['topichubs'] = array(
+    'module' => 'topichuls_panels',
+    'title'  => t('Topichubs'),
+    'theme'  => 'topichubs_layout',
+    'icon'   => 'topichubs-layout.png',
+    'css'    => 'topichubs-layout.css',
+    'theme arguments' => array('id', 'content'),
+    'panels' => array(
+      'left'   => t('Left'),
+      'top'    => t('Top'),
+      'middle' => t('Middle'),
+      'right'  => t('Right'),
+    ),
+  );
+  return $items;
+}
+
+function topichubs_panels_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'ctools' && $plugin == 'content_types') {
+    return 'plugins/' . $plugin;
+  }
+}

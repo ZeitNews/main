@@ -1,0 +1,13 @@
+name = Location Search
+package = Location
+description = Advanced search page for locations.
+core = 6.x
+dependencies[] = search
+dependencies[] = location
+
+; Information added by drupal.org packaging script on 2011-12-22
+version = "6.x-3.x-dev"
+core = "6.x"
+project = "location"
+datestamp = "1324513735"
+

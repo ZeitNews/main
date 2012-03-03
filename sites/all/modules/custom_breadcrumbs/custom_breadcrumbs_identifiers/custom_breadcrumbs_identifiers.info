@@ -1,0 +1,13 @@
+; $Id: custom_breadcrumbs_identifiers.info,v 1.1.2.1 2010/04/25 19:50:50 mgn Exp $
+name = Custom Breadcrumbs Identifiers
+package = Custom Breadcrumbs
+description = Provides special identifiers for custom breadcrumbs.
+dependencies[] = custom_breadcrumbs
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-01-08
+version = "6.x-2.0-rc1"
+core = "6.x"
+project = "custom_breadcrumbs"
+datestamp = "1294462254"
+

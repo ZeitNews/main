@@ -1,0 +1,13 @@
+<?php
+// $Id: similarterms.module,v 1.28.2.2 2010/09/09 13:58:19 jjeff Exp $
+
+/**
+  * Implementation of hook_views_api.
+  * Notifies the Views module that we're compatible with a particular API revision.
+  */
+function similarterms_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'similarterms') . '/views',
+  );
+}

@@ -1,0 +1,124 @@
+<?php
+// $Id: op_author_layout.module,v 1.1.2.2 2010/01/25 13:07:11 inadarei Exp $
+
+/**
+ * @file
+ * OP Author Page Layouts
+ */
+ 
+function op_author_layout_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'page_manager' || $module == 'panels') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+function op_author_layout_theme($existing) {  
+  $themes = array();
+
+  //-- Row-level theme for stories
+  $key = 'views_view_fields__author_articles';
+  $tpl_path = 'themes/' . str_replace('_', '-', $key); 
+
+  $themes[$key] = array (
+    'arguments' => array('view' => NULL, 'options' => NULL, 'row' => NULL),
+    'template' => $tpl_path,
+    'original hook' => 'views_view_fields',
+    
+    //-- According to Views Advanced Help, we either need to do this or make module weight > 10.
+    'preprocess functions' => array(
+          'template_preprocess',
+          'template_preprocess_views_view_fields',
+          'op_author_layout_preprocess_views_view_fields',
+    ),
+  );
+  
+   //-- Row-level theme for blogs
+    $key = 'views_view_fields__author_blogposts';
+    $tpl_path = 'themes/' . str_replace('_', '-', $key); 
+  
+    $themes[$key] = array (
+      'arguments' => array('view' => NULL, 'options' => NULL, 'row' => NULL),
+      'template' => $tpl_path,
+      'original hook' => 'views_view_fields',
+      
+      //-- According to Views Advanced Help, we either need to do this or make module weight > 10.
+      'preprocess functions' => array(
+            'template_preprocess',
+            'template_preprocess_views_view_fields',
+            'op_author_layout_preprocess_views_view_fields',
+      ),
+    );
+  
+  return $themes;
+}
+
+
+function op_author_layout_preprocess_views_view_fields(&$variables) { 
+  $view = $variables['view'];
+  
+  if (!in_array($view->name, array('author_articles', 'author_blogposts'))) return;
+  
+  //-- Make sure title is an H3 and not a span.
+  $variables['fields']['title']->element_type = 'h3';
+  
+  //-- If custom teaser field is filled use it, if not use Drupal's teaser thing;
+  $teaser = $variables['fields']['field_teaser_value'];
+  if (empty($teaser->raw)) {
+    $teaser->content =  $variables['fields']['teaser']->content;
+  }  
+  unset($variables['fields']['field_teaser_value']);
+  $variables['fields']['teaser'] = $teaser;
+  
+  //-- Properly format author field
+  
+  $html_authors = $variables['fields']['field_op_author_nid']->content;
+  
+  $regex = '#<div.*?>(?P<authors>.*?)</div>#six';
+  
+  if (preg_match_all($regex, $html_authors, $matches)) {
+    $authors = $matches['authors'];
+    
+    $i=1; $size = sizeof($authors); $authors2 = array();
+    $authors2[] = '<div>' . t('By:') . '</div>';
+     
+    foreach($authors as $author) {
+      $separator = "";
+      if (($size > 1) && ($i < $size)) {
+        if ($i < ($size-1)) {
+          $separator = ', ';
+        }
+        else {
+          $separator = ' & ';
+        }
+      }
+      $author = $author . $separator;
+      $author = "<div>" . $author . "</div>";      
+      $authors2[] = $author;
+      $i++;      
+    }
+    
+    $authors = implode('', $authors2);
+    $variables['fields']['field_op_author_nid']->content = '<div class="views-multiple-authors clearfix">' . $authors . '</div>';                                                            
+     
+  } else {
+      $variables['fields']['field_op_author_nid']->content = t('By:') . '&nbsp;' 
+                          . $variables['fields']['field_op_author_nid']->content;
+  } 
+  //-- Rename the author field to a more themer-friendly one:
+  $variables['fields']['authors'] = $variables['fields']['field_op_author_nid'];
+  unset($variables['fields']['field_op_author_nid']);    
+
+  //-- Rename the tag field to a more themer-friendly one:
+  $variables['fields']['tags'] = $variables['fields']['tid'];
+  unset($variables['fields']['tid']);    
+
+  
+  //-- Rename nid_1 to "premium_nid"
+  $variables['fields']['premium'] = $variables['fields']['nid_1'];
+  unset($variables['fields']['nid_1']);    
+  
+  
+    
+  //dpm($variables);
+}
+

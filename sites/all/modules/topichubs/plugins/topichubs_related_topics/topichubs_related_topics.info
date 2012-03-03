@@ -1,0 +1,13 @@
+; $Id $
+name = Related Topics
+description = "Other Topic Hubs related to this."
+package = "Topic Hubs"
+core = 6.x
+dependencies[] = topichubs
+
+; Information added by drupal.org packaging script on 2009-09-02
+version = "6.x-2.1-rc1"
+core = "6.x"
+project = "topichubs"
+datestamp = "1251893186"
+

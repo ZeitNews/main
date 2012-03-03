@@ -1,0 +1,248 @@
+<?php
+
+
+/**
+ * Implementation of hook_apachesolr_document_handlers().
+ *
+ * @param string $type
+ *   Entity type. 'node', 'comment', and so forth. Used to evaluate whether this module
+ *   should be interested in creating documents.
+ * @param string $namespace
+ *   Usually the name of the module that is initiating indexing. In this case
+ *   we want to register a handler if the namespace is 'apachesolr_search'.
+ * @return array $handlers
+ *   An array of strings that are function names. Each function returns a $document from
+ *   an entity (of type $type).
+ */
+function apachesolr_commentsearch_apachesolr_document_handlers($type, $namespace) {
+  if ($type == 'node' && $namespace == 'apachesolr_search') {
+    return array('apachesolr_commentsearch_node_to_comments');
+  }
+}
+
+function apachesolr_commentsearch_node_to_comments($node, $namespace) {
+  $documents = array();
+  $result = db_query("SELECT c.*, u.name AS registered_name FROM {comments} c INNER JOIN {users} u ON c.uid = u.uid WHERE c.nid = %d", $node->nid);
+  while ($comment = db_fetch_object($result)) {
+    $text = check_markup($comment->comment, $comment->format, FALSE);
+
+    $document = new Apache_Solr_Document();
+    // Comments have their status integers backwards compared to nodes.
+    // Here we use the logic that the status of the comment is dependent both on the node and
+    // the comment. If the node is published, we look to see if the comment is published, too.
+    // If either the node or the comment are not published, the status of the comment
+    // will get published as 0.
+    $document->status = $node->status ? ($comment->status == COMMENT_PUBLISHED ? 1 : 0) : 0;
+    if ($document->status == 0) {
+      // don't index unpublished comments.
+      continue;
+    }
+    $document->id = apachesolr_document_id($comment->cid, 'comment');
+    $document->is_cid = $comment->cid;
+    $document->ss_thread = $comment->thread;
+    $document->site = url(NULL, array('absolute' => TRUE));
+    $document->hash = apachesolr_site_hash();
+    $document->entity = 'comment';
+
+    // Since the nid of this comment is set, when the node gets deleted,
+    // the comment will also get removed from the index. See apachesolr_delete_node_from_index()
+    $document->nid = $comment->nid;
+    $document->uid = $comment->uid;
+    $title = empty($comment->subject) ? $node->title : $comment->subject;
+    $document->title = apachesolr_clean_text($title);
+    if (empty($node->language)) {
+      // 'und' is the language-neutral code in Drupal 7.
+      $document->language = 'und';
+    }
+    else {
+      $document->language = $node->language;
+    }
+    $document->body = apachesolr_clean_text($text);
+    $document->type = 'comment';
+    $document->type_name = 'Comment';
+    // A comment's timestamp is the time that it was created or last updated,
+    // so we must use it for both the "created" and "changed" fields.
+    $timestamp = apachesolr_date_iso($comment->timestamp);
+    $document->created = $timestamp;
+    $document->changed = $timestamp;
+    $last_change = (isset($node->last_comment_timestamp) && $node->last_comment_timestamp > $node->changed) ? $node->last_comment_timestamp : $node->changed;
+    $document->last_comment_or_change = apachesolr_date_iso($last_change);
+    $document->name = $comment->name;
+    $path = "node/{$node->nid}";
+    $document->url = url($path, array('absolute' => TRUE, 'fragment' => "comment-{$comment->cid}"));
+    $document->path = $path;
+    $documents[] = $document;
+  }
+  return $documents;
+}
+
+function apachesolr_commentsearch_apachesolr_modify_query(&$query, &$params, $caller) {
+  $params['fl'] .= ',is_cid,ss_thread';
+}
+
+function apachesolr_commentsearch_apachesolr_process_results(&$results) {
+  foreach ($results as $pos => $result) {
+    if (isset($results[$pos]['extra']['comments'])) {
+      unset($results[$pos]['extra']['comments']);
+      unset($results[$pos]['extra']['cid']);
+    }
+  }
+}
+
+function apachesolr_commentsearch_apachesolr_search_result_alter(&$doc, &$extra) {
+  if ($doc->type == 'comment') {
+    $nid = $doc->nid;
+    $extra['cid'] = $doc->is_cid;
+    $node = node_load($nid);
+    $query = apachesolr_commentsearch_page_count(comment_num_all($nid), $node, $doc->is_cid, $doc->ss_thread);
+    $doc->path = url($doc->path, array('absolute' => TRUE, 'fragment' => "comment-{$doc->is_cid}", 'query' => $query));
+  }
+}
+
+function apachesolr_commentsearch_apachesolr_theme_breadcrumb_alter(&$breadcrumb_name) {
+  // While the goal here is to hijack nearly every breadcrumb generation, we
+  // can't do it if it's a ckk facet. That would step on the toes of
+  // date facets, etc. So reverse the logic from apachesolr_search_apachesolr_theme_breadcrumb_alter
+  // and only alter non-cck breadcrumbs.
+  $matches = preg_split('/_cck_/', $fieldname);
+  if (!empty($matches[1])) {
+    $breadcrumb_name = 'apachesolr_commentsearch_breadcrumb_type';
+  }
+}
+
+/**
+ * Removes the comment from the index if the comment is deleted or unpublished.
+ *
+ * apachesolr_comment() is responsible for updating the comment's node.
+ *
+ * @see apachesolr_comment()
+ */
+function apachesolr_commentsearch_comment($edit, $op) {
+  switch ($op) {
+    case 'delete':
+    case 'unpublish':
+      apachesolr_commentsearch_delete_comment_from_index($edit);
+      break;
+  }
+}
+
+/**
+ * Removes a comment from the index.
+ *
+ * @param object $comment
+ *   The comment to remove.
+ *
+ * @return boolean
+ *   TRUE if comment removed from index, FALSE otherwise.
+ *
+ * @see apachesolr_delete_node_from_index()
+ */
+function apachesolr_commentsearch_delete_comment_from_index($comment) {
+  static $failed = FALSE;
+  if ($failed) {
+    return FALSE;
+  }
+  try {
+    $solr = apachesolr_get_solr();
+    $solr->deleteById(apachesolr_document_id($comment->cid, 'comment'));
+    apachesolr_index_set_last_updated(time());
+    return TRUE;
+  }
+  catch (Exception $e) {
+    watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
+    // Don't keep trying queries if they are failing.
+    $failed = TRUE;
+    return FALSE;
+  }
+}
+
+/**
+ * Return the human readable text for a content type.
+ */
+function theme_apachesolr_commentsearch_breadcrumb_type($field) {
+  $type = $field['#value'];
+  if ($type == 'comment') {
+    return t('Comment');
+  }
+  return node_get_types('name', $type);
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function apachesolr_commentsearch_theme() {
+  return array(
+    'apachesolr_commentsearch_breadcrumb_type' => array(
+      'arguments' => array('field' => NULL),
+    ),
+  );
+}
+
+/**
+ * Calculate the page number for the given comment.
+ *
+ * @param int $num_comments
+ *   Total number of comments.
+ * @param object $node
+ *   The node the comment belong to.
+ * @param int $cid
+ *   The comment's cid.
+ * @param string $thread
+ *   The comment's thread.
+ *
+ * @return string
+ *   "page=X" if the page number is greater than zero; NULL otherwise.
+ *
+ * @see comment_render()
+ */
+function apachesolr_commentsearch_page_count($num_comments, $node, $cid, $thread) {
+  $comments_per_page = _comment_get_display_setting('comments_per_page', $node);
+
+  if ($num_comments <= $comments_per_page) {
+    // If only one page of comments, the comment will always be on first page.
+    return NULL;
+  }
+
+  $mode = _comment_get_display_setting('mode', $node);
+  $order = _comment_get_display_setting('sort', $node);
+
+  // Count the number of comments to display before the given comment.
+  $query = 'SELECT COUNT(*) FROM {comments} c WHERE c.nid = %d';
+  $query_args = array($node->nid);
+
+  if (!user_access('administer comments')) {
+    $query .= ' AND c.status = %d';
+    $query_args[] = COMMENT_PUBLISHED;
+  }
+
+  if ($order == COMMENT_ORDER_NEWEST_FIRST) {
+    if ($mode == COMMENT_MODE_FLAT_COLLAPSED || $mode == COMMENT_MODE_FLAT_EXPANDED) {
+      $query .= ' AND c.cid > %d ORDER BY c.cid DESC';
+      $query_args[] = $cid;
+    }
+    else {
+      $query .= ' AND c.thread > "%s" ORDER BY c.thread DESC';
+      $query_args[] = $thread;
+    }
+  }
+  else if ($order == COMMENT_ORDER_OLDEST_FIRST) {
+    if ($mode == COMMENT_MODE_FLAT_COLLAPSED || $mode == COMMENT_MODE_FLAT_EXPANDED) {
+      $query .= ' AND c.cid < %d ORDER BY c.cid';
+      $query_args[] = $cid;
+    }
+    else {
+      $query .= ' AND SUBSTRING(c.thread, 1, (LENGTH(c.thread) - 1)) < "%s" ORDER BY SUBSTRING(c.thread, 1, (LENGTH(c.thread) - 1))';
+      $query_args[] = $thread;
+    }
+  }
+
+  $query = db_rewrite_sql($query, 'c', 'cid');
+  $count = db_result(db_query($query, $query_args));
+
+  $pageno = $count / $comments_per_page;
+  if ($pageno >= 1) {
+    return 'page=' . intval($pageno);
+  }
+
+  return NULL;
+}

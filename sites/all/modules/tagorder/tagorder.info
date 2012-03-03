@@ -1,0 +1,11 @@
+; $id$
+name = Tag Order
+description = Remembers order that tags were entered per node
+core = 6.x
+dependencies[] = taxonomy
+; Information added by drupal.org packaging script on 2010-04-07
+version = "6.x-1.5"
+core = "6.x"
+project = "tagorder"
+datestamp = "1270656908"
+

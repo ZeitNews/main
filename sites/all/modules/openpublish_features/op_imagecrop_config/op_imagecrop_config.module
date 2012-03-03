@@ -1,0 +1,3 @@
+<?php
+
+include_once('op_imagecrop_config.features.inc');

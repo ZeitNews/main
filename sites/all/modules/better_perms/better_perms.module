@@ -1,0 +1,101 @@
+<?php
+// $Id: better_perms.module,v 1.1 2009/04/20 05:37:16 mattman Exp $
+
+/**
+ * @file
+ * Module which applies jQuery to the permissions output.
+ */
+
+function better_perms_init() {
+  if (arg(2) == 'permissions' and user_access('administer permissions')) {
+    // dpm(theme_get_registry());
+    drupal_add_js($base_path . drupal_get_path('module', 'better_perms') .'/better_perms.js');
+    drupal_add_css($base_path . drupal_get_path('module', 'better_perms') .'/better_perms.css');
+  }
+}
+
+// Thanks to...
+// http://shellmultimedia.com/articles/hookthemeregistryalter-advanced-template-control
+function better_perms_theme_registry_alter(&$theme_registry) {
+  $theme_function = 'user_admin_perm';
+  $originalpath = array_shift($theme_registry[$theme_function]['theme paths']);
+  $modulepath = drupal_get_path('module', 'better_perms');
+  unset($theme_registry[$theme_function]['file']);
+  $theme_registry[$theme_function]['theme path'] = $modulepath;
+  $theme_registry[$theme_function]['function'] = 'better_perms_user_admin_perm';
+  array_unshift($theme_registry[$theme_function]['theme paths'], $originalpath, $modulepath);
+}
+
+// Borrowed right from the user.admin.inc file
+// Simply adds the module-NAME id as a class tag on the permissions td element
+function better_perms_user_admin_perm($form) {
+  $roles = user_roles();
+  foreach (element_children($form['permission']) as $key) {
+    // Don't take form control structures
+    if (is_array($form['permission'][$key])) {
+      $row = array();
+      // Module name
+      if (is_numeric($key)) {
+        $css = 'module-'. $form['permission'][$key]['#value'];
+        $row[] = array('data' => t('@module module', array('@module' => drupal_render($form['permission'][$key]))), 'class' => 'module', 'id' => $css, 'colspan' => count($form['role_names']) + 1);
+      }
+      else {
+        $row[] = array('data' => drupal_render($form['permission'][$key]), 'class' => 'permission '. $css);
+        foreach (element_children($form['checkboxes']) as $rid) {
+          if (is_array($form['checkboxes'][$rid])) {
+            $row[] = array('data' => drupal_render($form['checkboxes'][$rid][$key]), 'class' => 'checkbox', 'title' => $roles[$rid] .' : '. t($key));
+          }
+        }
+      }
+      $rows[] = $row;
+    }
+  }
+  $header[] = (t('Permission'));
+  foreach (element_children($form['role_names']) as $rid) {
+    if (is_array($form['role_names'][$rid])) {
+      $header[] = array('data' => drupal_render($form['role_names'][$rid]), 'class' => 'checkbox');
+    }
+  }
+  $output = theme('table', $header, $rows, array('id' => 'permissions'));
+  $output .= drupal_render($form);
+  return $output;
+}
+
+function theme_better_perms_role_permissions_links() {
+  foreach (user_roles() as $rid => $name) {
+    $result .= '<div>'. l(t($name), 'admin/user/permissions/'. $rid) .'</div>';
+  }
+  return $result;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function better_perms_theme() {
+  return array(
+    'better_perms_role_permissions_links' => array(
+      'arguments' => array('content' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_block().
+ *
+ * Displays a block of the role permissions for easy editing.
+ * Only shows on permissions pages and if user has admin permissions access
+ */
+function better_perms_block($op = 'list', $delta = 0) {
+  global $user;
+  if ($op == 'list') {
+    $block[0]['info'] = t('Role Permissions Block');
+    return $block;
+  }
+  else if ($op == 'view') {
+    if (arg(2) == 'permissions' and user_access('administer permissions')) {
+      $block['subject'] = t('Role Permissions');
+      $block['content'] = theme('better_perms_role_permissions_links');
+      return $block;
+    }
+  }
+}

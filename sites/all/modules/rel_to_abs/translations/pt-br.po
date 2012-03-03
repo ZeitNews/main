@@ -1,0 +1,28 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2009-09-02 21:24-0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Lourenzo Ferreira <lourenzo@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: rel_to_abs.module:28
+msgid "Relative Paths to Absolute URLs"
+msgstr "Endereços Relativos para URLs Absolutas"
+
+#: rel_to_abs.module:31
+#: rel_to_abs.info:0
+msgid "Filter for convertion of relative paths to absolute URLs"
+msgstr "Um filtro para converter endereços relativos para URLs absolutas"
+
+#: rel_to_abs.info:0
+msgid "Relative to Absolute Filter"
+msgstr "Filtro Relativo para Absoluto"
+
+#: rel_to_abs.info:0
+msgid "Input filters"
+msgstr "Formatos de Entrada"
+

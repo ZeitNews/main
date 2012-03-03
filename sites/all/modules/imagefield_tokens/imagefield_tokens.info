@@ -1,0 +1,14 @@
+; $Id: imagefield_tokens.info,v 1.1 2009/03/19 06:55:40 deciphered Exp $
+name = ImageField Tokens
+description = Adds Node tokens to ImageFields ALT and Title text fields.
+dependencies[] = imagefield
+dependencies[] = filefield_paths
+package = CCK
+core = 6.x
+
+; Information added by drupal.org packaging script on 2009-05-02
+version = "6.x-1.0"
+core = "6.x"
+project = "imagefield_tokens"
+datestamp = "1241250704"
+

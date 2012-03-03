@@ -1,0 +1,13 @@
+name = Nodewords
+description = Implement an API that other modules can use to add meta tags.
+package = Meta tags
+recommends[] = checkall
+recommends[] = vertical_tabs
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-05-03
+version = "6.x-2.0-alpha1"
+core = "6.x"
+project = "nodewords"
+datestamp = "1304452316"
+

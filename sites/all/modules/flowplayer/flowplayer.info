@@ -1,0 +1,11 @@
+; $Id: flowplayer.info,v 1.1.2.1 2010/03/14 17:27:30 jbrown Exp $
+name = Flowplayer API
+description = Provides integration with the Flowplayer video player.
+core = 6.x
+
+; Information added by drupal.org packaging script on 2010-03-14
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "flowplayer"
+datestamp = "1268588707"
+

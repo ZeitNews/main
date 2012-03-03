@@ -1,0 +1,83 @@
+# Hungarian translation of imce_mkdir (6.x-1.x-dev)
+# Copyright (c) 2009 by the Hungarian translation team
+# Generated from files:
+#  imce_mkdir.module,v 1.1 2008/05/11 13:18:22 ufku
+#  imce_mkdir.js,v 1.1 2008/05/11 13:18:22 ufku
+#  imce_mkdir.info,v 1.1 2008/05/11 13:18:22 ufku
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: imce_mkdir (6.x-1.x-dev)\n"
+"POT-Creation-Date: 2009-01-12 08:07-0600\n"
+"PO-Revision-Date: 2009-01-05 07:26-0600\n"
+"Last-Translator: Domi\n"
+"Language-Team: Hungarian http://forditas.mindworks.hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: imce_mkdir.module:61,101
+msgid "Create"
+msgstr "Létrehozás"
+
+#: imce_mkdir.module:15
+msgid "Create directories"
+msgstr "Könyvtárak létrehozása"
+
+#: imce_mkdir.module:21
+msgid "Maximum number of sub-directories"
+msgstr "Engedélyezett alkönyvtárak száma"
+
+#: imce_mkdir.module:23
+msgid ""
+"This setting is only applicable if you allow directory creation under "
+"any of the predefined directories. Define here the maximum number of "
+"subdirectories a directory can have. Setting this to 0 removes the "
+"limit and also allows infinite subdirectory depth."
+msgstr ""
+"Ez a beállítás lehetővé teszi alkönyvtárak létrehozását a "
+"felhasználói könyvtárakban. Itt állítható be a "
+"könyvtáranként lehetséges alkönyvtárak maximális száma. Ezt "
+"nullára állítva tetszőleges számú alkönyvtár hozható létre."
+
+#: imce_mkdir.module:54
+msgid "Directory name"
+msgstr "Könyvtár neve"
+
+#: imce_mkdir.module:65; imce_mkdir.js:0
+msgid "New directory"
+msgstr "Új könyvtár"
+
+#: imce_mkdir.module:82; imce_mkdir.js:0
+msgid ""
+"Directory name may contain only alphanumeric characters, hyphen and "
+"underscore."
+msgstr ""
+"A könyvtárak neve kizárólag betűket, számokat, kötőjelet és "
+"aláhúzás karaktereket tartalmazhat."
+
+#: imce_mkdir.module:86; imce_mkdir.js:0
+msgid "Directory %dir already exists."
+msgstr "%dir könyvtár már létezik."
+
+#: imce_mkdir.module:90
+msgid "Directory creation failed!"
+msgstr "A könyvtár létrehozása nem sikerült!"
+
+#: imce_mkdir.module:0
+msgid "imce_mkdir"
+msgstr "imce_mkdir"
+
+#: imce_mkdir.info:0
+msgid "IMCE Mkdir"
+msgstr "IMCE Mkdir"
+
+#: imce_mkdir.info:0
+msgid "Adds directory creation functionality to IMCE"
+msgstr "Könyvtárak létrehozására teszi képessé az IMCE modult."
+
+#: imce_mkdir.js:0
+msgid "You are not alllowed to create more than %num directories."
+msgstr "%num könyvtárnál több létrehozása nem engedélyezett."
+

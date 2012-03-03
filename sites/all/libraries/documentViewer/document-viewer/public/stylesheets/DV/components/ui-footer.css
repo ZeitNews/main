@@ -1,0 +1,45 @@
+.DV-footer {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 33px;
+  border-top: 1px solid #B0B0B0;
+  z-index: 20000;
+  text-shadow: 0px 1px 1px #fff;
+  color: #2C2C2C;
+  overflow: hidden;
+  box-shadow: 0 0 25px rgba(0,0,0,.05); -webkit-box-shadow: 0 0 25px rgba(0,0,0,.05); -moz-box-shadow: 0 0 25px rgba(0,0,0,.05);
+  background: #d7d7d7;
+  background: -webkit-gradient(linear, left top, left bottom, from(#F0F0F0), to(#D0D0D0));
+  background: -moz-linear-gradient(top, #F0F0F0, #D0D0D0);
+  filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr='#EAEAEA', EndColorStr='#C2C2C2');
+}
+  .DV-footer.DV-hide {
+    display: none;
+  }
+  .DV-footer .DV-navControlsContainer {
+    position: relative;
+    width: 240px;
+    margin: 0 auto;
+  }
+    .DV-footer .DV-navControls {
+      right: 0; top: 0;
+    }
+      .DV-footer .DV-trigger {
+        top: 4px;
+      }
+      .DV-footer .DV-pageNumberContainer {
+        padding-top: 5px;
+      }
+  .DV-fullscreen {
+    cursor: pointer;
+    position: absolute;
+    left: 5px; top: 5px;
+    width: 24px; height: 24px;
+    background: url(../../../images/DV/embed/fullscreen.png) no-repeat 0 0;
+  }
+    .DV-fullscreen:hover {
+      background-position: -24px 0;
+    }
+    .DV-fullscreen:active {
+      background-position: -48px 0;
+    }

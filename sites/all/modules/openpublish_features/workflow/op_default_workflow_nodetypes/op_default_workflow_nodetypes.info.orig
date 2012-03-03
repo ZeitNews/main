@@ -1,0 +1,16 @@
+; $Id: op_default_workflow_nodetypes.info,v 1.1.2.4 2010/11/29 20:44:10 tirdadc Exp $
+core = "6.x"
+dependencies[] = "workflow"
+description = "OpenPublish Default Workflow/Node Type Mappings"
+features[ctools][] = "workflow:workflow:1"
+features[workflow_type_map][] = "article"
+features[workflow_type_map][] = "blog"
+name = "OpenPublish Default Workflow/Node Type Mappings"
+package = "Features"
+
+; Information added by drupal.org packaging script on 2010-12-03
+version = "6.x-1.18"
+core = "6.x"
+project = "openpublish_features"
+datestamp = "1291420542"
+

@@ -1,0 +1,24 @@
+? clean-output-buffer.patch
+Index: xmlsitemap.pages.inc
+===================================================================
+RCS file: /cvs/drupal-contrib/contributions/modules/xmlsitemap/xmlsitemap.pages.inc,v
+retrieving revision 1.19
+diff -u -5 -p -r1.19 xmlsitemap.pages.inc
+--- xmlsitemap.pages.inc	30 Aug 2010 04:47:28 -0000	1.19
++++ xmlsitemap.pages.inc	5 Jan 2011 11:33:38 -0000
+@@ -125,10 +125,14 @@ function xmlsitemap_file_transfer($uri, 
+ 
+ /**
+  * Output an XML transformation file for the sitemap XML.
+  */
+ function xmlsitemap_output_xsl() {
++  if (ob_get_level()) {
++    ob_end_clean();
++  }
++
+   // Read the XSL content from the file.
+   $module_path = drupal_get_path('module', 'xmlsitemap');
+   $xsl_content = file_get_contents($module_path . '/xsl/xmlsitemap.xsl');
+ 
+   // Make sure the strings in the XSL content are translated properly.
+

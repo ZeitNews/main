@@ -1,0 +1,16 @@
+<?php
+
+/**
+* Implementation of hook_init().
+*
+* This forces the admin theme on node add/edit form validation errors.
+* Needs to have a module weight of 0 to work (default). 
+*/
+function glue_two_init() {
+  global $custom_theme;
+
+  if (arg(0) == 'node' && ((arg(1) == 'add') || (arg(2) == 'edit' ))) {
+      $custom_theme = variable_get('admin_theme', 0);
+      init_theme();
+  }
+}

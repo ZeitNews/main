@@ -1,0 +1,12 @@
+name = Purge
+description = Purge clears urls from reverse proxy caches like Varnish and Squid by issuing HTTP PURGE requests.
+package = Performance and scalability
+core = 6.x
+dependencies[] = expire
+
+; Information added by drupal.org packaging script on 2011-12-30
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "purge"
+datestamp = "1325205803"
+

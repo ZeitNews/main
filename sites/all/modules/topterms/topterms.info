@@ -1,0 +1,13 @@
+; $Id $
+name = Top Terms
+description = "Returns popular terms based on node statistics."
+version = 6.x-1.0-alpha1
+core = 6.x
+dependencies[] = statistics
+
+; Information added by drupal.org packaging script on 2011-02-25
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "topterms"
+datestamp = "1298620434"
+

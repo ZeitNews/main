@@ -1,0 +1,45 @@
+name = OpenPublish
+description = OpenPublish Default Theme.
+version = VERSION
+core = 6.x
+engine = phptemplate
+
+; CSS styles for default HTML elements.
+stylesheets[all][]   = css/html-elements.css
+
+; Basic styles used in many places across the site
+stylesheets[all][]   = css/basics.css
+
+; CSS file defining the layout elements of the design
+stylesheets[all][]   = css/layout.css
+
+; CSS file to style re-usable components that can appear under multiple mockups/contexts.
+stylesheets[all][]   = css/components.css
+
+; Print-version styles
+stylesheets[print][] = css/print.css
+
+
+; The regions for page-level tpl files, like: page.tpl.php, page-front.tpl.php etc.
+; The name in the brackets is the name of the variable you can use in the tpl file. 
+; The text after the equal sign ("=") is the huma-friendly name of the region that 
+; users will see on block configuration and Context management pages.
+
+regions[left] = Left Sidebar
+regions[right] = Right Sidebar
+regions[over_content] = On Top of Content
+regions[under_content] = Underneath the Content
+regions[header] = Header
+regions[footer] = Footer
+
+
+features[] = logo
+features[] = name
+features[] = favicon
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "6.x-1.19"
+core = "6.x"
+project = "openpublish_theme"
+datestamp = "1296166961"
+

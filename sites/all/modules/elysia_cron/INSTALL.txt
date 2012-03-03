@@ -1,0 +1,93 @@
+INSTALLATION STEPS
+-------------------
+
+# STEP A. (Basic install)
+
+After you enable elysia_cron module from drupal module administration, the new
+cron system is already working. 
+The only limitation in ending the install process here is that your cron calls 
+will run no more than once an hour, because standard drupal installation follow
+this behaviour.
+
+So, if you want:
+- to run some jobs more often than once an hour (eg: you have a function that
+  should be executed every 5 minutes)
+- to run a job at an exact time (eg:you must run a function at exactly "17:23")
+  you must follow Step B
+
+If you're not interested in running jobs very often, and you have no jobs that
+needs an exact timing, you can skip Step B (and maybe also Step C, it's 
+only an optional step)
+
+
+# STEP B. (Change system crontab)
+
+You must follow this step only if you need the requirements described in 
+Step A.
+So you should change the server crontab to launch drupal cron process each 
+minute.
+
+To do this refer to the section "Configuring cron jobs" of drupal documentation
+(http://drupal.org/cron), the only difference is that the schedule rule must 
+be "* * * * *".
+Example:
+* * * * * /usr/bin/wget -O - -q http://example.com/cron.php
+
+
+IF YOU WANT TO ENABLE CRON KEY SECURITY...
+
+... you should also add the choosen cron key (from elysia_cron setup) to the 
+call.
+
+Example:
+* * * * * /usr/bin/wget -O - -q http://example.com/cron.php?cron_key=XYZ
+
+
+IF YOU NEED TO EXECUTE A JOB VERY OFTEN OR NEED EXTRA PERFORMANCE...
+
+... please look at "ADVANCED INSTALLATION" section below to see how to boost
+performance of you drupal cron.
+
+
+# (OPTIONAL) STEP C. (PERMISSIONS)
+You can also give 'administer elysia_cron' permission to all user roles that 
+needs to administer cron jobs. You can do this with standard drupal users 
+administration.
+
+
+# END
+
+Nothing more.
+By default elysia_cron will run all standard cron jobs sequentially (in a 
+single channel) once an hour.
+You can change this behavious with elysia_cron setup.
+
+To access elysia_cron setup, and change the scheduling of your jobs or view
+execution stats, go to page "admin/build/cron"
+
+
+Note: to better see warnings on administration page you should consider adding 
+a rule for "warn" class to theme CSS stylesheet, like this one:
+.warn { color: red; font-weight: bold; }
+
+
+ADVANCED INSTALLATION
+----------------------
+
+With the standard installation described above elysia cron will be launched
+by standard drupal cron.
+This add a little overhead to all cron calls (expecially for cache management
+of variables, that is purged at each cron call).
+You can usually ignore that, however if you want you can completely skip drupal
+cron (and launch elysia_cron directly) by replacing file "cron.php" in the
+root of drupal dir with the one in the elysia_cron package.
+If you do so you must remember to not replace cron.php when upgrading drupal
+core. 
+
+To avoid the replacement of cron.php you can also call directly elysia cron's 
+cron.php in crontab. 
+Example:
+* * * * * /usr/bin/wget -O - -q http://example.com/sites/all/modules/elysia_cron/cron.php
+
+Note: This example works if you installed elysia_cron in "sites/all/modules" 
+dir. If you installed elsewhere use that path instead.

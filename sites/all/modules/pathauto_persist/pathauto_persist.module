@@ -1,0 +1,26 @@
+<?php
+// $Id: pathauto_persist.module,v 1.1.2.1 2010/10/10 21:12:39 davereid Exp $
+
+/**
+ * Implements hook_nodeapi().
+ */
+function pathauto_persist_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  if (($op == 'load' || $op == 'presave') && !empty($node->nid) && !isset($node->pathauto_perform_alias)) {
+    $node->pathauto_perform_alias = pathauto_persist_entity_state_load('node', $node->nid);
+  }
+  elseif (($op == 'insert' || $op == 'update') && isset($node->pathauto_perform_alias)) {
+    pathauto_persist_entity_state_save('node', $node->nid, $node->pathauto_perform_alias);
+  }
+}
+
+function pathauto_persist_entity_state_load($entity_type, $entity_id) {
+  $pathauto_state = db_result(db_query("SELECT pathauto FROM {pathauto_persist} WHERE entity_type = '%s' AND entity_id = %d", $entity_type, $entity_id));
+  return ($pathauto_state !== FALSE ? $pathauto_state : NULL);
+}
+
+function pathauto_persist_entity_state_save($entity_type, $entity_id, $pathauto_state) {
+  db_query("UPDATE {pathauto_persist} SET pathauto = %d  WHERE entity_type = '%s' AND entity_id = %d", $pathauto_state, $entity_type, $entity_id);
+  if (!db_affected_rows()) {
+    db_query("INSERT INTO {pathauto_persist} (entity_type, entity_id, pathauto) VALUES ('%s', %d, %d)", $entity_type, $entity_id, $pathauto_state);
+  }
+}

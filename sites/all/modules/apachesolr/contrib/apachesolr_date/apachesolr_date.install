@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * @file
+ *   Install and related hooks for the apachesolr_date module.
+ */
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function apachesolr_date_uninstall() {
+  // Remove blocks.
+  db_query('DELETE FROM {blocks} WHERE module = "apachesolr_date"');
+}

@@ -1,0 +1,4 @@
+; $Id$
+name = Glue Two
+description = Random glue code two.
+core = 6.x

@@ -1,0 +1,22 @@
+<?php
+//$Id: topichubs_most_comments.module,v 1.1.2.1 2009/09/02 12:00:21 inadarei Exp $
+
+/**
+ * Implementation of hook_topichubs_plugins().
+ */
+function topichubs_most_comments_topichubs_plugins() {
+  return array(
+    'most_comments' => array(
+      'title' => 'Most Comments',
+      'description' => 'Nodes with the most comments in this Topic Hub.',
+      'handler' => 'topichubs_plugin_most_comments',
+    ),
+  );
+}
+
+/**
+ * Declare the views version we support (and provide views)
+ */
+function topichubs_most_comments_views_api() {
+  return array('api' => 2.0);
+}

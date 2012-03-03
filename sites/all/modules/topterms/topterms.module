@@ -1,0 +1,244 @@
+<?php
+
+/**
+ * @file
+ * Gets and caches top terms measured by node statistics on related nodes
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function topterms_help($path, $arg) {
+  switch ($path) {
+    case 'topterms':
+      return '<p>'. t("Topterms gets and caches top terms measured by node statistics on related nodes. It provides a simple block and the following functions are suitable for use by other modules: topterms_get() ") .'</p>';
+  }
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function topterms_perm() {
+  return array('access statistics', 'admin topterms');
+}
+
+/**
+ * Implementation of hook_cron().
+ */
+function topterms_cron() {
+  
+  $topterms_timestamp = variable_get('topterms_lastupdate_timestamp', '');
+  $topterms_frequency = (int) variable_get('topterms_frequency', 86400);
+  
+  if ((time() - $topterms_timestamp) >= $topterms_frequency) {
+    $data = _topterms_refresh();
+  }
+  
+}
+
+function topterms_get($cacheid = 'topterms', $vids = FALSE, $limit = FALSE, $sorting = FALSE) {
+  if (!$data = cache_get($cacheid)) {
+    $data = _topterms_refresh($cacheid, $vids, $limit, $sorting);
+  }
+  return $data;
+}
+
+function _topterms_refresh($cacheid = 'topterms', $vids = FALSE, $limit = FALSE, $sorting = FALSE) {
+  $result = _topterms_doquery($vids, $limit, $sorting);  
+  cache_set($cacheid, $result);
+  variable_set('topterms_lastupdate_timestamp', time());
+  //drupal_set_message(t('Top terms refreshed'));
+  return cache_get('topterms');
+}
+
+function _topterms_doquery($vids = FALSE, $limit = FALSE, $sorting = FALSE) {
+
+  $args[] = variable_get('topterms_hotness', 'daycount') == 'daycount' ? 'daycount' : 'totalcount'; // sanitize necessary?
+  $tvids = $vids ? $vids : variable_get('topterms_vids', array());
+  $vids_placeholders = db_placeholders($tvids);
+  $args = array_merge($args, $tvids);
+  $args[] = $limit ? $limit : variable_get('topterms_limit', 20);  
+
+  $order = $sorting ? $sorting : variable_get('topterms_order', 'name');
+
+  if($order == 'name') {
+    $result = db_query(
+      'SELECT * 
+       FROM 
+        (SELECT 
+            tn.tid tid, td.name name, sum(nc.%s) total 
+          FROM 
+            {node_counter} nc, {term_node} tn, {term_data} td
+          WHERE 
+            tn.nid = nc.nid AND
+            tn.tid = td.tid AND
+            td.vid IN ('. $vids_placeholders .')
+          GROUP BY 
+            tn.tid 
+          ORDER BY 
+            total DESC 
+          LIMIT %d) 
+        t
+      ORDER BY 
+        name', 
+      $args
+    );
+  }
+  else {
+    $result = db_query(
+      'SELECT 
+        tn.tid tid, td.name name, sum(nc.%s) total 
+      FROM 
+        {node_counter} nc, {term_node} tn, {term_data} td
+      WHERE 
+        tn.nid = nc.nid AND
+        tn.tid = td.tid AND
+        td.vid IN ('. $vids_placeholders .')
+      GROUP BY 
+        tn.tid 
+      ORDER BY 
+        total DESC 
+      LIMIT %d', 
+      $args
+    );
+  }
+  
+  $data = array();
+  while ($row = db_fetch_object($result)) {
+    $data[] = $row;
+  }
+  
+  return $data;
+}
+
+/**
+ * Implementation of hook_block()
+ * @param string $op one of "list", "view", "save" and "configure"
+ * @param integer $delta code to identify the block
+ * @param array $edit only for "save" operation
+ **/
+function topterms_block($op = 'list', $delta = 0, $edit = array()) { 
+
+ if ($op == "list") {
+    // Generate listing of blocks from this module, for the admin/block page
+    $block = array();
+    $block[0]['info'] = t('Top terms');
+    $block[0]['cache'] = BLOCK_CACHE_GLOBAL; // ?
+    return $block;
+  }
+  else if ($op == 'view') {
+
+    switch ($delta) {
+      case 0:
+        $content = topterms_get(); 
+        $block['subject'] = 'Top Terms';
+        $block['content'] = theme(array("topterms_{$delta}_block", 'topterms_block'), $content->data);
+        return $block;
+      }
+  }
+} 
+
+/**
+ * Implementation of hook_theme()
+ */
+function topterms_theme() { 
+  $theme = array(
+    'topterms_block' => array(
+      'arguments' => array('items' => NULL),
+      'template' => 'topterms-block',
+    ),
+    'topterms_block_item' => array(
+      'arguments' => array('item' => NULL),
+      'template' => 'topterms-block-item',
+    ),
+  );
+  return $theme;
+} 
+
+/**
+ * Implementation of hook_menu()
+ */
+function topterms_menu() {
+
+  $items = array();
+
+  $items['admin/settings/topterms'] = array(
+    'title' => 'Top Terms',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('topterms_admin_form'),
+    'access arguments' => array('admin topterms'),
+    'type' => MENU_NORMAL_ITEM,
+   );
+    
+  $items['admin/settings/topterms/refresh'] = array(
+      'title' => 'Top terms',
+      'page callback' => 'topterms_refresh',
+      'access arguments' => array('admin topterms'), 
+      'type' => MENU_CALLBACK
+  );
+
+  return $items;
+} 
+
+function topterms_refresh() {
+ _topterms_refresh();
+ drupal_goto('admin/settings/topterms');
+}
+
+/**
+ * @return array Form
+ */
+function topterms_admin_form() {
+  $form = array();
+
+  $options = array();
+  foreach (taxonomy_get_vocabularies() as $vocabulary) {
+    $options[$vocabulary->vid] = check_plain($vocabulary->name);
+  }
+
+  $form['topterms_vids'] = array(
+    '#type' => 'select',
+    '#title' => t('Vocabularies'),
+    '#multiple' => TRUE,
+    '#default_value' => variable_get('topterms_vids', ''),
+    '#options' => $options,
+    '#required' => TRUE,
+  );
+
+  $form['topterms_limit'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of items'),
+    '#default_value' => variable_get('topterms_limit', '20'),
+    '#size' => 4,
+    '#maxlength' => 4,
+    '#required' => TRUE,
+  );
+  
+  $form['topterms_order'] = array(
+    '#type' => 'select',
+    '#title' => t('Order by'),
+    '#default_value' => variable_get('topterms_order', 'name'),
+    '#options' => array('name'=>t('Name'), 'total'=>t('Popularity')),
+    '#required' => TRUE,
+  );
+
+  $form['topterms_hotness'] = array(
+    '#type' => 'select',
+    '#title' => t('Hotness'),
+    '#default_value' => variable_get('topterms_hotness', 'daycount'),
+    '#options' => array('daycount'=>t('Today'), 'alltime'=>t('All time')),
+    '#required' => TRUE,
+  );
+  
+  $form['topterms_frequency'] = array(
+    '#type' => 'select',
+    '#title' => t('Update how often'),
+    '#default_value' => variable_get('topterms_frequency', '86400'),
+    '#options' => array('3600'=>t('Hourly'), '86400'=>t('Daily')),
+    '#description' => l(t('Refresh now'), 'admin/settings/topterms/refresh'),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+} 
+

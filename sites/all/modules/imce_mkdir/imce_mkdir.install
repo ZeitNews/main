@@ -1,0 +1,53 @@
+<?php
+// $Id: imce_mkdir.install,v 1.1.2.1 2009/02/10 15:56:24 ufku Exp $
+
+/**
+ * Implementation of hook_install()
+ */
+function imce_mkdir_install() {
+  //update profiles. add mkdir settings.
+  $profiles = variable_get('imce_profiles', array());
+  foreach ($profiles as $i => $profile) {
+    foreach ($profile['directories'] as $j => $directory) {
+      $profiles[$i]['directories'][$j]['mkdir'] = $i == 1 ? 1 : 0;//user#1's profile id is 1 which must be allowed by default.
+      $profiles[$i]['directories'][$j]['rmdir'] = $i == 1 ? 1 : 0;
+    }
+    $profiles[$i]['mkdirnum'] = $i == 1 ? 0 : 2;//default number of subdirectories. unlimited for user#1, 2 for others.
+  }
+  variable_set('imce_profiles', $profiles);
+
+  //register custom content function
+  $funcs = variable_get('imce_custom_content', array());
+  $funcs['imce_mkdir_content'] = 1;
+  variable_set('imce_custom_content', $funcs);
+
+  //register custom profile process
+  $funcs = variable_get('imce_custom_process', array());
+  $funcs['imce_mkdir_process_profile'] = 1;
+  variable_set('imce_custom_process', $funcs);
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function imce_mkdir_uninstall() {
+  //update profiles. delete mkdir settings.
+  $profiles = variable_get('imce_profiles', array());
+  foreach ($profiles as $i => $profile) {
+    foreach ($profile['directories'] as $j => $directory) {
+      unset($profiles[$i]['directories'][$j]['mkdir'], $profiles[$i]['directories'][$j]['rmdir']);
+    }
+    unset($profiles[$i]['mkdirnum']);
+  }
+  variable_set('imce_profiles', $profiles);
+
+  //unregister custom content function
+  $funcs = variable_get('imce_custom_content', array());
+  unset($funcs['imce_mkdir_content']);
+  variable_set('imce_custom_content', $funcs);
+
+  //unregister custom profile process
+  $funcs = variable_get('imce_custom_process', array());
+  unset($funcs['imce_mkdir_process_profile']);
+  variable_set('imce_custom_process', $funcs);
+}

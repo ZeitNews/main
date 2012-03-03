@@ -1,0 +1,161 @@
+#nav ul.primary-links li.off li a, #nav ul.primary-links li.on li a,
+#nav ul.primary-links li.over ul li a {
+  display:block;
+  font-family: arial,verdana,sans-serif;
+  font-size:1em;
+  text-transform: none;
+  font-weight: bold;
+}
+
+#nav ul.primary-links li.on li a:hover, #nav ul.primary-links li.on li a:active,
+#nav ul.primary-links li.on li a.overactive {
+  color: #fff;
+}
+
+#nav ul.primary-links li.first-level a:hover {
+  background: #393939;
+}
+#nav ul.primary-links li.on li a.active {
+  background: none;
+}
+
+div#nav {
+  background: #F3F3F3;
+  position: relative;
+  margin-bottom: 40px;
+  padding: 0;
+}
+
+#nav li.on ul, #nav li.off ul {
+  margin: 0;
+  padding: 0;
+  background:#760C29;
+}
+
+#nav a {
+  text-decoration: none;
+}
+
+div#nav li.first-level {
+  width: 0px; /* for ie6 */
+  margin: 0;
+  float: left;
+  display: block;
+  padding-right: 15px;
+  white-space: nowrap;
+}
+
+
+div#nav ul>li.first-level {
+  width: auto;
+}
+
+#nav li ul {
+  display: none;
+}
+
+#nav li.off ul, #nav li.on ul {
+  /*put the subnav below*/
+  top: 36px;
+  left: 0px;  
+  background: #760C29;
+  height: 35px;
+  position: absolute;
+  width: 979px;
+}
+
+#nav ul.primary-links li.first-level.on a,
+#nav ul.primary-links li.on first-level.a {
+  color: #FFF;
+}
+
+#nav ul.primary-links li.on ul.second-level a {
+  color: #FFF;
+  text-transform: none;
+  /*font-weight: bold;*/
+}
+
+#nav ul.primary-links li ul a.active span {
+  background: url(img/bg-submenu.png);
+  padding: 4px 13px 4px 13px;
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  border-radius: 6px;
+}
+
+
+
+#nav ul.primary-links li ul span {
+  padding: 4px 13px 4px 13px;
+}
+
+#nav ul.primary-links li.on li a  {
+  padding: 12px;
+  font-size: 0.917em;
+  font-weight: normal;
+}
+
+#nav li a {
+  font-weight: bold;
+  display: block;
+  /*height: 15px;*/
+}
+
+#nav ul.primary-links li.first-level.on {
+  background:none repeat scroll 0 0 #760C29;
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+#nav ul.primary-links li.on ul a, #nav ul.primary-links li.off ul a {
+  float: left; /*ie doesn't inherit the float*/
+  border: 0;
+  color: #fff;
+  width: auto;
+ padding: 12px 10px 8px 10px;
+  font-size: 0.917em;
+  font-weight: normal;
+}
+
+#nav ul.primary-links li:hover ul, #nav ul.primary-links li.over ul {
+  /*for ie*/
+  background: #393939;
+  width: 979px;
+}
+
+#nav li.on ul {
+  display: block;
+}
+
+#nav li.off:hover ul, #nav li.over ul {
+  display: block;
+  z-index: 6000;
+}
+
+div#nav li.off a:hover, div#nav li:hover a, div#nav li.over a {
+  background: #393939;
+}
+div#nav ul.primary-links li.first-level:hover a.first-level,
+div#nav ul.primary-links li.first-level:hover a.first-level.active,
+div#nav ul.primary-links li.over a.first-level,
+div#nav ul.primary-links li.over a.active {
+  color: #FFF;
+  background: #393939;
+}
+
+#nav li.off li a:hover, #nav li:hover li a {
+  background: #393939;
+  text-transform: none;
+}
+
+#nav ul.primary-links li ul a:hover, #nav ul.primary-links li a:active {
+  color: #c5c5c5;
+}
+#nav ul.primary-links ul.second-level li a:hover {
+  background: #393939;
+  color: #c5c5c5;
+}
+
+#nav ul.primary-links li a.active:active {
+  background: #393939;
+}

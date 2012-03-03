@@ -1,0 +1,7 @@
+<?php
+
+include_once('op_misc.features.inc');
+
+function op_misc_init() {
+  $p = variable_get('node_options_article', FALSE); 
+}

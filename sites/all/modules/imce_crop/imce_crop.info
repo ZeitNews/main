@@ -1,0 +1,13 @@
+; $Id: imce_crop.info,v 1.1 2008/05/11 13:00:06 ufku Exp $
+name = "IMCE Crop"
+description = "Adds image cropping functionality to IMCE"
+core = "6.x"
+dependencies[] = imce
+
+
+; Information added by drupal.org packaging script on 2010-10-09
+version = "6.x-1.1"
+core = "6.x"
+project = "imce_crop"
+datestamp = "1286609163"
+

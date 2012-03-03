@@ -1,0 +1,47 @@
+<?php
+// $Id: rel_to_abs.module,v 1.2 2009/12/17 08:50:50 lourenzo Exp $
+
+/**
+ * @file
+ * Relative Paths to absolute URLs
+ *
+ * Filter for convertion of relative paths to absolute URLs
+ *
+ */
+
+/**
+ * Implementation of hook_filter().
+ * @todo support for non pretty urls
+ */
+function rel_to_abs_filter($op, $delta = 0, $format = -1, $text = '', $cache_id = 0) {
+  if ( ($op=='proccess' || $op=='prepare') && $text != '') {
+
+    $text = preg_replace(
+      '/(src|href)=(\'|")\//',
+      '$1=$2'. url('<front>', array('absolute' => TRUE)),
+      $text
+    );
+
+    return $text;
+  }
+  elseif ($op === 'list') {
+    return array(t('Relative Paths to Absolute URLs'));
+  }
+  elseif ($op === 'description') {
+    return t('Filter for convertion of relative paths to absolute URLs');
+  }
+  elseif ($op === 'settings') {
+    return array();
+  }
+  return $text;
+}
+
+/**
+ * Replace
+ */
+function rel_to_abs_replace($matches) {
+  //'$1=$2'.url('<front>',array('absolute'=>TRUE))
+  return $matches[0] .'='. $matches[1] . url('<front>', array('absolute' => TRUE));
+}
+
+

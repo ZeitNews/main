@@ -1,0 +1,14 @@
+name = Document Cloud
+description = Defines an Document field type to link to document_cloud Documents.
+core = 6.x
+dependencies[] = content
+dependencies[] = libraries
+package = CCK
+
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "6.x-1.9"
+core = "6.x"
+project = "document_cloud"
+datestamp = "1296498391"
+

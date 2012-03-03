@@ -1,0 +1,76 @@
+# $Id: ja.po,v 1.1.2.1 2008/05/12 15:06:40 imagine Exp $
+#
+# Japanese translation of Drupal (imce_mkdir)
+# Copyright 2008 0829 <hixarg+0829@gmail.com>
+# Generated from files:
+#  imce_mkdir.info,v 1.1 2008/05/11 13:18:22 ufku Exp
+#  imce_mkdir.js,v 1.1 2008/05/11 13:18:22 ufku Exp
+#  imce_mkdir.module,v 1.1 2008/05/11 13:18:22 ufku Exp
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Drupal 6.x\n"
+"POT-Creation-Date: 2008-05-12 12:15+0900\n"
+"PO-Revision-Date: 2008-05-12 12:50+0900\n"
+"Last-Translator: 0829 <hixarg+0829@gmail.com>\n"
+"Language-Team: DRUPAL*DRUPAL <hixarg+0829@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: modules/imce_mkdir/imce_mkdir.info:0
+msgid "IMCE Mkdir"
+msgstr "IMCE ディレクトリ作成"
+
+#: modules/imce_mkdir/imce_mkdir.info:0
+msgid "Adds directory creation functionality to IMCE"
+msgstr "IMCE にディレクトリ作成機能を追加します。"
+
+#: modules/imce_mkdir/imce_mkdir.js:0
+#: modules/imce_mkdir/imce_mkdir.module:65
+msgid "New directory"
+msgstr "新しいディレクトリ"
+
+#: modules/imce_mkdir/imce_mkdir.js:0
+msgid "You are not alllowed to create more than %num directories."
+msgstr "%num 以上のディレクトリの作成は許可されていません。"
+
+#: modules/imce_mkdir/imce_mkdir.js:0
+#: modules/imce_mkdir/imce_mkdir.module:82
+msgid "Directory name may contain only alphanumeric characters, hyphen and underscore."
+msgstr "ディレクトリ名には英数字、ハイフン（-）、アンダースコア（_）のみが使用できます。"
+
+#: modules/imce_mkdir/imce_mkdir.js:0
+#: modules/imce_mkdir/imce_mkdir.module:86
+msgid "Directory %dir already exists."
+msgstr "ディレクトリ %dir は既に存在します。"
+
+#: modules/imce_mkdir/imce_mkdir.module:15
+msgid "Create directories"
+msgstr "ディレクトリの作成"
+
+#: modules/imce_mkdir/imce_mkdir.module:21
+msgid "Maximum number of sub-directories"
+msgstr "サブディレクトリの最大数"
+
+#: modules/imce_mkdir/imce_mkdir.module:23
+msgid "This setting is only applicable if you allow directory creation under any of the predefined directories. Define here the maximum number of subdirectories a directory can have. Setting this to 0 removes the limit and also allows infinite subdirectory depth."
+msgstr "あらかじめ定義したディレクトリ以下でのサブディレクトリの作成を許可した場合にのみ、この設定が適用されます。 ひとつのディレクトリ内に作成可能なサブディレクトリの最大値を指定してください。 サブディレクトリの作成数およびディレクトリ階層を無制限にしたい場合は 0 を入力してください。"
+
+#: modules/imce_mkdir/imce_mkdir.module:54
+msgid "Directory name"
+msgstr "ディレクトリ名"
+
+#: modules/imce_mkdir/imce_mkdir.module:61;101
+msgid "Create"
+msgstr "作成"
+
+#: modules/imce_mkdir/imce_mkdir.module:90
+msgid "Directory creation failed!"
+msgstr "ディレクトリの作成に失敗しました！"
+
+#: modules/imce_mkdir/imce_mkdir.module:0
+msgid "imce_mkdir"
+msgstr "IMCE ディレクトリ作成"
+

@@ -1,0 +1,35 @@
+<?php
+//$Id: topichubs_most_recent.module,v 1.1.2.1 2009/09/02 12:00:21 inadarei Exp $
+
+/**
+ * Implementation of hook_topichubs_plugins().
+ */
+function topichubs_most_recent_topichubs_plugins() {
+  return array(
+    'most_recent' => array(
+      'title' => 'Most Recent',
+      'description' => 'Most Recent Nodes for the Topic Hub.',
+      'handler' => 'topichubs_plugin_most_recent',
+    ),
+  );
+}
+
+/**
+ * Declare the views version we support (and provide views)
+ */
+function topichubs_most_recent_views_api() {
+  return array('api' => 2.0);
+}
+
+/**
+ * override the template that the view is using for our included view
+ */
+function topichubs_most_recent_theme() {
+  return array(
+    'views_view_fields__topichub_most_recent' => array(
+      'arguments' => array('view' => NULL, 'options' => NULL, 'row'=> NULL),
+      'template' => 'views-view-fields--topichub-most-recent',
+      'original hook' => 'views_view_fields'
+    ),
+  );
+}

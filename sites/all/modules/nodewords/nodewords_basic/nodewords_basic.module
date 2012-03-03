@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * @file
+ * Define basic meta tags for Drupal pages.
+ */
+
+/**
+ * Implements hook_nodewords_api().
+ */
+function nodewords_basic_nodewords_api() {
+  return array(
+    'version' => '1.14',
+    'path' => '',
+  );
+}

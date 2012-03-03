@@ -1,0 +1,12 @@
+name = Cache Actions
+description = This module gives you the ability to clear drupals caches with rules actions.
+dependencies[] = rules
+core = 6.x
+package = Performance and scalability
+
+; Information added by drupal.org packaging script on 2012-02-02
+version = "6.x-2.0+0-dev"
+core = "6.x"
+project = "cache_actions"
+datestamp = "1328141374"
+

@@ -1,0 +1,10 @@
+// $Id: CHANGELOG.txt,v 1.1 2009/05/02 07:38:56 deciphered Exp $
+
+ImageField Tokens 6.x-1.x-dev, xxxx-xx-xx (development release)
+-------------------------------------
+
+
+ImageField Tokens 6.x-1.0, 2009-05-02
+-------------------------------------
+
+- Initial 6.x release

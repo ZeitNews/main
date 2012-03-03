@@ -1,0 +1,120 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function workflow_access_install() {
+  drupal_install_schema('workflow_access');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function workflow_access_uninstall() {
+  drupal_uninstall_schema('workflow_access');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function workflow_access_schema() {
+  $schema['workflow_access'] = array(
+    'fields' => array(
+      'state_name'   => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => ''),
+      'rid'          => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+      'grant_view'   => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'tiny', 'not null' => TRUE, 'default' => 0),
+      'grant_update' => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'tiny', 'not null' => TRUE, 'default' => 0),
+      'grant_delete' => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'tiny', 'not null' => TRUE, 'default' => 0),
+    ),
+    'indexes' => array(
+      'rid'   => array('rid'),
+      'state_name'   => array('state_name'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Update Workflow to use machine names
+ */
+function workflow_access_update_6200() {
+  $ret = array();
+  $schema = _workflow_access_update_6200_schema();
+
+  // sid was mistakenly set up as a serial column, so we need to convert to an integer first.
+  $spec = array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0);
+  db_change_field($ret, 'workflow_access', 'sid', 'sid', $spec);
+
+  // This function resides in workflow.install
+  drupal_load('install', 'workflow');
+  _workflow_update_6200($ret, $schema);
+
+  return $ret;
+}
+
+/**
+ * Update the workflow_access table to join to the state name column instead of 
+ * sid. Implements $sandbox to do this in batches of 100.
+ */
+function workflow_access_update_6202(&$sandbox = NULL) {
+  $ret = array();
+
+  // Check that workflow.module is up-to-date before running workflow_access module updates.
+  if (drupal_get_installed_schema_version('workflow', TRUE) < 6203) {
+    drupal_set_message(t('Some updates are still pending. Please return to <a href="@update-php">update.php</a> and run the remaining updates.', array('@update-php' => base_path() .'update.php?op=selection')), 'warning', FALSE);
+    $ret['#abort'] = array('success' => FALSE, 'query' => t('Some updates are still pending.<br/>Please re-run the update script.'));
+    return $ret;
+  }
+
+  // We use $sandbox here to do these in batches of 100.
+  if (!isset($sandbox['max_sid'])) {
+    $sandbox['current_sid'] = 0;
+    $sandbox['max_sid'] = db_result(db_query('SELECT MAX(sid) FROM {workflow_states}'));
+  }
+
+  $result = db_query("SELECT * FROM {workflow_states} WHERE sid > %d ORDER BY sid ASC LIMIT 100", $sandbox['current_sid']);
+  while ($obj = db_fetch_object($result)) {
+    $sql = "UPDATE {workflow_access} SET state_name = '%s' WHERE sid = %d";
+    $success = db_query($sql, $obj->name, $obj->sid);
+    $ret[] = array('success' => $success !== FALSE, 'query' => check_plain($sql));
+
+    $sandbox['current_sid'] = $obj->sid;
+  }
+
+  $ret['#finished'] = empty($sandbox['max_sid']) ? 1 : ($sandbox['current_sid'] / $sandbox['max_sid']);
+
+  return $ret;
+}
+
+/**
+ * Add/delete unique keys/indexes and drop old fields where necessary based on 
+ * the new 6200 schema.
+ */
+function workflow_access_update_6203() {
+  $ret = array();
+  $schema = _workflow_access_update_6200_schema();
+
+  // This function resides in workflow.install
+  drupal_load('install', 'workflow');
+  _workflow_update_6203($ret, $schema);
+
+  return $ret;
+}
+
+/**
+ * Helper function to set up the 6200 schema changes in an array.
+ */
+function _workflow_access_update_6200_schema() {
+  $schema['workflow_access'] = array(
+    'fields' => array(
+      'state_name' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => ''),
+    ),
+    'deleted fields' => array('sid'),
+    'indexes' => array(
+      'state_name' => array('state_name'),
+    ),
+    'deleted indexes' => array('sid'),
+  );
+
+  return $schema;
+}

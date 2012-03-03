@@ -1,0 +1,35 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Install and uninstall functions for the Termcase module.
+ */
+
+/**
+ * Implementation of hook_install()
+ */
+function termcase_install() {
+  drupal_set_message(t('You can now define Termcase settings per vocabulary on the <a href="@vocabularies">taxonomy settings</a> page.', array('@vocabularies' => url('admin/content/taxonomy'))));
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function termcase_uninstall() {
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach ($vocabularies as $vid => $vocabulary) {
+    variable_del('taxonomy_vocabulary' . $vid . '_termcase');
+    variable_del('taxonomy_vocabulary' . $vid . '_termcase_synonyms');
+  }
+}
+
+/**
+ * Changed from using an extra column in the vocabulary table to drupal_set_variable()
+ * So we can now safely remove the extra field in the database
+ */
+function hook_update_6100() {
+  $ret = array();
+  db_drop_field($ret, 'vocabulary', 'termcase');
+  return $ret;
+}

@@ -1,0 +1,24 @@
+== This is the container module for all of the OpenPublish specific modules.
+
+OpenPublish Core
+----------------------------
+This module contains all default Views, ImageCache Presets, and any other
+configuration code exports for OpenPublish.
+
+
+OpenPublish Administration
+----------------------------
+This controls some of the administrative experience within OpenPublish.  This is used to 
+override styling and configuration of the Admin/Slate theme. It also aggregates many of the 
+API Keys for 3rd party services in one place.
+
+Hooks:
+
+* hook_openpublish_api_keys_alter(&$keys)
+This allows other modules to add or override API Key settings for the various services in use.
+
+
+OpenPublish Popular Terms
+----------------------------
+This shows hot topics on the site.  Taxonomy terms with the most usage and Topic Hubs with
+the most nodes.

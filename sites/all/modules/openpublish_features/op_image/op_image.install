@@ -1,0 +1,17 @@
+<?php 
+
+function op_image_install() {
+  op_image_set_emfield_settings();
+}
+
+function op_image_update_6001() {
+ op_image_set_emfield_settings();
+}
+
+function op_image_set_emfield_settings() {
+  variable_set('emfield_emimage_allow_custom_url', TRUE);
+  variable_set('emfield_emimage_allow_flickr', TRUE); 
+  variable_set('emfield_emimage_allow_imageshack', TRUE); 
+  variable_set('emfield_emimage_allow_photobucket', TRUE); 
+  variable_set('emfield_emimage_allow_picasa', TRUE);
+}

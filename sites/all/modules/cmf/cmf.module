@@ -1,0 +1,1089 @@
+<?php
+// $Id: cmf.module,v 1.2.2.19.2.8 2010/11/30 23:34:45 inadarei Exp $
+/**
+ * @file
+ * @brief Content management filter module file
+ *
+ * This file contains all the common functions used by the module.
+ */
+
+/**
+ * Adding a new filter:
+ *
+ *  Add an entry to function cmf_filters. Read the docs at the top of that function.
+ *  If special form processing is needed (not likely), add it to function cmf_filter_form.
+ *  Add handling to cmf_filter_form_refine, if needed (not likely: submit/validate preferred).
+ *  Make sure all the database columns are present in cmf_perform_query.
+ *
+ * @TODO: Is it now possible to provide a hook to other contribs?
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function cmf_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#cmf":
+      return '<p>'. t('This module adds an easier way for administrators to filter the content on a Drupal site for administration purposes.') .'</p>'
+        .'<p>'. t('It is an improvement over the content page in the administration area of Drupal. It can show on the same page nodes and comments and adds new filters like role and author.') .'</p>';
+  }
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function cmf_perm() {
+  return array('filter and manage site content', 'view user content list');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function cmf_menu() {
+  $items = array();
+
+  $items['admin/content/filter'] = array(
+    'title' => 'Content Management Filter',
+    'description' => 'All-in-one advanced filter and management of your site content.',
+    'page callback' => 'cmf_admin_content_page',
+    'access arguments' => array('filter and manage site content'),
+    );
+
+  $items['user/%/cmf'] = array(
+    'title' => 'CMF',
+    'description' => 'User-specific content management filter',
+    'page callback' => 'cmf_admin_content_page',
+    'access arguments' => array('view user content list'),
+    'type' => MENU_LOCAL_TASK,
+    );
+
+  $items['cmf/userauto'] = array(
+    'title' => 'User autocomplete',
+    'page callback' => '_cmf_user_autocomplete',
+    'access callback' => 'user_access',
+    'access callback' => '_cmf_userspace_perms',
+    'access arguments' => array('filter and manage site content', 'view user content list'),
+    'type' => MENU_CALLBACK,
+    );
+
+  return $items;
+}
+
+/**
+ * Check user permissions to see menu item under example.com/user/UID/cmf
+ *
+ * @param access strings
+ * @param access strings
+ * @return boolean
+ */
+function _cmf_userspace_perms($manage_access, $view_access) {
+  return (user_access($manage_access) || user_access($view_access));
+}
+
+/**
+ * List node administration filters that can be applied.
+ *
+ * @param $user_page (bool) is this building the user profile page (defaults to false).
+ * @return array with filter properties.
+ *   Any property starting with '#' goes directly into the filter form.
+ *   '#options' is also used in function cmf_filter_form_submit.
+ *   'title' is the text that will show on the filter form.
+ *   'single_use' (bool) determines if the filter will be disabled if it is already in use.
+ *   'whole_value'  "before" if the value is complete and shown before "is",
+ *      "after" if the value is complete and shown after "is",
+ *      "no" if it is a portion ("contains"), such as a substring.
+ *   'disable' is a list of other filters to remove if this one is selected.
+ *   'where' sets a simple WHERE clause for the query (with substitution).
+ *   'join' sets a simple JOIN clause for the query (with substitution).
+ *   'query_build' provides a funtion for more complex query clauses.
+ *   If validation and/or submission handling is needed, use the #element_validate and #submit elements.
+ *   Submit handlers must set the return value in $form_state['values'] array.
+ *
+ *  NOTE: for the 'where' clause some node fields are translated to comment-equivalent
+ *   field names if appropriate. See function cmf_perform_query for 'comment' and 'both.'
+ */
+function cmf_filters($user_page = FALSE) {
+  // Make the array static so it is built only once per page load.
+  static $filters;
+  if (isset($filters)) {
+    return $filters;
+  }
+  
+  $filters = array();
+  // Regular filters.
+  $filters['status'] = array(
+    'title' => t('node status'),
+    'single_use' => FALSE,
+    'whole_value' => 'before',
+    'query_build' => '_cmf_status_query_build',
+    '#type' => 'select',
+    '#options' => array(
+      'status-1' => t('published'),
+      'status-0' => t('not published'),
+      'promote-1' => t('promoted'),
+      'promote-0' => t('not promoted'),
+      'sticky-1'   => t('sticky'),
+      'sticky-0' => t('not sticky'),
+      ),
+    );
+  $filters['type'] = array(
+    'title' => t('node type'),
+    'single_use' => TRUE,
+    'whole_value' => 'before',
+    'where' => "n.type = '%s'",
+    '#type' => 'select',
+    '#options' => node_get_types('names'),
+    );
+
+  //-- workflow filter
+  if(module_exists('workflow') && function_exists('workflow_load_all'))  {
+    $filters['workflow_state'] = array(
+      'title' => t('workflow state'),
+      'single_use' => FALSE,
+      'whole_value' => 'before',
+      'query_build' => '_cmf_workflow_query_build',
+      '#type' => 'select',
+      '#options' => cmf_get_workflows(),
+      );    
+  }
+  
+  // The taxonomy filter.
+  if (module_exists('taxonomy')) {
+    $filters['category'] = array(
+      'title' => t('category'),
+      'single_use' => FALSE,
+      'whole_value' => 'before',
+      'query_build' => '_cmf_category_query_build',
+      '#type' => 'select',
+      '#options' => taxonomy_form_all(TRUE),
+      );
+  }
+
+  // Cmf filters.
+  $filters['title'] = array(
+    'title' => t('title/subject'),
+    'single_use' => FALSE,
+    'whole_value' => 'no',
+    'where' => "LOWER(n.title) LIKE LOWER('%%%s%%')",
+    '#type' => 'textfield',
+    '#element_validate' => array('_cmf_contains_validate'),
+    );
+
+  $filters['body_contains'] = array(
+    'title' => t('body'),
+    'single_use' => FALSE,
+    'whole_value' => 'no',
+    'where' => "LOWER(r.body) LIKE LOWER('%%%s%%')",
+    '#type' => 'textfield',
+    '#element_validate' => array('_cmf_contains_validate'),
+    );
+
+  $filters['created_after'] = array(
+    'title' => t('created after'),
+    'single_use' => TRUE,
+    'whole_value' => 'after',
+    'where' => "n.created >= %d",
+    '#type' => 'date',
+    '#element_validate' => array('date_validate', '_cmf_date_validate'),
+    '#submit' => array('cmf_date_handler'),
+    '#default_value' => array('year' => date('Y'), 'month' => 1, 'day' => 1),
+    '#prefix' => '<div class="date-inline">',
+    '#suffix' => '</div>',
+    );
+
+  $filters['created_before'] = array(
+    'title' => t('created before'),
+    'single_use' => TRUE,
+    'whole_value' => 'after',
+    'where' => "n.created <= %d",
+    '#type' => 'date',
+    '#element_validate' => array('date_validate', '_cmf_date_validate'),
+    '#submit' => array('cmf_date_handler'),
+    '#default_value' => array('year' => date('Y'), 'month' => 12, 'day' => 31),
+    '#prefix' => '<div class="date-inline">',
+    '#suffix' => '</div>',
+    );
+
+  if (module_exists('locale')) {
+    $lang_codes = array('' => t('Neutral')) + locale_language_list('name');
+    $filters['language'] = array(
+      'title' => t('language'),
+      'single_use' => TRUE,
+      'whole_value' => 'before',
+      'where' => "n.language ='%s'",
+      '#type' => 'select',
+      '#options' => $lang_codes,
+      );
+  }
+
+  // Don't show these on the user page.
+  if (!$user_page) {
+    $filters['user'] = array(
+      'title' => t('user list'),
+      'single_use' => TRUE,
+      'whole_value' => 'before',
+      'disable' => array('users', 'role', 'blocked'),
+      'where' => "u.uid = %d",
+      '#type' => 'select',
+      '#options' => cmf_get_users('names'),
+      );
+
+
+    $filters['users'] = array(
+      'title' => t('user name'),
+      'single_use' => TRUE,
+      'whole_value' => 'before',
+      'disable' => array('user', 'role', 'blocked'),
+      'where' => "u.name = '%s'",
+      '#type' => 'textfield',
+      '#submit' => array('cmf_users_handler'),
+      '#autocomplete_path' => 'cmf/userauto',
+      );
+
+    $filters['role'] = array(
+      'title' => t('user role'),
+      'single_use' => TRUE,
+      'whole_value' => 'before',
+      'where' => "u.uid = ur.uid AND ur.rid = %d",
+      'join' => "INNER JOIN {users_roles} ur ON u.uid = ur.uid",
+      '#type' => 'select',
+      '#options' => cmf_get_roles('names'),
+      );
+
+    $filters['blocked'] = array(
+      'title' => t('user status'),
+      'single_use' => TRUE,
+      'whole_value' => 'before',
+      'where' => "u.status = %d AND u.uid != 0",
+      '#type' => 'select',
+      '#options' => array(1 => t('active'), 0 => t('blocked')),
+      );
+  }
+  drupal_alter('cmf_filters', $filters);
+  return $filters;
+}
+
+/**
+ * Called when user goes to example.com/admin/content/filter
+ *
+ * @return the HTML generated from the $form data structure
+ */
+function cmf_admin_content_page() {
+  if (!isset($_SESSION['cmf_content_kind'])) {
+    $_SESSION['cmf_content_kind'] = 'node';
+  }
+  if (arg(0) == 'user' && is_numeric(arg(1)) && arg(1) > 0) {
+    $true = TRUE;
+  }
+  $output = drupal_get_form('cmf_filter_form', $true);
+  // Call the form first, to allow for the form_values array to be populated.
+  switch ($_SESSION['cmf_content_kind']) {
+    case 'node':
+      if ($_POST['operation'] == 'delete' && $_POST['nodes']) {
+        return drupal_get_form('node_multiple_delete_confirm', $_POST['nodes']);
+      }
+      else {
+        $output .= drupal_get_form('cmf_admin_nodes_form');
+      }
+      break;
+
+    case 'comment':
+      if ($_POST['operation'] == 'delete' && $_POST['comments']) {
+        // The next line is because of http://drupal.org/node/521354.
+        module_load_include('inc', 'comment', 'comment.admin');
+        return drupal_get_form('comment_multiple_delete_confirm');
+      }
+      else {
+        $output .= drupal_get_form('cmf_admin_comments_form');
+      }
+      break;
+
+    case 'both':
+      $output .= drupal_get_form('cmf_admin_both_form');
+  }
+  return $output;
+}
+/**
+ * FILTERS
+ */
+/**
+ * Defines the form for content administration filters.
+ *
+ * @ingroup forms
+ *
+ * @param (optional) true if the filter to be built serves the user profile page
+ * @return array with forms properties
+ */
+function cmf_filter_form(&$form_state, $true = NULL) {
+  $session = &$_SESSION['cmf_overview_filter'];
+  $session = is_array($session) ? $session : array();
+  $filters = cmf_filters($true);
+  drupal_add_css(drupal_get_path('module', 'cmf') .'/cmf.css');
+
+  // General settings display (max rows & content kind).
+  $form['general'] = array('#type' => 'fieldset',
+    '#title' => t('General Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    );
+
+  $form['general']['max-rows'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Max rows'),
+    '#size' => 5,
+    '#default_value' => isset($_SESSION['cmf_max_rows']) ? $_SESSION['cmf_max_rows'] : 50,
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
+    );
+
+  $form['general']['show_nid'] = array(
+    '#type' => 'radios',
+    '#title' => t('Show node ID'),
+    '#options' => array(0 => t('No'), 1 => t('Yes')),
+    '#default_value' => isset($_SESSION['cmf_show_nid']) ? $_SESSION['cmf_show_nid'] : 0,
+    '#prefix' => '<div class="container-inline"><div class="cmf-radios">',
+    '#suffix' => '</div></div><div class="clear-block"></div>',
+    );
+
+  $form['general']['kind'] = array(
+    '#type' => 'select',
+    '#title' => t('Content'),
+    '#options' => array('node' => t('node'), 'comment' => t('comment'), 'both' => t('both')),
+    '#default_value' => isset($_SESSION['cmf_content_kind']) ? $_SESSION['cmf_content_kind'] : 'node',
+    '#prefix' => '<div class="container-inline">',
+    );
+
+
+  $form['general']['buttons']['apply'] = array(
+    '#type' => 'submit',
+    '#value' => t('Apply'),
+    '#submit' => array('cmf_filter_form_apply'),
+    '#suffix' => '</div>',
+    );
+
+  $i = 0;
+  $form['filters'] = array('#type' => 'fieldset',
+    '#title' => t('Show only items where'),
+    '#theme' => 'node_filters',
+    );
+
+  foreach ($session as $filter) {
+    list($type, $value) = $filter;
+    // Special handling by type of filter.
+    switch ($type) {
+      case 'category':
+        // Load term name from DB rather than search and parse options array.
+        $value = taxonomy_get_term($value);
+        $value = $value->name;
+        break;
+
+      case 'body_contains':
+      case 'title':
+        // Add quotes.
+        $value = "'". $value ."'";
+        break;
+
+      case 'created_after':
+      case 'created_before':
+        // Format as human date.
+        $fmt = variable_get('date_format_short', variable_get('date_format_short_custom', 'Y M j'));
+        $fmt = trim(str_replace(array('H', 'i', ':'), '', $fmt));
+        $value = format_date($value, 'custom', $fmt, 0);
+        break;
+
+      default:
+        if (isset($filters[$type]['#options'])) {
+          $value = $filters[$type]['#options'][$value];
+        }
+    }
+
+    // Add applicable filter verbiage. Note '@' and '%' do check_plain.
+    $trans_strings = array(
+      '%filter_name' => $filters[$type]['title'],
+      '%filter_value' => $value,
+      );
+    if ($i++) {
+      $and = '<em>'. t('and') .'</em> ';
+    }
+    else {
+      $and = NULL;
+    }
+
+    switch ($filters[$type]['whole_value']) {
+      case 'after':
+        $form['filters']['current'][] = array('#value' => $and . t('is %filter_name %filter_value', $trans_strings));
+        break;
+
+      case 'before':
+        $form['filters']['current'][] = array('#value' => $and . t('%filter_name is %filter_value', $trans_strings));
+        break;
+
+      case 'no':
+        $form['filters']['current'][] = array('#value' => $and . t('%filter_name contains %filter_value', $trans_strings));
+        break;
+    }
+
+    // Remove mutually exclusive filters.
+    if (isset($filters[$type]['disable'])) {
+      foreach ($filters[$type]['disable'] as $exclude) {
+        unset($filters[$exclude]);
+      }
+    }
+
+    // Remove the single use option if it is already being filtered on.
+    if ($type == 'status') {
+//      drupal_set_message('okay, what do I get rid of? '. print_r($filter,true));
+//      dsm(print_r($filters['status'],true));
+      // Strip current value, then unset both values.
+      $status = drupal_substr($filter[1], 0, -1);
+      unset ($filters['status']['#options'][$status.'0'], $filters['status']['#options'][$status.'1']);
+    }
+    if ($filters[$type]['single_use']) {
+      unset($filters[$type]);
+    }
+  }
+
+  // Prepare form fields for filters.
+  foreach ($filters as $key => $filter) {
+    $names[$key] = $filter['title'];
+
+    // Normal form field handling.
+    $form['filters']['status'][$key] = array();
+    foreach ($filter as $element => $value) {
+      // If the filter element name begins with '#' then it is for the form.
+      if (drupal_substr($element, 0, 1) == '#') {
+        $form['filters']['status'][$key][$element] = $value;
+      }
+    }
+
+    // Special form field handling.
+    // Uncomment the 'switch', add handling case adding to the current form field array.
+    // The stuff here is for an example and can be removed.
+/*    switch ($key) {
+      case 'created_before':
+        $form['filters']['status'][$key] += array(
+          '#default_value' => array('year' => date('Y'), 'month' => 12, 'day' =>31),
+          );
+        break;
+
+      case 'created_after':
+        $form['filters']['status'][$key] += array(
+          '#default_value' => array('year' => date('Y'), 'month' => 1, 'day' =>1),
+          );
+        break;
+    } /* */
+  }
+
+  // Building radio buttons.
+  $keyz = array_keys($names);
+  $form['filters']['filter'] = array(
+    '#type'          => 'radios',
+    '#options'       => $names,
+    '#default_value' => $keyz[0],
+    '#attributes' => array('class' => 'multiselect'),
+    );
+
+  // Building buttons depending on the filter state.
+  $form['filters']['buttons']['submit'] = array(
+    '#type'  => 'submit',
+    '#value' => (count($session) ? t('Refine') : t('Filter')),
+    '#submit' => array('cmf_filter_form_refine'),
+    );
+
+  if (count($session)) {
+    $form['filters']['buttons']['undo'] = array(
+      '#type' => 'submit',
+      '#submit' => array('cmf_filter_form_undo'),
+      '#value' => t('Undo'),
+    );
+    $form['filters']['buttons']['reset'] = array(
+      '#type' => 'submit',
+      '#submit' => array('cmf_filter_form_reset'),
+      '#value' => t('Reset'),
+    );
+  }
+  return $form;
+}
+
+/**
+ * Handle post-validation form submission.
+ *
+ * @ingroup forms
+ *
+ * @param the ID of the passed form
+ * @param array with the form properties values
+ */
+function cmf_filter_form_refine($form, &$form_state) {
+  $filters = cmf_filters();
+
+  if (isset($form_state['values']['filter'])) {
+    $filter = $form_state['values']['filter'];
+
+    // Convert AJAX search value to select box value.
+
+    // If a filter has specified a submit function, call it. (Only allow one value.)
+    if (isset($filters[$filter]['#submit'])) {
+      $form_state['values'][$filter] = call_user_func($filters[$filter]['#submit'][0], $form, $form_state);
+    }
+    // Repeating this allows submit handlers (e.g. users) to alter the filter name.
+    $filter = $form_state['values']['filter'];
+
+    // Flatten the options array to accommodate hierarchical/nested options.
+    // If there are no options, fake it.
+    if (isset($filters[$filter]['#options'])) {
+      $flat_options = form_options_flatten($filters[$filter]['#options']);
+    }
+    else {
+      $flat_options = array($form_state['values'][$filter] => 1);
+    }
+    // If the option is selected or there are no options, set the session value.
+    if (isset($flat_options[$form_state['values'][$filter]])) {
+      $_SESSION['cmf_overview_filter'][] = array($filter, $form_state['values'][$filter]);
+    }
+  }
+}
+
+/**
+ * Submit handler for 'Undo' button.
+ */
+function cmf_filter_form_undo($form, &$form_state) {
+  array_pop($_SESSION['cmf_overview_filter']);
+}
+
+/**
+ * Submit handler for 'Reset' button.
+ */
+function cmf_filter_form_reset($form, &$form_state) {
+  $_SESSION['cmf_overview_filter'] = array();
+}
+
+/**
+ * Submit handler for 'Apply' button.
+ */
+function cmf_filter_form_apply($form, &$form_state) {
+  $_SESSION['cmf_max_rows'] = $form_state['values']['max-rows'];
+  $_SESSION['cmf_show_nid'] = $form_state['values']['show_nid'];
+  $_SESSION['cmf_content_kind'] = $form_state['values']['kind'];
+
+  if (arg(0) == 'user' && is_numeric(arg(1)) && arg(1) > 0) {
+    $form_state['redirect'] = 'user/'. arg(1) .'/cmf';
+  }
+  else {
+    $form_state['redirect'] = 'admin/content/filter';
+  }
+}
+
+/**
+ * Validation handler for filter doing "contains".
+ */
+function _cmf_contains_validate($form) {
+  // Make sure this was triggered by the selected filter.
+  if ($form['#name'] == $form['#post']['filter']) {
+    // Strip blanks to see if the field is empty.
+    $value = trim($form['#value']);
+    if (empty($value)) {
+      form_error($form, t('%name text value may not be empty.', array('%name' => $form['#name'])));
+    }
+  }
+}
+
+/**
+ * Validation handler for filter doing "dates".
+ */
+function _cmf_date_validate($form) {
+  // Make sure this was triggered by the selected filter.
+  if ($form['#name'] != $form['#post']['filter']) {
+    return;
+  }
+
+  // Determine correct time values depending on the filter name.
+  if (strpos($form['#name'], 'before') === FALSE) {
+    $entered_date = mktime(0, 0, 0, (int)$form['#value']['month'], (int)$form['#value']['day'], (int)$form['#value']['year'], 1);
+  }
+  else {
+    $entered_date = mktime(11, 59, 59, (int)$form['#value']['month'], (int)$form['#value']['day'], (int)$form['#value']['year'], 1);
+  }
+
+// drupal_set_message('_cmf_date_validate, filter='.$form['#post']['filter'].', name='.$form['#name'].' '.print_r($form['#value'], true).', calc='.format_date($entered_date));
+// drupal_set_message('current filters='.print_r($_SESSION['cmf_overview_filter'], true));
+
+  if (empty($entered_date)) {
+    form_error($form, t('%name date value may not be empty.', array('%name' => $form['#name'])));
+  }
+}
+
+/**
+ * Submit handler for 'users' filter.
+ * Ignore the Coder flag - it is a false positive.
+ */
+function cmf_users_handler($form, &$form_state) {
+  $name = $form_state['values']['users'];
+  // Get uid to put in 'user' filter value.
+  $form_state['values']['user'] = db_result(db_query('SELECT uid FROM {users} WHERE name = "%s"', $name));
+  // Switch filter type to user.
+  $form_state['values']['filter'] = 'user';
+  return $name;
+}
+
+/**
+ * Submit handler for date filters.
+ * Ignore the Coder flag - it is a false positive.
+ */
+function cmf_date_handler($form, &$form_state) {
+  $filter = $form_state['values']['filter'];
+  return gmmktime(0, 0, 0, $form_state['values'][$filter]['month'], $form_state['values'][$filter]['day'], $form_state['values'][$filter]['year']);
+}
+
+/**
+ * Theme cmf administration filter form.
+ *
+ * @themable
+ */
+function theme_cmf_filter_form($form) {
+  return '<div id="cmf_header">'. drupal_render($form['general']) .'</div>'
+    .'<div id="node-admin-filter">'. drupal_render($form['filters']) .'</div>'
+    . drupal_render($form);
+}
+
+/**
+ *  QUERIES
+ */
+/**
+ * Build the variable parts of the query to be performed regarding the filter status.
+ *
+ * @return associative array with WHERE JOIN query parts and respective arguments
+ */
+function cmf_build_filter_query() {
+  $filters = cmf_filters();
+
+  // Build query
+  $where = $args = array();
+  $join = '';
+
+  foreach ($_SESSION['cmf_overview_filter'] as $index => $filter) {
+    list($key, $value) = $filter;
+
+    // Does the filter have query_build function?
+    if (isset($filters[$key]['query_build'])) {
+      $result = call_user_func($filters[$key]['query_build'], $key, $value, $index);
+      if (isset($result['where'])) {
+        $where[] = $result['where'];
+      }
+      if (isset($result['join'])) {
+        $join .= $result['join'] .' ';
+      }
+      if (isset($result['value'])) {
+        $value = $result['value'];
+      }
+    }
+    else {
+      // Does the filter have where and/or joins specified?
+      if (isset($filters[$key]['where'])) {
+        $where[] = $filters[$key]['where'];
+      }
+      if (isset($filters[$key]['join'])) {
+        $join .= $filters[$key]['join'] .' ';
+      }
+    }
+
+    $args[] = $value;
+  }
+  $where = count($where) ? 'WHERE '. implode(' AND ', $where) : '';
+  return array('where' => $where, 'join' => $join, 'args' => $args);
+}
+
+/**
+ * Query_build function for category field.
+ */
+function _cmf_category_query_build($key, $value, $index) {
+  $table = "tn$index";
+  return array(
+    'where' => "$table.tid = %d",
+    'join' => "INNER JOIN {term_node} $table ON n.nid = $table.nid ",
+    'value' => $value,
+    );
+}
+
+/**
+ * Query_build function for status field.
+ */
+function _cmf_status_query_build($key, $value, $index) {
+  // Note: no exploitable hole as $key/$value have already been checked when submitted.
+  list($key, $value) = explode('-', $value, 2);
+  if ($key == 'sticky') {
+    // This allows sticky-encoded weighting (like Weight module) to also work.
+    return array(
+      'where' => 'n.'. $key .' '. ($value == 1 ? '>' : '<') .' %d',
+      'value' => 1 - $value,
+      );
+  }
+  else {
+    return array(
+      'where' => 'n.'. $key .' = %d',
+      'value' => $value,
+      );
+  }
+}
+
+/**
+ * Build the header of the result table.
+ *
+ * @return array respecting tablesort_sql()
+ */
+function cmf_build_header() {
+  $header = array();
+  if (user_access('filter and manage site content')) {
+    $header[] = theme('table_select_header_cell');
+  }
+
+  if ($_SESSION['cmf_show_nid']) {
+    $header[] = array('data' => t('ID'), 'field' => 'nid');
+  }
+
+  switch ($_SESSION['cmf_content_kind']) {
+    case 'node':
+      $header[] = array('data' => t('Title'), 'field' => 'title');
+      $header[] = array('data' => t('Kind'));
+      $header[] = array('data' => t('Node Type'), 'field' => 'type');
+      if (!(arg(0) == 'user' && is_numeric(arg(1)) && arg(1) > 0)) {
+        $header[] = array('data' => t('Author'), 'field' => 'username');
+      }
+      $header[] = array('data' => t('Status'), 'field' => 'status');
+      $header[] = array('data' => t('Time'), 'field' => 'created', 'sort' => 'desc');
+      if (module_exists('locale')) {
+        $header[] = array('data' => t('Language'), 'field' => 'language');
+      }
+      break;
+
+    case 'comment':
+      $header[] = array('data' => t('Subject'), 'field' => 'subject');
+      $header[] = array('data' => t('Kind'));
+      $header[] = array('data' => t('Node Type'), 'field' => 'type');
+      if (!(arg(0) == 'user' && is_numeric(arg(1)) && arg(1) > 0)) {
+        $header[] = array('data' => t('Author'), 'field' => 'username');
+      }
+      $header[] = array('data' => t('Status'), 'field' => 'status');
+      $header[] = array('data' => t('Time'), 'field' => 'created', 'sort' => 'desc');
+      break;
+
+    case 'both':
+      $header[] = array('data' => t('Title') .'/'. t('Subject'), 'field' => 'title');
+      $header[] = array('data' => t('Kind'));
+      $header[] = array('data' => t('Node Type'), 'field' => 'type');
+      if (!(arg(0) == 'user' && is_numeric(arg(1)) && arg(1) > 0)) {
+        $header[] = array('data' => t('Author'), 'field' => 'username');
+      }
+      $header[] = array('data' => t('Node Status'), 'field' => 'status');
+      $header[] = array('data' => t('Time'), 'field' => 'created', 'sort' => 'desc');
+      if (module_exists('locale')) {
+        $header[] = array('data' => t('Language'), 'field' => 'language');
+      }
+      break;
+  }
+  if (user_access('filter and manage site content')) {
+    $header[] = array('data' => t('Operations'));
+  }
+
+  return $header;
+}
+
+/**
+ * Permform adjusted query.
+ *
+ * @param array respecting tablesort_sql()
+ * @return result of permormed query
+ */
+function cmf_perform_query($header, $kind = NULL) {
+  $filter = cmf_build_filter_query();
+  if (is_null($kind)) {
+    $kind = $_SESSION['cmf_content_kind'];
+  }
+
+  $where = ' '. $filter['where'];
+  if (arg(0) == 'user' && is_numeric(arg(1)) && arg(1) > 0) {
+    $where .= ' AND u.uid = '. arg(1);
+  }
+  $cwhere = str_replace(array('n.title', 'n.uid', 'r.body'), array('c.subject', 'c.uid', 'c.comment'), $where);
+
+  switch ($kind) {
+    case 'node':
+      return pager_query('SELECT n.nid, n.title, n.type, n.status, n.created, '
+        .'n.changed, n.promote, n.sticky, n.moderate, n.language, '
+        .'u.name AS username, u.uid, r.body '
+        .'FROM {node} n '
+        .'JOIN {node_revisions} r ON r.vid = n.vid '
+        .'INNER JOIN {users} u ON n.uid = u.uid '
+        . $filter['join']
+        . $where
+        . tablesort_sql($header),
+        isset($_SESSION['cmf_max_rows']) ? $_SESSION['cmf_max_rows'] : 50, 0, NULL, $filter['args']
+        );
+      break;
+
+    case 'comment':
+      return pager_query('SELECT c.cid, c.subject, c.nid, c.comment, c.timestamp AS created, '
+        .'c.status, c.name, c.homepage, u.name AS username, u.uid, n.type, c.comment AS body '
+        .'FROM {comments} c '
+        .'INNER JOIN {node} n ON c.nid = n.nid '
+        .'INNER JOIN {users} u ON u.uid = c.uid '
+        . $filter['join']
+        . $cwhere
+        . tablesort_sql($header),
+        isset($_SESSION['cmf_max_rows']) ? $_SESSION['cmf_max_rows'] : 50, 0, NULL, $filter['args']
+      );
+      break;
+
+    case 'both':
+      $args = array_merge($filter['args'], $filter['args']);
+      $count_query = 'SELECT ('
+        .'SELECT COUNT(*) FROM {node} n '
+        .'JOIN {node_revisions} r ON r.vid = n.vid '
+        .'INNER JOIN {users} u ON n.uid = u.uid '
+        . $filter['join']
+        . $where
+        .') + ('
+        .'SELECT COUNT(*) FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid '
+        .'INNER JOIN {users} u ON u.uid = c.uid '
+        . $filter['join']
+        . $cwhere
+        .') AS count';
+      return pager_query('SELECT 0 AS cid, n.nid, n.title, NULL AS comment, n.type, n.status, n.created, '
+        .'n.changed, n.promote, n.sticky, n.moderate, n.language, '
+        .'u.name AS username, u.uid, r.body '
+        .'FROM {node} n '
+        .'JOIN {node_revisions} r ON r.vid = n.vid '
+        .'INNER JOIN {users} u ON n.uid = u.uid '
+        . $filter['join']
+        . $where
+        .' UNION SELECT c.cid, c.nid, c.subject AS title, c.comment, n.type, c.status, c.timestamp AS created, '
+        .'0 AS changed, 0 AS promote, 0 AS sticky, 0 AS moderate, "" AS language, '
+        .'u.name AS username, u.uid, c.comment AS body '
+        .' FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid INNER JOIN {users} u ON u.uid = c.uid '
+        . $filter['join']
+        . $cwhere
+        . tablesort_sql($header),
+        isset($_SESSION['cmf_max_rows']) ? $_SESSION['cmf_max_rows'] : 50, 0, $count_query, $args
+      );
+      break;
+  }
+}
+
+/**
+ *  RESULTS
+ */
+module_load_include('inc', 'cmf', '/node');
+module_load_include('inc', 'cmf', '/comment');
+module_load_include('inc', 'cmf', '/both');
+
+/*
+ *  AUX
+ */
+/**
+ * Builds a list of available users.
+ *
+ * @param the format in which to return the list
+ * @return array of all available users
+ */
+function cmf_get_users($op) {
+  switch ($op) {
+    case 'names':
+      $result = db_query('SELECT uid, name FROM {users} WHERE uid <> 0 ORDER BY name');
+      break;
+  }
+
+  $users = array();
+  $users[0] = variable_get('anonymous', t('anonymous'));
+  while ($account = db_fetch_object($result)) {
+    $users[$account->uid] = $account->name;
+  }
+
+  return $users;
+}
+
+/**
+ * Menu callback; Retrieve a JSON object containing autocomplete suggestions for existing users.
+ */
+function _cmf_user_autocomplete($string = '') {
+  $matches = array();
+  if ($string) {
+    $result = db_query("SELECT name FROM {users} WHERE LOWER(name) LIKE LOWER('%s%%')", $string);
+    while ($account = db_fetch_object($result)) {
+      $matches[$account->name] = check_plain($account->name);
+    }
+  }
+
+  drupal_json($matches);
+}
+
+/**
+ * Builds a list of available roles
+ *
+ * @param the format in which to return the list
+ * @return array of all available roles
+ */
+function cmf_get_roles($op) {
+  switch ($op) {
+    case 'names':
+      $result = db_query('SELECT rid, name FROM {role} ORDER BY name');
+      break;
+  }
+  $roles = array();
+  while ($role = db_fetch_object($result)) {
+    $roles[$role->rid] = $role->name;
+  }
+
+  return $roles;
+}
+
+/**
+ * Get the html code of an image
+ *
+ * @param the pretended image
+ * @return html tag img
+ */
+function _cmf_get_img($action, $title) {
+  $path =  base_path() . drupal_get_path('module', 'cmf') .'/images/'. $action .'.png';
+  if ($title == NULL) {
+    $html = '<img src="'. $path .'" alt="untitled image" />';
+  }
+  else {
+    $html = '<img src="'. $path .'" title="'. $title .'" alt="'. $title .'" />';
+  }
+  return $html;
+}
+
+/**
+ * Theme (node) type cell on table result.
+ *
+ * @ingroup themable
+ *
+ * @param 0 or node type key
+ * @return formated (node) type
+ */
+function theme_cmf_type($type) {
+  return db_result(db_query('SELECT name FROM {node_type} WHERE type = "%s"', $type));
+}
+
+/**
+ * Implementation of hook_theme().
+ *
+ * @ingroup themable
+ */
+function cmf_theme() {
+  return array(
+    'cmf_filter_form' => array(
+      'arguments' => array('form' => NULL)
+      ),
+    'cmf_user' => array(
+      'arguments' => array('uid' => NULL)
+      ),
+    'cmf_type' => array(
+      'arguments' => array('type' => NULL)
+      ),
+    'cmf_admin_nodes_form' => array(
+     'file' => 'node.inc',
+     'arguments' => array('form' => NULL)
+      ),
+    'cmf_admin_comments_form' => array(
+      'file' => 'comment.inc',
+      'arguments' => array('form' => NULL)
+      ),
+    'cmf_admin_both_form' => array(
+      'file' => 'both.inc',
+      'arguments' => array('form' => NULL)
+      ),
+  );
+}
+
+/**
+ * Theme user cell on table result.
+ *
+ * @ingroup themable
+ *
+ * @param user ID
+ * @return clickable username with status
+ */
+function theme_cmf_user($uid) {
+  if ($uid == 0) {
+    return variable_get('anonymous', t('anonymous'));
+  }
+  $result = db_query('SELECT name, status FROM {users} WHERE uid = %d', $uid);
+  $user = db_fetch_array($result);
+  $url_alias = _cmf_get_user_path($uid);
+
+  $url = $url_alias ? $url_alias : 'user/'. $uid;
+  if ($user['status']) {
+    $output .= l($user['name'], $url, array());
+  }
+  else {
+    $output .= l(_cmf_get_img('blocked', t('blocked')) .' '. $user['name'], $url, array('html' => TRUE));
+  }
+  return $output;
+}
+
+/**
+ * Get the alias path to a user profile
+ *
+ * @param user ID
+ * @return the relative URL of the user profile
+ */
+function _cmf_get_user_path($uid) {
+  return db_result(db_query("
+    SELECT dst
+    FROM {url_alias}
+    WHERE src = '%s';",
+    'user/'. $uid
+  ));
+}
+
+/**
+ * Get the term for a forum node
+ *
+ * @param node ID
+ * @return the name and forum description
+ */
+function _cmf_get_forum($nid) {
+  $path = array();
+  $node = node_load($nid);
+  $parents = taxonomy_get_parents_all($node->tid);
+  foreach ($parents as $parent) {
+    $path[] = $parent->name;
+  }
+  return implode(' > ', array_reverse($path));
+}
+
+function cmf_get_workflows() {
+  if (!module_exists('workflow')) return;  
+  if (!function_exists('workflow_load_all')) return;
+  
+  $workflows = workflow_load_all();
+  
+  $states = array();
+  if (is_array($workflows)) {
+    foreach ($workflows as $workflow) {
+      if (is_array($workflow->states)) {
+        foreach ($workflow->states as $state) {
+          $states[$state->name] = $workflow->label . " : " . $state->label;
+        }
+      }
+    }
+  }
+  
+  return $states;
+  
+}
+
+/**
+ * Query_build function for workflow
+ */
+function _cmf_workflow_query_build($key, $value, $index) {
+  if (!module_exists('workflow')) return;  
+  if (!function_exists('workflow_load_all')) return;
+
+  $table = "workflow_node";
+  return array(
+    'where' => "$table.state_name = '%s'",
+    'join' => "INNER JOIN {$table} $table ON n.nid = $table.nid ",
+    'value' => $value,
+    );
+}

@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * Implement hook_form_FORMID_alter() for views_exposed_form.
+ */
+function views_filters_reset_form_views_exposed_form_alter(&$form, &$form_state) {
+  // Evaluate visibility.
+  $enabled_views = variable_get('views_filters_reset', array());
+  if (empty($enabled_views[$form_state['view']->name])) {
+    return;
+  }
+
+  // Count all the active exposed filters. If none, do nothing.
+  $active = 0;
+  foreach ($form_state['view']->filter as $filter_id => $filter) {
+    if (empty($filter->options['exposed'])) continue;
+    $filter_element = $form['#info']["filter-$filter_id"]['value'];
+    if (empty($filter_element)) continue; // VFS removes this.
+    if (!empty($form[$filter_element]['#access']) || !isset($form[$filter_element]['#access'])) {
+      $active++;
+    }
+  }
+  if (!$active) return;
+
+  drupal_add_js(drupal_get_path('module', 'views_filters_reset') . '/views_filters_reset.js');
+  drupal_add_js('misc/jquery.form.js');
+
+  $form['reset'] = array(
+    '#type' => 'markup',
+    '#value' => '<input '. drupal_attributes(array('id' => 'edit-reset', 'type' => 'button', 'value' => t('Reset'), 'class' => 'form-submit')) .' />',
+  );
+  static $forms = array();
+  if (!isset($forms[$form['#id']])) {
+    drupal_add_js(array('vfr' => array($form['#id'] => $form['#parameters'][1]['view']->use_ajax ? FALSE : url($form['#parameters'][1]['view']->get_url()))), 'setting');
+    $forms[$form['#id']] = TRUE;
+  }
+
+  $form['#parameters'][1]['view']->exposed_form_id = $form['#id'];
+}
+
+/**
+ * Implement hook_ajax_data_alter().
+ */
+function views_filters_reset_ajax_data_alter(&$object, $type, $view) {
+  if ($type == 'views' && $view->display_handler->uses_exposed() && $view->display_handler->get_option('exposed_block')) {
+    $object->exposed_form = $view->render_exposed_form(TRUE);
+    $object->exposed_form_id = $view->exposed_form_id;
+    $object->__callbacks[] = 'Drupal.vfr.ajaxViewResponse';
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function views_filters_reset_menu() {
+  $items['admin/settings/views_filters_reset'] = array(
+    'title' => 'Views Filters Reset',
+    'description' => 'Configure which views support the reset functionality.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('views_filters_reset_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+  $items['admin/build/views/tools/filters_reset'] = array(
+    'title' => 'Filters Reset',
+    'description' => 'Configure which views support the reset functionality.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('views_filters_reset_settings'),
+    'access arguments' => array('administer site configuration'),
+    'weight' => 5,
+    'type' => MENU_LOCAL_TASK
+  );
+  return $items;
+}
+
+function views_filters_reset_settings() {
+  $views = views_get_all_views();
+  $options = array();
+  foreach ($views as $view) {
+    $options[$view->name] = $view->name;
+  }
+  asort($options);
+
+  $form['views_filters_reset'] = array(
+    '#title' => t('Enable reset button for the following views'),
+    '#type' => 'checkboxes',
+    '#options' => $options,
+    '#default_value' => variable_get('views_filters_reset', array()),
+  );
+
+  return system_settings_form($form);
+}
+

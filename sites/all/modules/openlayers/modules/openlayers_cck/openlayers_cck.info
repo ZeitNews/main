@@ -1,0 +1,13 @@
+name = OpenLayers CCK
+description = Provides CCK fields and widgets through an OpenLayers interface.
+core = 6.x
+package = OpenLayers
+dependencies[] = openlayers
+dependencies[] = content
+
+; Information added by drupal.org packaging script on 2011-05-23
+version = "6.x-2.0-beta1"
+core = "6.x"
+project = "openlayers"
+datestamp = "1306124217"
+

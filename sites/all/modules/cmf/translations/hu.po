@@ -1,0 +1,328 @@
+# Hungarian translation of Content Management Filter (6.x-2.0)
+# Copyright (c) 2009 by the Hungarian translation team
+# Generated from files:
+#  cmf.module,v 1.2.2.19.2.2 2009/09/05 19:57:12 nancyw
+#  both.inc,v 1.2.2.11.2.1 2009/08/22 00:01:11 nancyw
+#  cmf.info,v 1.2.2.5 2009/07/31 02:25:26 nancyw
+#  comment.inc,v 1.2.2.9 2009/08/12 15:12:53 nancyw
+#  node.inc,v 1.2.2.13.2.1 2009/08/22 00:01:11 nancyw
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Content Management Filter (6.x-2.0)\n"
+"POT-Creation-Date: 2009-09-30 08:22+0000\n"
+"PO-Revision-Date: 2009-09-30 08:21+0000\n"
+"Language-Team: Hungarian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: cmf.module:660,685
+msgid "Title"
+msgstr "Cím"
+
+#: cmf.module:666,680
+msgid "Status"
+msgstr "Állapot"
+
+#: both.inc:44
+msgid "Delete"
+msgstr "Törlés"
+
+#: cmf.module:699
+msgid "Operations"
+msgstr "Műveletek"
+
+#: cmf.module:321
+msgid "Content"
+msgstr "Tartalom"
+
+#: cmf.module:664,678,689
+msgid "Author"
+msgstr "Szerző"
+
+#: cmf.module:674,685
+msgid "Subject"
+msgstr "Tárgy"
+
+#: cmf.module:669,694
+msgid "Language"
+msgstr "Nyelv"
+
+#: cmf.info:0
+msgid "Administration"
+msgstr "Adminisztráció"
+
+#: cmf.module:313
+msgid "Yes"
+msgstr "Igen"
+
+#: cmf.module:313
+msgid "No"
+msgstr "Nem"
+
+#: cmf.module:455
+msgid "Reset"
+msgstr "Alaphelyzet"
+
+#: both.inc:107,139; comment.inc:79,80; node.inc:101,102
+msgid "edit"
+msgstr "szerkesztés"
+
+#: cmf.module:129
+msgid "category"
+msgstr "kategória"
+
+#: both.inc:48; comment.inc:40; node.inc:48
+msgid "Update"
+msgstr "Frissítés"
+
+#: cmf.module:667,681,692
+msgid "Time"
+msgstr "Idő"
+
+#: cmf.module:655
+msgid "ID"
+msgstr "Azonosító"
+
+#: cmf.module:118
+msgid "node type"
+msgstr "tartalomtípus"
+
+#: both.inc:36; comment.inc:27; node.inc:36
+msgid "Update options"
+msgstr "Frissítési lehetőségek"
+
+#: cmf.module:442
+msgid "Filter"
+msgstr "Szűrő"
+
+#: cmf.module:230,934
+msgid "blocked"
+msgstr "zárolt"
+
+#: cmf.module:230
+msgid "active"
+msgstr "aktív"
+
+#: cmf.module:662,676,687
+msgid "Node Type"
+msgstr "Tartalomtípus"
+
+#: both.inc:76; node.inc:74; cmf.module:322
+msgid "node"
+msgstr "tartalom"
+
+#: cmf.module:296
+msgid "General Settings"
+msgstr "Általános beállítások"
+
+#: cmf.module:661,675,686
+msgid "Kind"
+msgstr "Típus"
+
+#: cmf.module:196
+msgid "user list"
+msgstr "felhasználói lista"
+
+#: cmf.module:810,923
+msgid "anonymous"
+msgstr "vendég"
+
+#: both.inc:166; comment.inc:106; node.inc:132
+msgid "No items selected."
+msgstr "Nincs kiválasztott elem."
+
+#: both.inc:221; comment.inc:139; node.inc:164
+msgid "The update has been performed."
+msgstr "A frissítés megtörtént."
+
+#: both.inc:87,133; comment.inc:74; node.inc:85; cmf.module:109
+msgid "published"
+msgstr "közzétett"
+
+#: cmf.module:442
+msgid "Refine"
+msgstr "Finomítás"
+
+#: cmf.module:450
+msgid "Undo"
+msgstr "Visszavonás"
+
+#: cmf.module:148
+msgid "body"
+msgstr "törzs"
+
+#: both.inc:123; comment.inc:64; cmf.module:322
+msgid "comment"
+msgstr "hozzászólás"
+
+#: both.inc:87,133; comment.inc:74; node.inc:85; cmf.module:110
+msgid "not published"
+msgstr "rejtett"
+
+#: cmf.module:114
+msgid "not sticky"
+msgstr "nem kiemelt"
+
+#: both.inc:92; node.inc:91; cmf.module:113
+msgid "sticky"
+msgstr "kiemelt"
+
+#: cmf.module:112
+msgid "not promoted"
+msgstr "nincs címlapon"
+
+#: both.inc:89; node.inc:87; cmf.module:111
+msgid "promoted"
+msgstr "címlapon"
+
+#: cmf.module:322
+msgid "both"
+msgstr "mindkettő"
+
+#: cmf.module:330
+msgid "Apply"
+msgstr "Alkalmaz"
+
+#: both.inc:42
+msgid "Publish"
+msgstr "Közzététel"
+
+#: both.inc:43
+msgid "Unpublish"
+msgstr "Elrejtés"
+
+#: cmf.module:337
+msgid "Show only items where"
+msgstr "Csak azok mutatása, melyek"
+
+#: cmf.module:216
+msgid "user role"
+msgstr "felhasználói csoport"
+
+#: cmf.module:377
+msgid "and"
+msgstr "és"
+
+#: both.inc:95; node.inc:94
+msgid "moderated"
+msgstr "moderált"
+
+#: cmf.module:62
+msgid "User autocomplete"
+msgstr "Felhasználói adatok automatikus kiegészítése"
+
+#: cmf.module:184
+msgid "language"
+msgstr "nyelv"
+
+#: both.inc:24; node.inc:24; cmf.module:182
+msgid "Neutral"
+msgstr "semleges"
+
+#: both.inc:268; comment.inc:183; node.inc:212
+msgid "Filter returned no results."
+msgstr "A keresésnek a szűrési feltételek alapján nincs eredménye."
+
+#: cmf.module:27; cmf.info:0
+msgid ""
+"This module adds an easier way for administrators to filter the "
+"content on a Drupal site for administration purposes."
+msgstr ""
+"A modul segítségével az adminisztrátorok egyszerű módon "
+"szűrhetik a tartalmakat a Drupal alapú webhelyeken adminisztrációs "
+"célzattal."
+
+#: cmf.module:303
+msgid "Max rows"
+msgstr "Sorok maximális száma"
+
+#: cmf.module:103
+msgid "node status"
+msgstr "tartalom állapota"
+
+#: cmf.module:140
+msgid "title/subject"
+msgstr "cím/tárgy"
+
+#: cmf.module:206
+msgid "user name"
+msgstr "felhasználónév"
+
+#: cmf.module:226
+msgid "user status"
+msgstr "felhasználó állapota"
+
+#: cmf.module:691
+msgid "Node Status"
+msgstr "Tartalom állapota"
+
+#: cmf.module:36
+msgid "filter and manage site content"
+msgstr "a webhely tartalmának szűrése és kezelése"
+
+#: cmf.module:36
+msgid "view user content list"
+msgstr "felhasználói tartalomlista megtekintése"
+
+#: cmf.module:46
+msgid "Content Management Filter"
+msgstr "Tartalomkezelő szűrő"
+
+#: cmf.module:47
+msgid "All-in-one advanced filter and management of your site content."
+msgstr "„Mindent egyben” fejlett szűrő és tartalomkezelés a webhelyen."
+
+#: cmf.module:53
+msgid "CMF"
+msgstr "Tartalomkezelő szűrő"
+
+#: cmf.module:54
+msgid "User-specific content management filter"
+msgstr "Felhasználó-specifikus tartalomkezelő szűrő"
+
+#: cmf.info:0
+msgid "Content management filter"
+msgstr "Tartalomkezelő szűrő"
+
+#: both.inc:64; node.inc:63
+msgid "Node !nid"
+msgstr "Tartalom !nid"
+
+#: both.inc:115; comment.inc:56
+msgid "Node !nid, Comment !cid"
+msgstr "Tartalom !nid, Hozzászólás !cid"
+
+#: cmf.module:28
+msgid ""
+"It is an improvement over the content page in the administration area "
+"of Drupal. It can show on the same page nodes and comments and adds "
+"new filters like role and author."
+msgstr ""
+"Ez a modul a Drupal adminisztrációs felületén a tartalom oldal "
+"tökéletesítése. Ugyanazon az oldalon tudja megmutatni a "
+"tartalmakat és a hozzászólásokat, valamint új szűrőket "
+"biztosít, mint például a csoport és a szerző."
+
+#: cmf.module:156
+msgid "created after"
+msgstr "után létrehozva"
+
+#: cmf.module:169
+msgid "created before"
+msgstr "előtt létrehozva"
+
+#: cmf.module:312
+msgid "Show node ID"
+msgstr "A tartalomazonosító mutatása"
+
+#: cmf.module:383
+msgid "%filter_name is %filter_value"
+msgstr "%filter_name értéke %filter_value"
+
+#: cmf.module:386
+msgid "%filter_name contains %filter_value"
+msgstr "%filter_name tartalmaz %filter_value"
+

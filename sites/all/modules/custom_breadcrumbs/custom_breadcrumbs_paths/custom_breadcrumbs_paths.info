@@ -1,0 +1,16 @@
+; $Id: custom_breadcrumbs_paths.info,v 1.1.2.1 2009/04/06 12:43:32 mgn Exp $
+name = Custom Breadcrumbs for Paths
+package = Custom Breadcrumbs
+dependencies[] = custom_breadcrumbs
+description = Provides Custom Breadcrumbs for specific paths.
+core = 6.x
+
+
+
+
+; Information added by drupal.org packaging script on 2011-01-08
+version = "6.x-2.0-rc1"
+core = "6.x"
+project = "custom_breadcrumbs"
+datestamp = "1294462254"
+

@@ -1,0 +1,132 @@
+@charset "UTF-8";
+
+/* Handy font size definitions 
+font-size: .833em;   12px x .833   = 10px 
+font-size: .917em;   12px x .917   = 11px 
+font-size: 1em;      12px x 1      = 12px 
+font-size: 1.083em   12px x 1.083  = 13px 
+font-size: 1.167em;  12px x 1.167  = 14px
+font-size: 1.25em;   12px x 1.125  = 15px
+font-size: 1.417em;  12px x 1.417  = 17px
+font-size: 2em;      12px x 2    = 24px
+*/
+
+/*************** Styles for WYSIWYG editor (e.g. FCKEditor). ****************/
+body {
+  color: #333;
+  font: 75% Georgia, "Times New Roman", serif;
+  margin: 0;
+  padding: 0;
+}
+
+
+a:link, a:visited {
+  color: /*#093D72;*/ #000;
+  text-decoration: none;
+}
+
+a:focus {
+  outline: 1px dotted;
+}
+
+a:hover, a:active, li a.active {
+  outline: none;
+  text-decoration: underline;
+  color: #666;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  margin: 0;
+  padding: 0;
+}
+
+
+h1 {
+  margin: .5em 0;
+  font-family: Georgia, "Times New Roman", Times, serif; 
+  font-size: 2.5em;
+  color: #000;
+  font-weight: normal;
+  line-height: 1.2em;
+  color: #333;
+}
+
+h2 {
+  font-size: 1.417em;  
+  font-family: Georgia, "Times New Roman", Times, serif; 
+  letter-spacing: .05em;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px 0;
+  color: #000;
+  padding: 1em 0 .5em 0;
+}
+
+h2 a:link, h2 a:visited  { 
+}
+
+h2 a:link, h3 a:active, h3 a:visited { 
+  color: #000;
+}
+
+h2 a:hover { 
+  text-decoration: none; 
+}
+
+h3 {
+  font-size: 1.083em;
+  margin: 25px 0 6px 0;
+  color: #000;
+}
+
+p {
+  font-size: 1.2em;
+  line-height: 1.7em;
+  margin: 0 0 1.1em 0;
+}
+
+blockquote {
+  margin: 1.25em;
+  padding: 1.25em 1.25em 0 1.25em;
+}
+
+em {
+  padding: 0 3px 0 0;
+}
+
+hr {
+  background: #7f7f7f;
+  border: none;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+}
+
+img, a img {
+  border: none;
+  outline: none;
+}
+
+dl {
+  margin: .5em 0 1em;
+  padding: 0;
+}
+
+dl dd {
+  margin: 0 0 .5em 1.5em;
+}
+
+ol, ul {
+  margin: 12px 5px;
+  padding: 0 0 0 5px;
+}
+
+ul li, ol li {
+  list-style-position: inside;
+  padding: 0;
+  margin: 5px 0;
+}
+
+input, select {margin: 5px 0;}
+
+

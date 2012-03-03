@@ -1,0 +1,13 @@
+name = Location Generate
+description = Bulk assign random latitude and longitudes to nodes.
+package = Development
+core = 6.x
+dependencies[] = devel_generate
+dependencies[] = location
+
+; Information added by drupal.org packaging script on 2011-12-22
+version = "6.x-3.x-dev"
+core = "6.x"
+project = "location"
+datestamp = "1324513735"
+

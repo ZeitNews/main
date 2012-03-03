@@ -1,0 +1,166 @@
+/**************** Overrides for admin/slate theme ********************/
+body.admin {
+  background:#f0f0f0; 
+}
+
+#branding { 
+  background:#f0f0f0; 
+  color:#242b33; 
+  border-bottom:1px solid #fff;
+}
+#branding h1.site-name { 
+  width:130px;
+  background:url(img/openpublish-icon.png) no-repeat;
+  min-height: 30px;
+  padding-left: 35px;
+}
+#branding h1.site-name a { 
+  color:#242b33; 
+}
+#branding div.breadcrumb a { 
+  color:#242b33; 
+}
+#branding div.right { 
+  background:#f0f0f0; 
+}
+
+#page-title {
+  background:#f0f0f0;
+}
+#page-title h2.page-title {
+  color:#242b33; 
+}
+
+#primary-links ul.links li a {
+  border-bottom:1px solid #fff;
+  color:#0055AA;
+}
+#primary-links ul.links li a:hover { 
+  background:#111 url(img/nav-sprite.png) 100% -35px no-repeat;
+  background-color:#555; 
+}
+#primary-links ul.links li.active-trail a,
+#primary-links ul.links li a.active {
+  background:#111 url(img/nav-sprite.png) 100% -1px no-repeat;
+  color:#242b33;
+}
+
+#page-title a.subnav-toggle {
+  background:url(img/subnav-sprite.png) no-repeat;
+}
+#page-title a.subnav-expanded { 
+  background-position:-30px 0px; 
+}
+
+div#admin-toolbar ul#admin-toolbar-user {
+  clear:none;
+}
+
+/**************** Overrides for admin/slate/rubik theme icons ********************/
+.path-admin-content-filter span.icon { 
+  background-position: -90px 0px !important; 
+}
+.path-admin-settings-apture span.icon { 
+  width:35px !important;
+  height:35px !important;
+  background:transparent url(img/icons-op.png) -135px 0px no-repeat !important;
+}
+.path-admin-settings-calais span.icon { 
+  width:35px !important;
+  height:35px !important;
+  background:transparent url(img/icons-op.png) 0px 0px no-repeat !important;
+}
+.path-admin-settings-morelikethis span.icon { 
+  width:35px !important;
+  height:35px !important;
+  background:transparent url(img/icons-op.png) -170px 0px no-repeat !important;
+}
+.path-admin-settings-openpublish span.icon { 
+  width:35px !important;
+  height:35px !important;
+  background:transparent url(img/icons-op.png) -70px 0px no-repeat !important;
+}
+.path-admin-settings-rdf span.icon, 
+.path-admin-content-rdf span.icon { 
+  width:35px !important;
+  height:35px !important;
+  background:transparent url(img/icons-op.png) -105px 0px no-repeat !important;
+}
+.path-admin-content-topichubs span.icon { 
+  width:35px !important;
+  height:35px !important;
+  background:transparent url(img/icons-op.png) -35px 0px no-repeat !important;
+}
+
+/**************** Other overrides for admin/slate theme ********************/
+div#node-admin-filter .date-inline .container-inline div.form-item {
+  margin-right: 3px;
+  float: none;
+  width: auto !important;
+}
+
+label.calais_keyword {
+  margin-right: 10px !important;
+}
+
+#credits {float: right;}
+
+#credits a {
+  background:url(img/built-with-op.gif) no-repeat; 
+  display: block; 
+  width: 125px; 
+  height: 41px;
+  text-indent: -9000px;
+}
+
+.right .form-autocomplete { width:280px }
+
+
+div#content div.column-side {
+  width: 24.99%;
+}
+
+div#content div.noderelationships-nodereference-buttons-wrapper {
+  margin-left:  10px;
+  *display: inline; /* Needed to fix IE7 bug */
+}
+
+#node-admin-filter input {
+  height: auto;
+}
+
+#node-admin-filter dl.multiselect dd .form-item, #node-admin-filter .date-inline {
+  width: auto;
+  height: 36px;
+  padding-bottom: 3px;
+}
+
+/* Rubik clashing with CMF */
+#node-admin-filter .container-inline {
+  margin: 0;
+}
+
+/* Topic Hubs fix */
+#condition-builder #add-term {
+  float: left;
+}
+
+/* Hide description for date field (clash in rubik theme) */
+/*.page-content #node-form div.container-inline-date div.form-item:hover > div.description {
+  display: none;
+}*/
+div#ui-datepicker-div {
+  z-index: 5;
+}
+
+
+/* 
+ *Fix weird issue with draggable/sortable rows having strange spacing
+ */
+td.content-multiple-drag{
+  width:25px;
+}
+.draggable a.tabledrag-handle {
+  padding-right:.5em;
+  margin:0;
+}

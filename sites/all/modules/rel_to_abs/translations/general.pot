@@ -1,0 +1,37 @@
+# $Id: general.pot,v 1.1 2009/09/04 13:18:34 lourenzo Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  rel_to_abs.module: n/a
+#  rel_to_abs.info: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-09-02 21:24-0300\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: rel_to_abs.module:28
+msgid "Relative Paths to Absolute URLs"
+msgstr ""
+
+#: rel_to_abs.module:31 rel_to_abs.info:0
+msgid "Filter for convertion of relative paths to absolute URLs"
+msgstr ""
+
+#: rel_to_abs.info:0
+msgid "Relative to Absolute Filter"
+msgstr ""
+
+#: rel_to_abs.info:0
+msgid "Input filters"
+msgstr ""
+

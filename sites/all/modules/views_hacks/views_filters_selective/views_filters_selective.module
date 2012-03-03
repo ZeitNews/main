@@ -1,0 +1,344 @@
+<?php
+
+/**
+ * Implementation of hook_views_api().
+ */
+function views_filters_selective_views_api() {
+  return array(
+    'api' => 3.0,
+  );
+}
+ 
+/**
+ * Implementation of hook_form_FORMID_alter() for views_exposed_form.
+ */
+function views_filters_selective_form_views_exposed_form_alter(&$form, $form_state) {
+  if ('2' != substr(views_api_version(), 0, 1)) {
+    // Only continue for Views 2.x
+    return;
+  }
+  // Pre-create the settings array.
+  $settings = array();
+  foreach ($form_state['view']->filter as $filter_id => $filter) {
+    if (empty($filter->options['exposed'])) continue;
+    $settings[$filter_id] = $filter->options['expose'];
+  }
+  views_filters_selective_form_views_exposed_form_alter_do($form, $form_state, $settings);
+}
+
+function views_filters_selective_form_views_exposed_form_alter_do(&$form, $form_state, $settings) {
+  static $guard = FALSE;
+  if ($guard) return;
+  $guard = TRUE;
+
+  // Go through each filter checking for a 'selective' setting.
+  $active = 0;
+  foreach ($form_state['view']->filter as $filter_id => $filter) {
+    if (empty($filter->options['exposed'])) continue;
+    $active++; // count active exposed filters
+    if (empty($settings[$filter_id]['vfs_selective'])) continue;
+
+    // Form element is designated by the element ID which is user-configurable.
+    $filter_element = $form['#info']["filter-$filter_id"]['value'];
+    
+    // Execute a clone of the view with a few changes:
+    // * no grouped fields for multiple values
+    // * no distinct
+    // * no paging
+    // * no caching
+    $view = $filter->view->clone_view();
+    if (empty($settings[$filter_id]['vfs_active'])) {
+      $view->set_exposed_input(array('dummy' => TRUE));
+    }
+    else {
+      $view->set_exposed_input($filter->view->exposed_input);
+    }
+
+    // Fix case of exposed form in block for view with arguments.
+    if ($filter->view->display_handler->get_option('exposed_block') && !empty($filter->view->argument)) {
+      static $arguments;
+      if (!empty($filter->view->args)) {
+        // Remember the arguments because next time we're here we'll need them.
+        $arguments = $filter->view->args;
+      }
+      else if (!empty($arguments)) {
+        $view->set_arguments($arguments);
+      }
+    }
+
+    $items = $view->get_items('field', $filter->view->current_display);
+    foreach ($items as $item) {
+      if (!empty($item['multiple']['group'])) {
+        $item['multiple'] = array(
+          'group' => FALSE,
+          'multiple_number' => '',
+          'multiple_from' => '',
+          'multiple_reversed' => FALSE,
+        );
+        $view->set_item($filter->view->current_display, 'field', $item['field'], $item);
+      }
+    } 
+    $view->display_handler->set_option('distinct', FALSE);
+    $view->display_handler->set_option('cache', array(
+      'type' => 'none',
+    ));
+    $view->set_display($filter->view->current_display);
+    $view->pre_execute();
+    $view->set_items_per_page(0);
+    $view->execute();
+
+    // Filter the results.
+    $filter_settings = explode(':', $settings[$filter_id]['vfs_field']);
+    $field_id = NULL;
+    if (!empty($filter_settings[1])) {
+      // Filter on a field name.
+      $field_id = $filter_settings[1];
+      $field_alias = $view->field[$field_id]->field_alias;
+      $options = array();
+      foreach ($view->result as $row) {
+        if (isset($row->$field_alias)) {
+          $options[] = $row->$field_alias;
+        }
+      }
+    }
+    else if ($handler = _views_filters_selective_get_handler($filter)) {
+      $oids = array();
+      foreach ($view->result as $result) {
+        $oids[] = $result->{$view->base_field};
+      }
+      $oids = array_filter($oids);
+      $options = empty($oids) ? array() : call_user_func($handler, $view->filter[$filter_id], $field_id ? $view->field[$field_id] : NULL, $oids);
+    }
+    else {
+      drupal_set_message(t('Could not find a selective filter handler for %filter.', array('%filter' => $filter->definition['title'])), 'warning');
+    }
+    drupal_alter('views_filters_selective_options', $options, $view->filter[$filter_id], $field_id ? $view->field[$field_id] : NULL, $oids);
+    if ($filter->options['expose']['optional']) {
+      $options[] = 'All';
+    }
+    if (in_array($form[$filter_element]['#type'], array('select', 'checkboxes', 'radios'))) {
+      $form[$filter_element]['#options'] = _views_filters_selective_reduce_options($form[$filter_element]['#options'], $options);
+    }
+    else {
+      sort($options);
+      $options = array_combine($options, $options);
+      if (isset($options['All'])) {
+        unset($options['All']);
+        $any_label = variable_get('views_exposed_filter_any_label', 'old_any') == 'old_any' ? '<Any>' : t('- Any -');
+        $options = array_merge(array('All' => $any_label), $options);
+      }
+      $form[$filter_element]['#type'] = 'select';
+      $form[$filter_element]['#multiple'] = FALSE;
+      $form[$filter_element]['#options'] = $options;
+      $form[$filter_element]['#default_value'] = 'All';
+      $form[$filter_element]['#validated'] = TRUE; // avoid invalid selection error
+      unset($form[$filter_element]['#size']);
+    }
+    if ((empty($form[$filter_element]['#options']) || array_keys($form[$filter_element]['#options']) === array('All')) && !empty($settings[$filter_id]['vfs_hide_empty'])) {
+      $form[$filter_element]['#access'] = FALSE;
+      $form["{$filter_element}_op"]['#access'] = FALSE;
+      unset($form['#info']["filter-$filter_element"]);
+      $active--;
+    }
+  }
+  if (!$active) { // hide apply button if all exposed filters are hidden
+    $form['submit']['#access'] = FALSE;
+  }
+  $guard = FALSE;
+}
+
+function _views_filters_selective_get_handler($filter) {
+  static $handlers = NULL;
+  if (empty($handlers)) {
+    $handlers = module_invoke_all('views_filters_selective_handler');
+  }
+  foreach (_views_filters_selective_get_ancestors(get_class($filter)) as $class) {
+    if (isset($handlers[$class])) {
+      return $handlers[$class];
+    }
+  }
+}
+
+function _views_filters_selective_get_ancestors($class) {
+  $classes = array($class);
+  while ($class = get_parent_class($class)) { 
+    $classes[] = $class; 
+  }
+  return $classes;
+}
+
+/**
+ * Implementation of hook_views_filters_selective_handler().
+ *
+ * This hook allows filters of different types to be restricted.
+ * @return 
+ *   A keyed array of supported filters:
+ *   'filter_class' => 'filter_handler'
+ * 
+ * Handler signature:
+ * @param $filter
+ *    The filter handler being limited
+ * @param $field
+ *    The field that the user associated with the filter
+ * @param $oids
+ *    The base ids of the result set
+ * @return
+ *    An array of acceptable values for the filter
+ */
+function views_filters_selective_views_filters_selective_handler() {
+  return array(
+    'views_handler_filter' => 'views_filters_selective_handler_filter',
+    'views_handler_filter_term_node_tid_depth' => 'views_filters_selective_handler_filter_term_node_tid_depth',
+  );
+}
+
+/**
+ * Callback implementation for generic filter.
+ */ 
+function views_filters_selective_handler_filter($filter, $field, $oids) {
+  $options = array();
+
+  // TODO: Handle relationships.
+  $field_name = isset($filter->definition['field']) ? $filter->definition['field'] : $filter->real_field;
+  $table_name = isset($filter->definition['table']) ? $filter->definition['table'] : $filter->table;
+  $schema = drupal_get_schema($table_name);
+  if ($filter->view->base_table == 'node' && in_array('vid', array_keys($schema['fields']))) {
+    $result = db_query("SELECT DISTINCT(t.$field_name) FROM {{$table_name}} t INNER JOIN {node} n ON t.vid = n.vid WHERE t.{$filter->view->base_field} IN (%s)", implode(',', $oids));
+  }
+  else {
+    $result = db_query("SELECT DISTINCT($field_name) FROM {{$table_name}} WHERE {$filter->view->base_field} IN (%s)", implode(',', $oids));
+  }
+  while ($id = db_fetch_array($result)) {
+    $options[] = $id[$field_name];
+  }
+
+  return $options;
+}
+
+function views_filters_selective_handler_filter_term_node_tid_depth($filter, $field, $oids) {
+  $options = array();
+
+  // TODO: Handle relationships.
+  $result = db_query("SELECT DISTINCT(tid) FROM {term_node} t INNER JOIN {node} n ON t.vid = n.vid WHERE t.nid IN (%s)", implode(',', $oids));
+  while ($id = db_fetch_array($result)) {
+    $options[] = $id['tid'];
+  }
+
+  return $options;
+}
+
+/**
+ * Implementation of hook_form_FORMID_alter() for views_ui_config_item_form.
+ */
+function views_filters_selective_form_views_ui_config_item_form_alter(&$form, $form_state) {
+  if ('2' != substr(views_api_version(), 0, 1)) {
+    // Only continue for Views 2.x
+    return;
+  }
+  if (empty($form['options']['expose'])) return;
+
+  // Build form elements for the right side of the exposed filter form
+  $right = views_filters_selective_form_views_ui_config_item_form_alter_do(
+    $form_state['handler'],
+    $form_state['handler']->options['expose'], 
+    $form_state['view'], 
+    'edit-options-expose-vfs-selective'
+  );
+
+  $expose = $form['options']['expose'];
+  $first_chunk = array_splice($expose, 0, array_search('end_checkboxes', array_keys($expose)));
+  $form['options']['expose'] = array_merge($first_chunk, $right, $expose);
+}
+
+function views_filters_selective_form_views_ui_config_item_form_alter_do($filter, $options, $view, $dom_id, $show_label = FALSE) {
+  $label = '"' . $filter->definition['group'] . ': ' . $filter->definition['title'] . '"';
+  $form['vfs_selective'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Limit!label values to result set', array('!label' => $show_label ? ' ' . $label : '')),
+    '#default_value' => @$options['vfs_selective'],
+    '#description' => t(
+      'If checked, the only items presented to the user will be the ones present in the result set.'
+    ),
+  );
+  $form['vfs_active'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Further limit values to active filters'),
+    '#default_value' => @$options['vfs_active'],
+    '#description' => t(
+      'If checked, the items presented to the user will be further restricted according to
+       the values of all active exposed filters (i.e., those with selected values).'
+    ),
+    '#process' => array('views_process_dependency'),
+    '#dependency' => array(
+      $dom_id => array(1),
+    ),
+  );
+  $fields = array(0 => t('- Default -'));
+  $display = isset($view->display[$view->current_display]->display_options['fields']) ? $view->display[$view->current_display] : $view->display['default'];
+  if (!empty($display->display_options['fields'])) foreach ($display->display_options['fields'] as $field_id => $field) {
+    $fields["field:$field_id"] = t('!field', array('!field' => (empty($field['label']) ? $field_id : $field['label'])));
+  }
+  $form['vfs_field'] = array(
+    '#type' => 'select',
+    '#title' => t('Limiting field'),
+    '#default_value' => @$options['vfs_field'],
+    '#description' => t(
+      'Leave this as Default unless a specific filter is not handled properly. In that case, you can create a field that holds the possible filter values.'
+    ),
+    '#options' => $fields,
+    '#process' => array('views_process_dependency'),
+    '#dependency' => array(
+      $dom_id => array(1),
+    ),
+  );
+  $form['vfs_hide_empty'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Hide if empty'),
+    '#default_value' => @$options['vfs_hide_empty'],
+    '#description' => t(
+      'Hide the exposed filter if no values apply to the current view results.'
+    ),
+    '#process' => array('views_process_dependency'),
+    '#dependency' => array(
+      $dom_id => array(1),
+    ),
+  );
+  return $form;
+}
+
+/**
+ * Helper function to reduce #options arrays (that can contain arrays or objects).
+ * @see form_select_options()
+ *
+ * @param $options
+ *  an options array, that can be passed to FAPI #options
+ * @param $keys
+ *  array of keys of the options array to reduce to.
+ *
+ * @return
+ *  array of options for select & co, see FAPI #options.
+ */
+function _views_filters_selective_reduce_options($options, $keys) {
+  $return_options = array();
+  foreach ($options as $id => $option) {
+    // option is an optgroup, so check the optgroup children
+    if (is_array($option)) {
+      $result = _views_filters_selective_reduce_options($option, $keys);
+      if (!empty($return)) $return_options[$id] = $result;
+    }
+    // is an object, and could contain multiple items
+    elseif (is_object($option)) {
+      $result = _views_filters_selective_reduce_options($option->option, $keys);
+      if (!empty($result)) {
+        $option->option = $result;
+        $return_options[$id] = $option;
+      }
+    }
+    // default key => string relation
+    elseif (in_array($id, $keys)) {
+      $return_options[$id] = $option;
+    }
+  }
+  return $return_options;
+}
+
