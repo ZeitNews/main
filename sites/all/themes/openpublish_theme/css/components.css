@@ -1905,6 +1905,9 @@ fieldset.group-documentcloud {
 .page-comment form#comment-form {
   margin-bottom: 3em;
 }
+.page-comment #op-content .box {
+  clear: left;
+}
 
 /* Spaces out Switch to rich text editor. */
 .ckeditor_links {
