@@ -39,16 +39,16 @@ CKEDITOR.editorConfig = function(config) {
   // List of all buttons is here: http://docs.cksource.com/ckeditor_api/symbols/CKEDITOR.config.html#.toolbar_Full
   
   // JRS - Anonymous role toolbar
-  config.toolbar_Anonymous = [ [ 'Format', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', '-', 'Link', '-', 'Maximize', 'Source' ] ];
+  config.toolbar_Anonymous = [ [ 'Undo', '-', 'Format', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', '-', 'Link', '-', 'Maximize', 'Source' ] ];
   
   // JRS - Authenticated role toolbar
-  config.toolbar_Authenticated = [ [ 'Scayt', '-', 'Format', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', '-', 'Link', 'Image', 'MediaEmbed', 'SpecialChar', '-', 'Maximize', 'Source' ] ];
+  config.toolbar_Authenticated = [ [ 'Undo', 'Scayt', '-', 'Format', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', '-', 'Link', 'Image', 'MediaEmbed', 'SpecialChar', '-', 'Maximize', 'Source' ] ];
   
   // JRS - Contributor role toolbar
-  config.toolbar_Contributor = [ [ 'Scayt', '-', 'Format', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', 'JustifyCenter', '-', 'Link', 'LinkToNode', 'LinkToMenu', 'Image', 'MediaEmbed', 'Table', 'SpecialChar', '-', 'Maximize', 'Source' ] ];
+  config.toolbar_Contributor = [ [ 'Undo', 'Scayt', '-', 'Format', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', 'JustifyCenter', '-', 'Link', 'LinkToNode', 'LinkToMenu', 'Image', 'MediaEmbed', 'Table', 'SpecialChar', '-', 'Maximize', 'Source' ] ];
   
   // JRS - Administrator role toolbar
-  config.toolbar_Administrator = [ [ 'Scayt', '-', 'Format', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', 'JustifyCenter', '-', 'Link', 'LinkToNode', 'LinkToMenu', 'Image', 'MediaEmbed', 'Table', 'SpecialChar', '-', 'Maximize', 'Source' ] ];
+  config.toolbar_Administrator = [ [ 'Undo', 'Scayt', '-', 'Format', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', 'JustifyCenter', '-', 'Link', 'LinkToNode', 'LinkToMenu', 'Image', 'MediaEmbed', 'Table', 'SpecialChar', '-', 'Maximize', 'Source' ] ];
 
   // This toolbar should work fine with "Filtered HTML" filter
   config.toolbar_DrupalFiltered = [
@@ -71,7 +71,7 @@ CKEDITOR.editorConfig = function(config) {
   * if you change the name of DrupalBasic, you have to update
   * CKEDITOR_FORCE_SIMPLE_TOOLBAR_NAME in ckeditor.module
   */
-  config.toolbar_DrupalBasic = [ [ 'Format', '-', 'Bold', 'Italic', '-', 'BulletedList','NumberedList', '-', 'Link', '-', 'Maximize', 'Source' ] ];
+  config.toolbar_DrupalBasic = [ [ 'Undo', '-', 'Format', '-', 'Bold', 'Italic', '-', 'BulletedList','NumberedList', '-', 'Link', '-', 'Maximize', 'Source' ] ];
 
   /*
    * This toolbar is dedicated to users with "Full HTML" access some of commands
