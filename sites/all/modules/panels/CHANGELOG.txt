@@ -1,3 +1,7 @@
+Panels 3.x-dev
+==============
+#1025716: Panels fields broken in last update.
+
 Panels 3.x-3.9 (2011-Jan-12)
 ==============
 #959206: Legacy mode rendering fails with flexible due to CSS file not getting added.

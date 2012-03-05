@@ -1,5 +1,4 @@
 <?php
-// $Id: hs_taxonomy.module,v 1.58 2011/02/06 09:38:48 wimleers Exp $
 
 /**
  * @file
@@ -266,7 +265,7 @@ function hs_taxonomy_form_alter(&$form, $form_state, $form_id) {
           $typed_string = taxonomy_implode_tags($terms, $vocabulary->vid) . (array_key_exists('tags', $terms) ? $terms['tags'][$vocabulary->vid] : NULL);
         }
         if ($vocabulary->help) {
-          $help = $vocabulary->help;
+          $help = filter_xss($vocabulary->help);
         }
         else {
           $help = t('A comma-separated list of terms describing this content. Example: funny, bungee jumping, "Company, Inc.".');
@@ -337,7 +336,7 @@ function hs_taxonomy_form_alter(&$form, $form_state, $form_id) {
           }
         }
 
-        $form['taxonomy'][$vocabulary->vid] = $form_function($vocabulary->vid, array_keys($default_terms), $vocabulary->help);
+        $form['taxonomy'][$vocabulary->vid] = $form_function($vocabulary->vid, array_keys($default_terms), filter_xss($vocabulary->help));
         $form['taxonomy'][$vocabulary->vid]['#weight'] = $vocabulary->weight;
         $form['taxonomy'][$vocabulary->vid]['#required'] = $required;
       }
@@ -755,7 +754,7 @@ function _hs_taxonomy_token_termpath_for_vid($selection, $vid) {
  */
 function hierarchical_select_taxonomy_form_vocabulary_validate($form, &$form_state) {
   // The "multiple select" setting doesn't exist for the forum vocabulary!
-  if (isset($form['settings']['multiple'])) {
+  if ($form_state['values']['hierarchical_select_status'] && isset($form['settings']['multiple'])) {
     // Enable Taxonomy's "multiple select" setting when:
     // - Hierarchical Select's "multiple select" setting is enabled, or:
     // - Hierarchical Select's "save term lineage" setting is enabled

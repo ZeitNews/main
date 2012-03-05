@@ -1,5 +1,4 @@
 <?php
-// $Id: display-render.inc,v 1.5.2.29 2010/07/26 21:24:22 merlinofchaos Exp $
 
 /**
  * @file

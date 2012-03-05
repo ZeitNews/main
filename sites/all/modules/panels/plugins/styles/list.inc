@@ -1,5 +1,4 @@
 <?php
-// $Id: list.inc,v 1.1.2.4 2010/06/07 20:25:10 sdboyer Exp $
 
 
 /**

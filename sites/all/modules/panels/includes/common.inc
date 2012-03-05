@@ -1,5 +1,4 @@
 <?php
-// $Id: common.inc,v 1.10.2.12 2010/08/21 17:39:58 merlinofchaos Exp $
 
 
 /**

@@ -1,5 +1,4 @@
 <?php
-// $Id: page-wizard.inc,v 1.1.2.1 2010/08/30 22:08:57 merlinofchaos Exp $
 
 /**
  * @file

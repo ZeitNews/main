@@ -1,5 +1,4 @@
 <?php
-// $Id: display-edit.inc,v 1.7.2.42 2010/07/26 19:44:29 merlinofchaos Exp $
 
 /*
  * @file

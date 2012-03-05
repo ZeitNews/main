@@ -1,5 +1,4 @@
 <?php
-// $Id: node_override.inc,v 1.1.2.2 2010/08/30 22:32:55 merlinofchaos Exp $
 
 /**
  * @file

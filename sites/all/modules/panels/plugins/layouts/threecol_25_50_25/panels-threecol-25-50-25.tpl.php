@@ -1,5 +1,4 @@
 <?php
-// $Id: panels-threecol-25-50-25.tpl.php,v 1.1.2.1 2008/12/16 21:27:58 merlinofchaos Exp $
 /**
  * @file
  * Template for the 1 column panel layout.

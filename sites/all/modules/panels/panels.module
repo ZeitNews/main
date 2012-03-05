@@ -1,5 +1,4 @@
 <?php
-// $Id: panels.module,v 1.28.2.105 2010/08/30 22:08:57 merlinofchaos Exp $
 
 /**
  * @file panels.module
@@ -76,9 +75,10 @@ function panels_theme() {
   );
 
   // We don't need layout and style themes in maintenance mode.
-  if (defined('MAINTENANCE_MODE')) {
-    return $theme;
-  }
+  // Disabling this: See http://drupal.org/node/979912 for information.
+//  if (defined('MAINTENANCE_MODE')) {
+//    return $theme;
+//  }
 
   // Register layout and style themes on behalf of all of these items.
   ctools_include('plugins', 'panels');

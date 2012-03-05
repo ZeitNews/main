@@ -1,5 +1,4 @@
 <?php
-// $Id: hierarchical_select.module,v 1.201.2.1 2011/02/16 20:04:59 wimleers Exp $
 
 /**
  * @file
@@ -2135,7 +2134,7 @@ function _hierarchical_select_dropbox_generate($config, $selection) {
       }
     }
 
-    // usort($dropbox->lineages, '_hierarchical_select_dropbox_sort');
+    usort($dropbox->lineages, '_hierarchical_select_dropbox_sort');
 
     // Now store each lineage's selection too. This is needed on the client side
     // to enable the remove button to let the server know which selected items
@@ -2215,7 +2214,7 @@ function _hierarchical_select_dropbox_reconstruct_lineages_save_lineage_enabled(
           else {
             // Create new lineage based on current one and add the child.
             $lineage = $lineages[$id];
-            $lineage[$i + 1] = array('value' => $child, 'label' => $children[$child]);
+            $lineage[$i + 1] = array('value' => $child, 'label' => $children[$child]);;
 
             // Add the new lineage to the set of lineages
             $lineages[] = $lineage;

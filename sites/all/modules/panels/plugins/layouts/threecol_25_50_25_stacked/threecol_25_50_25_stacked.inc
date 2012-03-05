@@ -1,5 +1,4 @@
 <?php
-// $Id: threecol_25_50_25_stacked.inc,v 1.1.2.3 2010/06/22 15:54:24 merlinofchaos Exp $
 
 // Plugin definition
 $plugin = array(

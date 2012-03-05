@@ -1,5 +1,4 @@
 <?php
-// $Id: panels-twocol-stacked.tpl.php,v 1.1.2.2 2010/07/20 19:06:04 merlinofchaos Exp $
 /**
  * @file
  * Template for a 2 column panel layout.

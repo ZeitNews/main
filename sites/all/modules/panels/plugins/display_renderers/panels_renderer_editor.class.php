@@ -1,5 +1,4 @@
 <?php
-// $Id: panels_renderer_editor.class.php,v 1.1.2.12 2010/10/29 19:05:21 merlinofchaos Exp $
 
 /**
  * @file
@@ -91,7 +90,7 @@ class panels_renderer_editor extends panels_renderer_standard {
     // @todo this should be panel-region not panels-display -- but CSS and .js has to be updated.
     $output = "<div class='panels-display' id='panel-pane-$region_id'>";
     $output .= $panel_buttons;
-    $output .= "<h2 class='label'>" . $this->plugins['layout']['panels'][$region_id] . "</h2>";
+    $output .= "<h2 class='label'>" . check_plain($this->plugins['layout']['panels'][$region_id]) . "</h2>";
     $output .= $content;
     $output .= "</div>";
 
@@ -204,13 +203,16 @@ class panels_renderer_editor extends panels_renderer_standard {
    */
   function get_display_links() {
     $links = array();
-    $style_links = $this->get_style_links('display');
 
-    $links[] = array(
-      'title' => '<span class="dropdown-header">' . t('Style') . '</span>' . theme_links($style_links),
-      'html' => TRUE,
-      'attributes' => array('class' => 'panels-sub-menu'),
-    );
+    if (user_access('administer panels styles')) {
+      $style_links = $this->get_style_links('display');
+
+      $links[] = array(
+        'title' => '<span class="dropdown-header">' . t('Style') . '</span>' . theme_links($style_links),
+        'html' => TRUE,
+        'attributes' => array('class' => 'panels-sub-menu'),
+      );
+    }
 
     if (user_access('use panels caching features')) {
       $links[] = array(
@@ -262,18 +264,20 @@ class panels_renderer_editor extends panels_renderer_standard {
       ),
     );
 
-    $links[] = array(
-      'title' => '<hr />',
-      'html' => TRUE,
-    );
+    if (user_access('administer panels styles')) {
+      $links[] = array(
+        'title' => '<hr />',
+        'html' => TRUE,
+      );
 
-    $style_links = $this->get_style_links('region', $region_id);
+      $style_links = $this->get_style_links('region', $region_id);
 
-    $links[] = array(
-      'title' => '<span class="dropdown-header">' . t('Style') . '</span>' . theme_links($style_links),
-      'html' => TRUE,
-      'attributes' => array('class' => 'panels-sub-menu'),
-    );
+      $links[] = array(
+        'title' => '<span class="dropdown-header">' . t('Style') . '</span>' . theme_links($style_links),
+        'html' => TRUE,
+        'attributes' => array('class' => 'panels-sub-menu'),
+      );
+    }
 
     return theme('ctools_dropdown', theme('image', ctools_image_path('icon-addcontent.png', 'panels')), $links, TRUE, 'pane-add-link panels-region-links-' . $region_id);
   }
@@ -331,18 +335,20 @@ class panels_renderer_editor extends panels_renderer_standard {
       );
     }
 
-    $links[] = array(
-      'title' => '<hr />',
-      'html' => TRUE,
-    );
+    if (user_access('administer panels styles')) {
+      $links[] = array(
+        'title' => '<hr />',
+        'html' => TRUE,
+      );
 
-    $style_links = $this->get_style_links('pane', $pane->pid);
+      $style_links = $this->get_style_links('pane', $pane->pid);
 
-    $links[] = array(
-      'title' => '<span class="dropdown-header">' . t('Style') . '</span>' . theme_links($style_links),
-      'html' => TRUE,
-      'attributes' => array('class' => 'panels-sub-menu'),
-    );
+      $links[] = array(
+        'title' => '<span class="dropdown-header">' . t('Style') . '</span>' . theme_links($style_links),
+        'html' => TRUE,
+        'attributes' => array('class' => 'panels-sub-menu'),
+      );
+    }
 
     if (user_access('administer pane access')) {
       $links[] = array(

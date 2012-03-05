@@ -1,5 +1,4 @@
 <?php
-// $Id: panels.install,v 1.4.2.40 2010/10/19 20:42:32 merlinofchaos Exp $
 
 /**
  * Test requirements for installation and running.
@@ -252,7 +251,7 @@ function panels_schema_1() {
       ),
       'layout' => array(
         'type' => 'varchar',
-        'length' => '32',
+        'length' => '255',
         'default' => '',
       ),
       'layout_settings' => array(
@@ -1512,5 +1511,28 @@ function panels_update_6310() {
 
   // Enable the stylizer module to make everything as seamless as possible.
   drupal_install_modules(array('stylizer'));
+  return $ret;
+}
+
+/**
+ * Change panels_display.layout to match the size of panels_layout.name.
+ */
+function panels_update_6311() {
+  $ret = array();
+
+  // Clear the schema cache so the change is picked up.
+  cache_clear_all('schema', 'cache');
+
+  // Load the schema.
+  $schema = panels_schema();
+  $table = 'panels_display';
+  $field = 'layout';
+  $spec = $schema[$table]['fields'][$field];
+
+  // Re-define the column.
+  db_change_field($ret, $table, $field, $field, $spec);
+
+  $ret[] = array('success' => TRUE, 'query' => t('Changed the panels_display.layout field to the correct size.'));
+
   return $ret;
 }

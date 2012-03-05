@@ -1,5 +1,4 @@
 <?php
-// $Id: simple.inc,v 1.1.2.5 2011/01/07 20:59:09 merlinofchaos Exp $
 
 /**
  * @file

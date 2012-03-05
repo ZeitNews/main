@@ -1,5 +1,4 @@
 <?php
-// $Id: panel_context.inc,v 1.1.2.60 2010/08/10 19:31:38 merlinofchaos Exp $
 
 /**
  * @file
@@ -108,6 +107,7 @@ $plugin = array(
       'ajax' => FALSE,
       'silent' => TRUE,
       'form info' => array('finish text' => t('Preview')),
+      'no update and save' => TRUE,
     ),
   ),
 

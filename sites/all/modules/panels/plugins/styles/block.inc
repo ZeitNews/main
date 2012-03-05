@@ -1,5 +1,4 @@
 <?php
-// $Id: block.inc,v 1.1.2.8 2010/07/20 19:20:47 merlinofchaos Exp $
 
 /**
  * @file

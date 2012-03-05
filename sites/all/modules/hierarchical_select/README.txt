@@ -1,4 +1,3 @@
-$Id: README.txt,v 1.42 2011/02/06 13:57:18 wimleers Exp $
 
 Description
 -----------

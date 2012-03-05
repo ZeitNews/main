@@ -1,5 +1,4 @@
 <?php
-// $Id: panels-pane.tpl.php,v 1.1.2.1 2009/10/13 21:38:52 merlinofchaos Exp $
 /**
  * @file panels-pane.tpl.php
  * Main panel pane template

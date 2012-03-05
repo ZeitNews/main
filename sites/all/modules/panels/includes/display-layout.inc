@@ -1,5 +1,4 @@
 <?php
-// $Id: display-layout.inc,v 1.4.2.8 2010/07/20 20:26:18 merlinofchaos Exp $
 
 /**
  * @file
@@ -49,7 +48,7 @@ function _panels_edit_layout($display, $finish, $destination, $allowed_layouts) 
     $output = ctools_build_form('panels_change_layout', $change_form_state);
     if (empty($output)) {
       if (isset($change_form_state['back'])) {
-        unset($_POST);
+        $_POST = array();
         return _panels_edit_layout($display, $finish, $destination, $allowed_layouts);
       }
 

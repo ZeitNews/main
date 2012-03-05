@@ -1,5 +1,4 @@
 <?php
-// $Id: hierarchical_select.features.inc,v 1.1 2011/02/06 14:02:58 wimleers Exp $
 
 /**
  * @file
@@ -87,6 +86,7 @@ function hierarchical_select_features_revert($module) {
  * Implementation of hook_features_rebuild().
  */
 function hierarchical_select_features_rebuild($module) {
+  module_load_include('inc', 'hierarchical_select', 'includes/common');
   $configs = module_invoke($module, 'hierarchical_select_default_configs');
   if (!empty($configs)) {
     foreach ($configs as $config_id => $config) {

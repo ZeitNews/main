@@ -1,5 +1,4 @@
 <?php
-// $Id: hierarchical_select.install,v 1.15 2010/09/08 14:58:57 wimleers Exp $
 
 /**
  * @file

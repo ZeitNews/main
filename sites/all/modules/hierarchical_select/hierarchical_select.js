@@ -1,4 +1,3 @@
-// $Id: hierarchical_select.js,v 1.105 2011/02/05 16:38:26 wimleers Exp $
 
 (function($) {
 

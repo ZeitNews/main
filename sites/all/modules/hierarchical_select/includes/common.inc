@@ -1,5 +1,4 @@
 <?php
-// $Id: common.inc,v 1.30 2009/10/30 23:51:37 wimleers Exp $
 
 /**
  * @file

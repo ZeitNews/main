@@ -1,4 +1,3 @@
-; $Id: panels_node.info,v 1.3 2008/08/04 20:04:11 merlinofchaos Exp $
 name = Panel nodes
 description = Create nodes that are divided into areas with selectable content.
 package = "Panels"
@@ -6,9 +5,9 @@ dependencies[] = panels
 core = 6.x
 
 
-; Information added by drupal.org packaging script on 2011-01-12
-version = "6.x-3.9"
+; Information added by drupal.org packaging script on 2012-01-18
+version = "6.x-3.10"
 core = "6.x"
 project = "panels"
-datestamp = "1294876603"
+datestamp = "1326917148"
 

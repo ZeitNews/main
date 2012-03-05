@@ -1,4 +1,3 @@
-# $Id: README.txt,v 1.5 2008/07/15 23:59:36 merlinofchaos Exp $
 
 Welcome to Panels 2.
 

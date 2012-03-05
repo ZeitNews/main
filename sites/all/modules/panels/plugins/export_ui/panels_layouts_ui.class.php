@@ -1,5 +1,4 @@
 <?php
-// $Id: panels_layouts_ui.class.php,v 1.1.2.8 2010/07/23 21:49:03 merlinofchaos Exp $
 
 class panels_layouts_ui extends ctools_export_ui {
   var $lipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam egestas congue nibh, vel dictum ante posuere vitae. Cras gravida massa tempor metus eleifend sed elementum tortor scelerisque. Vivamus egestas, tortor quis luctus tristique, sem velit adipiscing risus, et tempus enim felis in massa. Morbi viverra, nisl quis rhoncus imperdiet, turpis massa vestibulum turpis, egestas faucibus nibh metus vel nunc. In hac habitasse platea dictumst. Nunc sit amet nisi quis ipsum tincidunt semper. Donec ac urna enim, et placerat arcu. Morbi eu laoreet justo. Nullam nec velit eu neque mattis pulvinar sed non libero. Sed sed vulputate erat. Fusce sit amet dui nibh.";
@@ -65,7 +64,6 @@ class panels_layouts_ui extends ctools_export_ui {
     else {
       $content_types = ctools_content_get_available_types();
 
-      $display->cache_key = $cache_key;
       panels_cache_clear('display', $cache_key);
       $cache = new stdClass();
 

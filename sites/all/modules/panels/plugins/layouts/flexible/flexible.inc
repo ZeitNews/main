@@ -1,5 +1,4 @@
 <?php
-// $Id: flexible.inc,v 1.1.2.36 2010/10/22 18:20:50 merlinofchaos Exp $
 
 /**
  * Implementation of hook_panels_layouts()
@@ -94,7 +93,9 @@ function panels_flexible_convert_settings(&$settings, &$layout) {
 
   if (!empty($layout['layout'])) {
     $settings = $layout['layout']->settings;
-    return $settings;
+    if ($settings) {
+      return $settings;
+    }
   }
 
   if (empty($settings)) {

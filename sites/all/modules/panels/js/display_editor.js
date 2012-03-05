@@ -1,4 +1,3 @@
-// $Id: display_editor.js,v 1.4.4.9 2010/08/20 16:20:44 merlinofchaos Exp $
 /**
  * @file display_editor.js
  *

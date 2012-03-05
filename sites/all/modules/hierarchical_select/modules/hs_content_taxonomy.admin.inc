@@ -1,5 +1,4 @@
 <?php
-// $Id: hs_content_taxonomy.admin.inc,v 1.5 2010/03/01 00:49:43 wimleers Exp $
 
 /**
  * Form definition; configuration form for Hierarchical Select as the widget

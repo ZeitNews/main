@@ -141,7 +141,7 @@ function panels_ipe_footer($main = 0) {
   $output .= "<div class='panels-ipe-startedit panels-ipe-pseudobutton panels-ipe-off'>";
   $output .= "<span>" . t('Customize this page') . "</span>";
   $output .= "</div>";
-  $output .= "<div class='panels-ipe-form-container panels-ipe-on clear-block'</div>";
+  $output .= "<div class='panels-ipe-form-container panels-ipe-on clear-block'></div>";
   $output .= "</div></div>";
   return $output;
 }

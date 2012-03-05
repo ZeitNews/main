@@ -1,5 +1,4 @@
 <?php
-// $Id: panels_mini.inc,v 1.1.2.2 2010/08/21 20:46:36 merlinofchaos Exp $
 
 $plugin = array(
   'schema' => 'panels_mini',

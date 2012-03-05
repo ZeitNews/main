@@ -1,5 +1,4 @@
 <?php
-// $Id: legacy.inc,v 1.1.2.1 2010/06/07 20:25:04 sdboyer Exp $
 
 /**
  * Legacy state manager for Panels.
@@ -46,7 +45,7 @@ class PanelsLegacyState {
    */
   function checkStylesIPE1() {
     $legacy_info = array(
-      'explanation' => $this->t('Panels 3.6 made changes to the rendering order in a way that affects certain style plugins. The above modules implement style plugins, but have not indicated their compatibility with this new system. See !link for information on how to update style plugins to the new system.', array('!link' => url('http://drupal.org/node/###FIXME', array('external' => TRUE)))),
+      'explanation' => $this->t('Panels 3.6 made changes to the rendering order in a way that affects certain style plugins. The above modules implement style plugins, but have not indicated their compatibility with this new system. See !link for information on how to update style plugins to the new system.', array('!link' => url('http://drupal.org/node/865840', array('external' => TRUE)))),
       'modules' => array(),
     );
 

@@ -1,5 +1,4 @@
 <?php
-// $Id: hierarchical_select.admin.inc,v 1.24 2010/07/07 12:04:39 wimleers Exp $
 
 
 /**
