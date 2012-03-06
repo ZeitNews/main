@@ -2893,7 +2893,7 @@ html.js input.throbbing {
 
 /* Webform */
 .node-type-webform .resizable-textarea {
-  width: 99%;
+  width: 98%;
 }
 .node-type-webform #edit-actions {
   margin-top: 1em;
