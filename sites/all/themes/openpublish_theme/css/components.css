@@ -353,7 +353,7 @@ span.submitted {
   margin-right: 10px;
   margin-bottom: 10px;
   padding: 5px;
-  background: #F6F6F6;
+  background: #EFEFEF;
   border: 1px solid #DDDDDD;
 }
 
@@ -970,8 +970,8 @@ input.form-submit, a.button {
   margin: 0 0 10px 0;
   background: #FFF;
   border: 1px solid #d9d9d9;
-  padding: 5px;
-  background: #f6f6f6;
+  padding: 4px;
+  background: #EFEFEF;
   font-family: Arial, Helvetica, sans-serif;
   text-align: left;
 }
@@ -979,6 +979,11 @@ input.form-submit, a.button {
   border: none;
   padding: 0;
   background: none;
+}
+#sidebar-right .facebook-like-box {
+  background-color: #EFEFEF;
+  padding: 4px 4px 1px 4px;
+  border: 1px solid #D9D9D9;
 }
 
 .page-search #sidebar-right .block {
@@ -1179,7 +1184,7 @@ body.node-view-page #tabs-wrapper div#drupal-control-bar li a {
   
 #tabs-wrapper div#drupal-control-bar li.active a {
   color: #000; 
-  background: #f6f6f6; 
+  background: #EFEFEF; 
   font-weight: bold; 
   text-decoration: none;
   }
@@ -1208,7 +1213,7 @@ body.node-view-page #tabs-wrapper div#drupal-control-bar li a {
 
 div.tweets-pulled-listing {
   border: 1px solid #d9d9d9;
-  background: #F6F6F6;
+  background: #EFEFEF;
   padding: 8px 8px 3px 8px;
   margin: -14px 0 0 0;
   color: #000;
@@ -1272,7 +1277,7 @@ div.tweets-pulled-listing .tweet-time a {
 /* Tweets */
 div.tweets-pulled-listing {
   border: 1px solid #d9d9d9;
-  background: #F6F6F6;
+  background: #EFEFEF;
   padding: 8px 8px 3px 8px;
   margin: -14px 0 0 0;
   color: #000;
@@ -1752,6 +1757,15 @@ iframe {
   margin: 10px 20px 20px 20px;
 	padding: 5px;
 }
+.ad iframe {
+  margin: 0;
+}
+/* Gives white bg. Otherwise, use .ad. */
+.facebook-like-box iframe {
+  padding: 0;
+  margin: 0;
+  background-color: #FFFFFF;
+}
 .media_embed iframe {
 	background: none repeat scroll 0 0 #EFEFEF;
   margin: 5px 10px;
@@ -2031,7 +2045,8 @@ fieldset.group-documentcloud {
 /* Ad block styling.*/
 .ad img {
   background-color: #EFEFEF;
-  padding: 5px;
+  padding: 4px;
+  border: 1px solid #D9D9D9;
 }
 
 /* Term page slideshow. */
