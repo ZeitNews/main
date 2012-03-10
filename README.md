@@ -14,17 +14,17 @@ _We are currently in the process of moving off Joomla! to Drupal._
 
 3. [Fork](http://help.github.com/fork-a-repo/) the [_main_ repo](https://github.com/ZeitNews/main) and begin work in your local development environment.
 
-  Depending on what type of development you're working on, it may be beneficial to run an environment similar to what we use on the development and production servers. It would be good if you run not less-than or greater-than:
-
-  * Apache 2.2.x
-  * MySQL 5.1.x
-  * PHP 5.2.x
-  * Varnish 2.x
-  * Memcached 1.4.x
-  * Pressflow Drupal 6.x
-  * OpenPublish Drupal Distribution 2.3-build441
-
-  Our environment is pretty close to [Pantheon's Project Mercury 1.1](http://groups.drupal.org/pantheon/documentation), if you want to build a new environment from scratch.
+    Depending on what type of development you're working on, it may be beneficial to run an environment similar to what we use on the development and production servers. It would be good if you run not less-than or greater-than:
+    
+    * Apache 2.2.x
+    * MySQL 5.1.x
+    * PHP 5.2.x
+    * Varnish 2.x
+    * Memcached 1.4.x
+    * Pressflow Drupal 6.x
+    * OpenPublish Drupal Distribution 2.3-build441
+    
+    Our environment is pretty close to [Pantheon's Project Mercury 1.1](http://groups.drupal.org/pantheon/documentation), if you want to build a new environment from scratch.
 
 4. [Submit a Pull Request](http://help.github.com/send-pull-requests/#initiating_the_pull_request) for review and inclusion.
 
