@@ -1,4 +1,4 @@
-# Zeitnews Official Repository
+# ZeitNews Official Repository
 
 
 [ZeitNews](http://www.zeitnews.org/) is a science-oriented website dedicated to technology news. We operate as a branch of the [Zeitgeist Movement](http://www.thezeitgeistmovement.com/)'s [Technology Team](http://www.tzmtechteam.org) as an information hub which aims to inform as many people as possible about the current advancements and capabilities of science and technology. Technology is rapidly developing - faster than many of us realize - and with this website we aim to provide a clear picture of just how quickly this is happening through daily reporting of developments and breakthroughs around the world.
