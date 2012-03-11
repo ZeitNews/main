@@ -6,7 +6,7 @@
 
 ## Get Involved
 
-_We are currently in the process of moving off Joomla! to Drupal._
+__TODO:__ _We are currently in the process of moving off Joomla! to Drupal._
 
 1. Please [drop us a line](http://www.zeitnews.org/contact-us.html?view=rsform) to get in touch with the lead developer. We will provide some necessary files you may need to get started.
 
