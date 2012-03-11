@@ -28,5 +28,5 @@ _We are currently in the process of moving off Joomla! to Drupal._
 
 4. [Submit a Pull Request](http://help.github.com/send-pull-requests/#initiating_the_pull_request) for review and inclusion.
 
-Thanks in advance,
+Thanks in advance,  
 ZeitNews Team
