@@ -24,7 +24,7 @@ div.status {
 
 #nav {
   background-color: #EFEFEF;
-  font-size: 1.083em;
+  font-size: 1.02em;
   margin: 0 0 10px;
   border: 1px solid #DDDDDD;
   background: #efefef url(../images/bkg/top_nav_bg.png) repeat-x;
@@ -44,7 +44,7 @@ div.status {
 }
 
 #nav ul.primary-links li a:link, #nav ul.primary-links li a:visited {
-  padding: 11px 17px;
+  padding: 11px 13px;
   color: #000;
   text-decoration: none;
   font-family: Arial, helvetica, sans-serif;
@@ -53,10 +53,10 @@ div.status {
   display: block;
 }
 #nav ul.primary-links li.last a:link, #nav ul.primary-links li.last a:visited {
-  padding: 11px 18px;
+  padding: 11px 11px;
 }
 #nav ul.primary-links li.first a:link, #nav ul.primary-links li.first a:visited {
-  padding: 11px 17px;
+  padding: 11px 13px;
 }
 
 #nav ul.primary-links li a:hover, #nav ul.primary-links li a:active {
@@ -90,6 +90,11 @@ div.status {
 
 #nav ul.secondary-links li a:hover, #nav ul.secondary-links li a:active {
   text-decoration: underline;
+}
+
+/* Taken from openpublish_menu.css */
+#nav ul.primary-links li.on ul a, #nav ul.primary-links li.off ul a {
+  font-size: 1em;
 }
 
 
@@ -156,15 +161,11 @@ ul#login-menu li a {color: #46607B;}
   padding: 5px;
   font-family: Arial, Helvetica, sans-serif;  
   border-bottom:1px dotted #A8A8A8;
+  text-transform: uppercase;
 }
 
-.breadcrumb a:link, .breadcrumb a:visited {
-  color: #000;
-}
-
-.breadcrumb a:hover {
-  color: #999;
-  text-decoration: none;
+.breadcrumb a {
+  color: #666;
 }
 
 span.submitted {
@@ -728,18 +729,21 @@ padding-left:12px;
   clear: both;
   width: 600px;
   font-family: Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
 }
-
 .related-terms-label {
   padding-right: 10px;
 }
-
+.related-term {
+  margin-right: 12px;
+  display: inline;
+  font-size: .9em;
+}
 .related-terms strong {
   font-family: Arial, Helvetica, sans-serif;
   color: #000;
-  text-transform: uppercase;
-    font-size: .9em;
-   letter-spacing: 0.02em;
+  font-size: .9em;
+  letter-spacing: 0.02em;
 }
 
 .field-label {
@@ -762,11 +766,6 @@ padding-left:12px;
 .top-featured .field-items .field-item {
   background: none;
   background-image: none;
-}
-.related-term {
-  margin-right: 12px;
-  display: inline;
-  font-size: .9em;
 }
 .date-filter .filter-submit {
   float: right;
@@ -953,7 +952,9 @@ input.form-submit, a.button {
   margin-bottom: 20px;
   font-family: Arial, Helvetica, sans-serif;
   text-transform:  uppercase;
-   
+}
+.section-date-author a {
+  color: #666;
 }
 
 #sidebar-right .item-list li {
@@ -1022,7 +1023,7 @@ input.form-submit, a.button {
   margin: 0;
   color: #000;
   padding: 0.25em 0 0.5em 0.25em;
-  font-size: 1.1em;
+  font-size: 1.05em;
   border: none;
   font-family: Georgia,"Times New Roman",Times,serif;
   font-style: italic;
@@ -1086,7 +1087,7 @@ input.form-submit, a.button {
 
 #footer-menu-secondary ul.menu li {
   margin: 0 1px;
-  font-size: .833em; 
+  font-size: 0.9em; 
 }
 
 #footer-menu-secondary li a.active {text-decoration: none;}
@@ -2638,7 +2639,7 @@ a {
   font-style: italic;
   font-family: Arial, Helvetica, sans-serif;
   letter-spacing: 0.03em;
-  font-size: 0.85em;
+  font-size: 0.9em;
   color: #666;
   background: #EFEFEF;
   line-height: 1.4em;
@@ -2662,6 +2663,11 @@ a {
 /* Reduces font size of Field of Expertise on user Viewpoint panels. */
 .page-viewpoints .sub-t, .page-blog .job-t {
   font-size: 0.72em;
+}
+
+/* Reduces block headings due to smaller menu items. */
+.block h2 {
+  font-size: 1.05em;
 }
 
 /* Adds a hover effect to certain block titles that are links. */
@@ -2896,9 +2902,6 @@ html.js input.throbbing {
 }
 
 /* Homepage teaser tweaks. Compromises with WebKit. */
-.front-page #block-views-blogs-block_2 .views-field-created {
-  margin-top: 7px;
-}
 .front-page #block-views-blogs-block_2 .views-field-title {
   margin-top: 5px;
 }
@@ -2952,7 +2955,7 @@ html.js input.throbbing {
 }
 
 
-/* START - Safari and Chrome hacks. */
+/* START - Webkit hacks. */
 @media screen and (-webkit-min-device-pixel-ratio:0) {
 
 /* Corrects refresh spacing for add this widgets in Safari. Has to be manually
@@ -2967,7 +2970,12 @@ html.js input.throbbing {
   margin-top: 2px;
 }
 
-/* END - Safari and Chrome hacks. */
+/* Small menu item spacing diffs. */
+#nav ul.primary-links li.first a:link, #nav ul.primary-links li.first a:visited {
+  padding: 11px 16px;
+}
+
+/* END - Webkit hacks. */
 
 
 /* ADDITIONS - END */

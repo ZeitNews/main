@@ -140,7 +140,7 @@ function rubik_preprocess_page(&$vars) {
   // Remove drag and drop from taxonomy overview page to prevent weight/[termpath] problems.
   // Also #taxonomy-overview-terms #edit-submit, #taxonomy-overview-terms #edit-reset-alphabetical
   // is set to display: none; in rubik/core.css
-  if (arg(2) == 'taxonomy' && arg(3) == '43') {
+  if (arg(2) == 'taxonomy' && arg(3) == '43' && arg(4) == '') {
     unset($vars['scripts']);
   }
 }
