@@ -451,7 +451,7 @@ body.node-type-op-image .body-content .main-image {
     
 .body-content .user-profile .user-name {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.8em;
+  font-size: 1.5em;
   font-weight: normal;
   color: #333333;
   padding: 0;
@@ -1899,7 +1899,7 @@ fieldset.group-documentcloud {
 
 /* Clean up of About the author block. */
 .body-content .user-profile h3 {
-  font-size: 1.4em;
+  font-size: 1.1em;
 }
 .body-content .user-profile .username a,
 .body-content .user-profile .user-job-title a {
