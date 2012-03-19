@@ -28,8 +28,13 @@
   <?php // <base href="<?php print $GLOBALS['base_root'];" /> ?>
   <?php print $styles ?>
   <?php print $scripts ?>
-  <!--[if gte IE 6]><?php print openpublish_get_ie_styles(); ?><![endif]-->  
-  <!--[if IE 6]><?php print openpublish_get_ie6_styles(); ?><![endif]-->
+  <!--[if lte IE 7]><?php print openpublish_get_ie_styles(); ?><![endif]-->
+  <!--[if IE 8]>
+    <link type="text/css" rel="stylesheet" media="all" href="<?php print $base_path . $directory; ?>/css/ie8.css" />
+  <![endif]-->
+  <!--[if IE 9]>
+    <link type="text/css" rel="stylesheet" media="all" href="<?php print $base_path . $directory; ?>/css/ie9.css" />
+  <![endif]-->
 </head>
 
 <body <?php print openpublish_body_classes($left, $right, $body_classes); ?> >

@@ -1,0 +1,35 @@
+/* IE9 bug fixes. */
+
+/* Primary Links menu fixes. */
+#nav ul.primary-links li a:link, #nav ul.primary-links li a:visited {
+  padding: 11px 13px;
+}
+#nav ul.primary-links li.first a:link, #nav ul.primary-links li.first a:visited {
+  padding: 11px 12px;
+}
+#nav ul.primary-links li.last a:link, #nav ul.primary-links li.last a:visited {
+  padding: 11px 11px 11px 10px;
+}
+
+/* Increase font size of headlines in frontpage blocks. */
+.front-page .views-field-title h2 {
+  font-size: 1.1em;
+}
+
+/* Line-up taxonomy exposed filters checkboxes & rss icon. */
+.page-taxonomy .views-exposed-widget label,
+.page-tags .views-exposed-widget label {
+  position: relative;
+  top: -2px;
+}
+.topichubs-layout-wrapper div.topichubs-feed {
+  margin-top: -37px;
+}
+
+/* Search and small Apply button fixes. */
+input.form-submit, a.button {
+  padding: 5px 17px 4px 17px;
+}
+input#edit-submit-term-pages {
+  padding: 7px 10px 18px 10px;
+}

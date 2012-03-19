@@ -1,0 +1,41 @@
+/* IE8 bug fixes. */
+
+/* Primary Links menu fixes. */
+#nav ul.primary-links li a:link, #nav ul.primary-links li a:visited {
+  padding: 11px 14px;
+}
+#nav ul.primary-links li.first a:link, #nav ul.primary-links li.first a:visited {
+  padding: 11px 14px;
+}
+#nav ul.primary-links li.last a:link, #nav ul.primary-links li.last a:visited {
+  padding: 11px 13px 11px 12px;
+}
+
+/* Increase font size of headlines in frontpage blocks. */
+.front-page .views-field-title h2 {
+  font-size: 1.1em;
+}
+/* Spacing fixes due to above. */
+.front-page #block-views-blogs-block_2 .views-field-created,
+.front-page #block-views-blogs-block_2 .views-field-title {
+  margin-top: 2px;
+}
+.front-page #block-views-blogs-block_2 .views-field-field-thumbnail-image-fid img,
+.front-page #block-views-multimedia-block_1 .views-field-field-thumbnail-image-fid img {
+  margin-top: 3px;
+}
+
+/* Line-up taxonomy exposed filters checkboxes & rss icon. */
+.page-taxonomy .views-exposed-widget label,
+.page-tags .views-exposed-widget label {
+  position: relative;
+  top: -2px;
+}
+.topichubs-layout-wrapper div.topichubs-feed {
+  margin-top: -37px;
+}
+
+/* Sidebar exposed filter submit button spacing and related. */
+#sidebar-right .views-exposed-form .views-submit-button {
+  margin-top: 1em;
+}

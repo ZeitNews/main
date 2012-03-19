@@ -164,10 +164,6 @@ ul#login-menu li a {color: #46607B;}
   text-transform: uppercase;
 }
 
-.breadcrumb a {
-  color: #666;
-}
-
 span.submitted {
   color: #898989;
   display: block;
@@ -381,11 +377,17 @@ body.node-type-op-image .body-content .main-image {
 #contact-mail-page a {
   text-decoration: underline;
 }
-  
+.body-content .related-terms a {
+  text-decoration: none;
+}
 .body-content a:hover,
 #comments a:hover,
 .user-bio a:hover {
   text-decoration: none;
+  color: #666666;
+}
+.body-content .related-terms a:hover {
+  text-decoration: underline;
   color: #666666;
 }
 
@@ -685,6 +687,10 @@ padding-left:12px;
   color: #46607B;
   font-family: Arial, Helvetica, sans-serif;
 }
+.page-events .view-events .views-field-created {
+  margin: 3px 0 6px 0;
+  font-size: 1em;
+}
 
 .body-content .event-date {
   font-family: Arial, Helvetica, sans-serif;
@@ -952,9 +958,6 @@ input.form-submit, a.button {
   margin-bottom: 20px;
   font-family: Arial, Helvetica, sans-serif;
   text-transform:  uppercase;
-}
-.section-date-author a {
-  color: #666;
 }
 
 #sidebar-right .item-list li {
@@ -2450,6 +2453,9 @@ div.views-field-tagorder {
   font-size: 0.82em;
   text-transform: uppercase;
 }
+.page-multimedia .views-widget-filter-type {
+  padding-bottom: 0;
+}
 
 /* Search page tweaks. */
 .page-search h1 {
@@ -2833,7 +2839,7 @@ pre {
   margin: 0 0 5px 0;
 }
 .page-users .views-field-created {
-  margin: 0 0 12px 0;
+  margin: 0 0 5px 0;
 }
 .page-users .attachment-before {
   background-color: #EFEFEF;
@@ -2906,7 +2912,7 @@ html.js input.throbbing {
   margin-top: 5px;
 }
 .front-page #block-views-multimedia-block_1 .views-field-title {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 /* Webform */
