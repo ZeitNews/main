@@ -348,10 +348,15 @@ span.submitted {
 .user-profile img {
   float: left;
   margin-right: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 3px;
   padding: 5px;
   background: #EFEFEF;
   border: 1px solid #DDDDDD;
+}
+.user-profile p img {
+  margin: 10px;
+  padding: 3px;
+  border: none;
 }
 
 .body-content .main-image, #op-content .main-image {
@@ -374,7 +379,8 @@ body.node-type-op-image .body-content .main-image {
 .body-content a,
 #comments a, .user-bio a,
 .node-type-webform .content a,
-#contact-mail-page a {
+#contact-mail-page a,
+.page-user .user-profile p a, .page-user .user-profile ul a, .page-user .user-profile blockquote a {
   text-decoration: underline;
 }
 .body-content .related-terms a {
@@ -382,7 +388,8 @@ body.node-type-op-image .body-content .main-image {
 }
 .body-content a:hover,
 #comments a:hover,
-.user-bio a:hover {
+.user-bio a:hover,
+.page-user .user-profile p a:hover, .page-user .user-profile ul a:hover, .page-user .user-profile blockquote a:hover {
   text-decoration: none;
   color: #666666;
 }
@@ -397,10 +404,10 @@ body.node-type-op-image .body-content .main-image {
   color: #000000;
 }
 
-.body-content p a, #comments p a, .user-bio p a,
-.body-content ul a, #comments ul a, .user-bio ul a,
-.body-content blockquote a, #comments blockquote a, .user-bio blockquote a,
-.body-content table a, #comments table a, .user-bio table a,
+.body-content p a, #comments p a, .user-bio p a, .page-user .user-profile p a,
+.body-content ul a, #comments ul a, .user-bio ul a, .page-user .user-profile ul a,
+.body-content blockquote a, #comments blockquote a, .user-bio blockquote a, .page-user .user-profile blockquote a,
+.body-content table a, #comments table a, .user-bio table a, .page-user .user-profile table a,
 .node-type-webform .content a,
 #contact-mail-page a {
   color: #46607B;
@@ -1450,9 +1457,6 @@ body.node-type-audio div.field-field-op-audio-thumbnail {
 body.node-type-audio div.field-field-op-audio-thumbnail img {
   vertical-align: bottom; 
   margin-top: .5em;  
-}
-
-body.node-type-audio .body-content p {
 }
 
 .body-content ul, .body-content ol,
