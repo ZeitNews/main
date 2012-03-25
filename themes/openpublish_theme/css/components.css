@@ -2839,10 +2839,12 @@ pre {
 }
 
 /* Users page tweaks. */
-.page-users .author-listing .views-field-type {
+.page-users .author-listing .views-field-type,
+.page-staff .author-listing .views-field-type {
   margin: 0 0 5px 0;
 }
-.page-users .views-field-created {
+.page-users .views-field-created,
+.page-staff .author-listing .views-field-created {
   margin: 0 0 5px 0;
 }
 .page-users .attachment-before {

@@ -478,6 +478,27 @@ function openpublish_theme_preprocess_views_view_field__multimedia__page_2__tago
 *
 * Adds comma separated full location names (province & country).
 */
+function openpublish_theme_preprocess_views_view_field__users__page_1__nothing(&$vars) {
+  $row = $vars['row'];
+  $location_country_name = location_country_name($row->location_country);
+  $location_province_name = location_province_name($row->location_country, $row->location_province);
+  
+  if ($row->location_city || $location_province_name || $location_country_name) {
+    $locations = array($row->location_city, $location_province_name, $location_country_name);
+    foreach ($locations as $value) {
+      if (!empty($value)) {
+        $locations_known[] = $value;
+      }
+    }
+    $vars['row']->location = implode(", ", $locations_known);
+  }
+}
+
+/**
+* Implementation of theme_preprocess_views()
+*
+* Adds comma separated full location names (province & country).
+*/
 function openpublish_theme_preprocess_views_view_field__users__page_2__nothing(&$vars) {
   $row = $vars['row'];
   $location_country_name = location_country_name($row->location_country);
