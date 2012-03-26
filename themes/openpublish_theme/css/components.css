@@ -603,6 +603,7 @@ body.node-type-op-image .image-credit {
   margin: 0;
   padding: 0;
   letter-spacing: 0;
+  line-height: 1.25em;
 }
 
 .field-content h2:after {
@@ -849,7 +850,7 @@ min-width:220px;
 .views-field-field-teaser-value p {
   margin-bottom: 0;
   font-size: 1em;
-  line-height: 1.4em;
+  line-height: 1.45em;
 }
 
 .views-exposed-form .views-exposed-widget .form-submit {
