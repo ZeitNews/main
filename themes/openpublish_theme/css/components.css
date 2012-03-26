@@ -1461,7 +1461,8 @@ body.node-type-audio div.field-field-op-audio-thumbnail img {
 }
 
 .body-content ul, .body-content ol,
-.page-user .user-bio ul, .page-user .user-bio ol {
+.page-user .user-bio ul, .page-user .user-bio ol,
+.page-user .user-profile ul, .page-user .user-profile ol {
   font-size: 1.2em;
 }
 
@@ -2520,8 +2521,13 @@ div.views-field-tagorder {
   top: -15px;
 }
 /* Makes user photo and such always left flushed. */
-.page-user div.user-profile {
+.page-user .user-profile {
   clear: left;
+}
+/* Reduce paragraph spacing to match photo size. */
+.page-user .user-profile p {
+  line-height: 1.5em;
+  margin-bottom: 0.5em;
 }
 
 /* Corrects first h2 a:hover on frontpage slideshow from going grey color. */
