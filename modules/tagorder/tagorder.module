@@ -60,7 +60,6 @@ function tagorder_nodeapi(&$node, $op, $teaser, $page) {
     //insert weight values for all taxonomy terms in vocabularies that we have selected
     $vocabids = variable_get('tagorder_vocab', array('tags'));
     //first convert taxonomy[tags] to taxonomy[] arrays (in order)
-    if(isset($node->tagorder_tags)) $node->taxonomy['tags'] = $node->tagorder_tags;
     foreach ($vocabids AS $vocabid) {
       if ($node->taxonomy['tags'][$vocabid]) {
         $node->taxonomy[$vocabid] = tagorder_taglist($node->taxonomy['tags'][$vocabid], $vocabid);
@@ -117,21 +116,6 @@ function tagorder_nodeapi(&$node, $op, $teaser, $page) {
     }
     break;
   }
-}
-
-/**
- * Implementation of hook_form_alter().
- */
-function tagorder_form_alter(&$form, &$form_state, $form_id) {
-  if ($form['#id'] == 'node-form' && count($form['taxonomy']['tags'])) {
-    array_unshift($form['#submit'], 'tagorder_submit_alter');
-  }
-}
-/**
- * Adds tags back to node object for tagorder_nodeapi
- */
-function tagorder_submit_alter($form_id, &$form_state) {
-  $form_state['values']['tagorder_tags'] = $form_state['values']['taxonomy']['tags'];
 }
 
 /**
