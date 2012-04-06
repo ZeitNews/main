@@ -853,4 +853,10 @@ table#field_thumbnail_image_values .filefield-element {
   padding: 0;
 }
 
+/* Calais highlights wrong selected tags, so removing highlighting. */
+label.calais_keyword_selected {
+  color: #999;
+  background-color: #FFF;
+}
+
 /*** Mods - End ***/

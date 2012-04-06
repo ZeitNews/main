@@ -227,7 +227,7 @@ function embedfilter_process($input) {
     $input = preg_replace_callback('@<(embed|object|script|iframe)([^>]*)/>@si', 'embedfilter_process', $input, 5);
   }
 
-  return embedfilter_media_resize($input, 550);
+  return embedfilter_media_resize($input, 610);
 }
 
 /**
@@ -270,7 +270,7 @@ function embedfilter_approve($input) {
 function embedfilter_sanitize($input) {
   // arrays are the product of the preg_replace_callback function
   if (is_array($input)) {
-    $output = $input[1]. '='. $input[2]. check_url($input[3]). $input[2];
+    $output = $input[1]. '='. $input[2]. filter_xss_bad_protocol($input[3]). $input[2];
   }
   else {
     $pattern = '@(src|href|data)=([\'"])([^"]+)\\2@i';
@@ -319,7 +319,7 @@ function embedfilter_noevents($input) {
  *  @return
  *  replacement $input HTML string containing revised width and height
  */
-function embedfilter_media_resize($input = '', $maxwidth = 550) {
+function embedfilter_media_resize($input = '', $maxwidth = 610) {
   preg_match('/height="([0-9]*)"/',$input,$fetchheight);
   preg_match('/width="([0-9]*)"/',$input,$fetchwidth);
   if ($fetchheight && $fetchwidth) {
