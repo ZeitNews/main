@@ -1,0 +1,25 @@
+5.x-1.0: Import Users, Sections and Categories
+5.x-1.1: Bug fix - update sequences of Users, Taxonomies and Nodes
+         Content: Import Joomla contents and static-contens
+         Parameter: ignore or replace deplicate items
+5.x-1.2: New: Import images from Joomla Contents
+5.x-1.3: Bug Fix - Title with special characters
+5.x-1.4: Bug Fix - Any text with special characters
+5.x-1.5: New - Add "Import as PHP Format"
+         Bug fix - Copy image if Drupal installed on sub-folder
+         Bug fix - Update Drupal sequences while importing process not completed
+         (this may caused if the server can not handle many contents at once) 
+5.x-1.6: New: Add delay per loop (to avoid timeout if u import huge amount of contents)
+         New: Add Drupal pager for importing result
+5.x-1.7: Bug fix: Set node "promote" according to Joomla "frontpage"
+         Bug fix: image display not correctly in teaser
+         Bug fix: import categories (terms) from all sections (vocabularies)
+5.x-1.8: Bug fix: Check if "last-id" not empty before do "update sequences"
+5.x-1.9: Bug fix: wrong typo file_directory_path should be file_directory_path()
+         Bug fix: in unix/linux server Joomla path must be full path, i.e: 
+                  "/home/your_username/public_html" instead "/public_html" only
+5.x-2.0: Bug fix: empty value in WHERE clause
+5.x-2.1: New: Import Users order by id
+         Bug fix: Import all users without click next page (Pager also removed)
+         New: variable to determine how many rows will be imported before a delay
+         New: replace src="images" with src="/files/images" on any articles

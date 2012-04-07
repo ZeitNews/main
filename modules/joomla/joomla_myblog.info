@@ -1,0 +1,12 @@
+; $Id: joomla_myblog.info,v 1.1.2.1 2009/08/12 11:27:45 malclocke Exp $
+name = Joomla MyBlog import
+description = "This module is used for importing Joomla MyBlog categories into Drupal."
+dependencies[] = joomla
+core = 6.x
+
+; Information added by drupal.org packaging script on 2009-12-31
+version = "6.x-1.0-alpha4"
+core = "6.x"
+project = "joomla"
+datestamp = "1262222451"
+

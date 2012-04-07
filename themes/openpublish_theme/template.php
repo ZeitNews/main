@@ -193,6 +193,10 @@ function openpublish_theme_preprocess_page(&$vars) {
       // Allow breadcrumbs for blog user pages.
       return;
   } elseif (in_array($vars['node']->type, $allow_bread)) {
+      // Handle legacy joomla uncategorized articles.
+      if (empty($vars['node']->taxonomy)) {
+        $vars['breadcrumb'] = theme('op_breadcrumb', array('<a href="/">&nbsp;</a>'));
+      }
       // Allow breadcrumbs for node types listed above.
       return;
   } else {

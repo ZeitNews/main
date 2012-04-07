@@ -1,0 +1,239 @@
+<?php
+// $Id: joomla_myblog.module,v 1.1.2.2 2009/12/30 03:35:21 malclocke Exp $
+
+/*
+ * Implementation of hook_menu()
+ */
+function joomla_myblog_menu() {
+  $items = array();
+
+  $items['admin/settings/joomla/myblog_map'] = array(
+    'title' => 'MyBlog tag mapping',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('joomla_myblog_map_form'),
+    'access arguments' => array('administer joomla'),
+    'description' => 'Set up mappings for MyBlog tags.'
+  );
+
+  return $items;
+}
+
+function joomla_myblog_map_form() {
+  
+  joomla_database_init();
+
+  if (!joomla_database_test()) {
+    $form['error'] = array(
+      '#value' => '<p>'. t('The joomla database settings are not currently valid.  Please set the correct database settings at <a href="@url">Joomla to Drupal settings</a> page', array('@url' => url('admin/settings/joomla'))) .'</p>',
+    );
+    return $form;
+  }
+
+  $map = joomla_myblog_map();
+
+  if (variable_get('joomla_myblog_vocabulary', 0) == 0) {
+    $form['error'] = array(
+      '#value' => '<p>'. t('To use this page, an existing vocabulary must be set under <em>Vocabulary for MyBlog tags</em> on the <a href="@url">Joomla to Drupal settings</a> page', array('@url' => url('admin/settings/joomla'))) .'</p>',
+    );
+    return $form;
+  }
+
+  $term_select = taxonomy_form(variable_get('joomla_myblog_vocabulary', 0));
+
+  $form['joomla_myblog_map'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Tag mappings'),
+    '#description' => t('It is possible to map each myblog category to an existing term in the vocabulary select for MyBlog tags.'),
+    '#tree' => TRUE,
+  );
+  
+  $tags = joomla_myblog_tags();
+
+  foreach ($tags as $tag) {
+    $form['joomla_myblog_map'][$tag->id] = $term_select;
+    $form['joomla_myblog_map'][$tag->id]['#title'] = $tag->name;
+    if (array_key_exists($tag->id, $map)) {
+      $form['joomla_myblog_map'][$tag->id]['#default_value'] = $map[$tag->id];
+    }
+  }
+
+  $form['joomla_myblog_map_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
+}
+
+function joomla_myblog_map_form_submit($form, &$form_state) {
+  #TODO
+  $tags = joomla_myblog_tags();
+
+  foreach ($form_state['values']['joomla_myblog_map'] as $myblogcategoryid => $tid) {
+    if (empty($tid)) {
+      continue;
+    }
+    joomla_myblog_set_map($myblogcategoryid, $tid);
+  }
+}
+
+function joomla_myblog_tags() {
+
+  db_set_active('joomla');
+
+  $tags = array();
+
+  $result = db_query('SELECT * FROM %smyblog_categories', variable_get('joomla_prefix', JOOMLA_PREFIX));
+  while ($tag = db_fetch_object($result)) {
+    $tags[] = $tag;
+  }
+
+  db_set_active();
+
+  return $tags;
+}
+
+/*
+ * Returns an array representing the current tag mapping
+ */
+function joomla_myblog_map() {
+
+  $map = array();
+
+  $result = db_query('SELECT * FROM {joomla_myblog_categories}');
+
+  while ($row = db_fetch_array($result)) {
+    $map[$row['myblogcategoryid']] = $row['tid'];
+  }
+
+  return $map;
+}
+
+function joomla_myblog_set_map($myblogcategoryid, $tid) {
+  $map = db_fetch_object(db_query('SELECT * FROM {joomla_myblog_categories} WHERE myblogcategoryid = %d', $myblogcategoryid));
+
+  if ($map) {
+    if ($map->tid == $tid) {
+      // Mapping does not need updating
+      return NULL;
+    }
+
+    // Update the existing mapping
+    $map->tid = $tid;
+
+    return drupal_write_record('joomla_myblog_categories', $map, 'myblogcategoryid');
+  }
+
+  $map = new stdClass();
+  $map->myblogcategoryid = $myblogcategoryid;
+  $map->tid = $tid;
+
+  // Create a new mapping
+  return drupal_write_record('joomla_myblog_categories', $map);
+}
+
+function joomla_myblog_joomla($op, &$object, $jid) {
+
+  switch ($op) {
+    case 'node':
+      joomla_myblog_process_node($object, $jid);
+      break;
+  }
+}
+
+function joomla_myblog_process_node($node = NULL, $contentid = NULL) {
+
+  if ($node === NULL) {
+    return;
+  }
+
+  db_set_active('joomla');
+
+  // Check to see if there is a myblog tag for this content item
+  $myblogcategory = db_fetch_object(db_query('SELECT mcc.category,mc.name FROM %smyblog_content_categories mcc JOIN %smyblog_categories mc on mc.id = mcc.category WHERE mcc.contentid = %d', variable_get('joomla_prefix', JOOMLA_PREFIX), variable_get('joomla_prefix', JOOMLA_PREFIX), $contentid));
+
+  db_set_active();
+
+  // If this is not a myblog content item, there's nothing left to do
+  if (!$myblogcategory->category) {
+    return;
+  }
+
+  // Get the taxonomy term id for this myblog category
+  $myblog_map = db_fetch_object(db_query('SELECT * FROM {joomla_myblog_categories} WHERE myblogcategoryid = %d', $myblogcategory->category));
+
+  $vid = joomla_myblog_get_vocabulary_id();
+
+  if (!$myblog_map) {
+    // Create a new taxonomy term
+    $term = new stdClass();
+    $term->name = $myblogcategory->name;
+    $term->description = $myblogcategory->name;
+    $term->vid = $vid;
+
+    drupal_write_record('term_data', $term);
+
+    $term_hierarchy = new stdClass();
+    $term_hierarchy->tid = $term->tid;
+    $term_hierarchy->parent = 0;
+
+    drupal_write_record('term_hierarchy', $term_hierarchy);
+
+    $myblog_map = new stdClass();
+    $myblog_map->myblogcategoryid = $myblogcategory->category;
+    $myblog_map->tid = $term->tid;
+
+    drupal_write_record('joomla_myblog_categories', $myblog_map);
+  }
+
+  // Create a node <-> taxonomy link
+  $term_node = new stdClass();
+  $term_node->tid = $myblog_map->tid;
+  $term_node->vid = $node->vid;
+  $term_node->nid = $node->nid;
+
+  drupal_write_record('term_node', $term_node);
+}
+
+function joomla_myblog_form_joomla_admin_settings_alter(&$form, &$form_state) {
+
+  $form['joomla_myblog'] = array(
+    '#type' => 'fieldset',
+    '#weight' => -5,
+    '#title' => t('MyBlog settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE
+  );
+
+  $vocabularies = array(0 => '---');
+  foreach (taxonomy_get_vocabularies() as $vocabulary) {
+    $vocabularies[$vocabulary->vid] = $vocabulary->name;
+  }
+
+  $form['joomla_myblog']['joomla_myblog_vocabulary'] = array(
+    '#type' => 'select',
+    '#title' => t('Vocabulary for MyBlog tags'),
+    '#description' => t('Select the vocabulary in which to place MyBlog tags.  If not set, a vocabulary named <em>MyBlog</em> will be created.'),
+    '#options' => $vocabularies,
+    '#default_value' => variable_get('joomla_myblog_vocabulary', 0)
+  );
+}
+
+function joomla_myblog_get_vocabulary_id() {
+
+  static $vid;
+
+  if ($vid) {
+    return $vid;
+  }
+
+  if (!$vid = variable_get('joomla_myblog_vocabulary', 0)) {
+    if (!$vid = db_result(db_query('SELECT vid FROM {vocabulary} WHERE name = "MyBlog"'))) {
+      $vocabulary['name'] = 'MyBlog';
+      taxonomy_save_vocabulary($vocabulary);
+      $vid = $vocabulary['vid'];
+    }
+  }
+
+  return $vid;
+}

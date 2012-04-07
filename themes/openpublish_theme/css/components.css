@@ -1685,7 +1685,7 @@ a.noderelationships-noderef-multiselect-button:link, a.noderelationships-noderef
 /* User embedded node content images, not Main Image. */
 .body-content img {
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 5px 10px;
+  margin: 3px 10px;
   padding: 5px;
 }
 .body-content .full-width-image {
@@ -1778,7 +1778,7 @@ iframe {
 }
 .media_embed iframe {
 	background: none repeat scroll 0 0 #EFEFEF;
-  margin: 5px 10px;
+  margin: 3px 10px;
 	padding: 5px;
 }
 .media_embed p {
@@ -1979,7 +1979,7 @@ fieldset.group-documentcloud {
 .comment .content img {
   float: left;
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 5px 10px;
+  margin: 3px 10px;
   padding: 5px;
 }
 /* iframe sytling in comments. Always floats left. */
@@ -1992,7 +1992,7 @@ fieldset.group-documentcloud {
 .comment .content .media_embed iframe {
   float: left !important;
 	background: none repeat scroll 0 0 #EFEFEF;
-  margin: 5px 10px;
+  margin: 3px 10px;
 	padding: 5px;
 }
 /* P changed to just blend into other p's. */
@@ -2628,7 +2628,7 @@ a {
 
 /* Image captions on node bodies via Insert. */
 .image-caption-container {
-  margin: 5px 10px;
+  margin: 3px 10px;
   padding: 5px;
   background: #EFEFEF;
   border-radius: 2px;
@@ -2971,6 +2971,50 @@ html.js input.throbbing {
   width: 16px;
   margin-right: 5px;
   border-radius: 2px;
+}
+
+/* For legacy joomla image captions. */
+.image-caption-left {
+  float: left;
+  background-color: #EFEFEF;
+  margin: 5px 10px 3px 0;
+  padding: 5px;
+  border-radius: 2px;
+}
+.image-caption-right {
+  float: right;
+  background-color: #EFEFEF;
+  margin: 5px 0 3px 10px; 
+  padding: 5px;
+  border-radius: 2px;
+}
+.body-content .image-caption-left img,
+.body-content .image-caption-right img {
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+}
+.body-content .image-caption-left a,
+.body-content .image-caption-right a {
+  text-decoration: none;
+}
+.image-caption-left p,
+.image-caption-right p {
+  margin: 0;
+  padding: 5px 0 0 0;
+  font-style: italic;
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: 0.03em;
+  font-size: 0.9em !important;
+  color: #666 !important;
+  background: #EFEFEF;
+  line-height: 1.4em;
+}
+.image-caption-left p {
+  clear: left;
+}
+.image-caption-right p {
+  clear: right;
 }
 
 

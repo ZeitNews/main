@@ -1,0 +1,49 @@
+<?php
+// $Id: joomla_myblog.install,v 1.1.2.1 2009/08/12 11:27:45 malclocke Exp $
+
+/**
+ * Implementation of hook_install().
+ */
+function joomla_myblog_install() {
+  // Create tables.
+  drupal_install_schema('joomla_myblog');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function joomla_myblog_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('joomla_myblog');
+
+  variable_del('joomla_myblog_vocabulary');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function joomla_myblog_schema() {
+
+  $schema['joomla_myblog_categories'] = array(
+  'description' => 'Stores the original Joomla MyBlog category ID and links to the {term_data} table',
+    'fields' => array(
+      'myblogcategoryid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The myblog category id from the Joomla database.",
+      ),
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The {term_data}.tid.",
+      ),
+    ),
+    'primary key' => array('myblogcategoryid'),
+  );
+
+  return $schema;
+}

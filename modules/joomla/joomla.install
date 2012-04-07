@@ -1,0 +1,159 @@
+<?php
+// $Id: joomla.install,v 1.1.2.7 2009/07/29 09:40:12 malclocke Exp $
+
+/**
+ * Implementation of hook_install().
+ */
+function joomla_install() {
+  // Create tables.
+  drupal_install_schema('joomla');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function joomla_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('joomla');
+
+  variable_del('joomla_import_content');
+  variable_del('joomla_import_categories');
+  variable_del('joomla_import_users');
+  variable_del('joomla_run_cron');
+  variable_del('joomla_database_host');
+  variable_del('joomla_database_name');
+  variable_del('joomla_database_user');
+  variable_del('joomla_database_pass');
+  variable_del('joomla_database_port');
+  variable_del('joomla_live_url');
+  variable_del('joomla_delay_row');
+  variable_del('joomla_delay_sec');
+  variable_del('joomla_img_folder');
+  variable_del('joomla_input_format');
+  variable_del('joomla_path');
+  variable_del('joomla_prefix');
+  variable_del('joomla_update_duplicate');
+  variable_del('joomla_default_static_nodetype');
+  variable_del('joomla_default_blog_nodetype');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function joomla_schema() {
+  $schema['joomla_users'] = array(
+  'description' => 'Stores the original Joomla user ID and password and links to the {users} table',
+    'fields' => array(
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The users {users}.uid.",
+      ),
+      'juid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The users id from the Joomla database.",
+      ),
+      'password' => array(
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => "The users original Joomla password.",
+      ),
+      'converted' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "Boolean value storing whether or not the users Joomla password has been converted to an entry in the {users}.pass table.",
+      ),
+    ),
+    'primary key' => array('uid'),
+    'unique keys' => array(
+      'juid' => array('juid'),
+    ),
+  );
+
+  $schema['joomla_sections'] = array(
+  'description' => 'Stores the original Joomla section ID and links to the {vocabulary} table',
+    'fields' => array(
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The {vocabulary}.vid.",
+      ),
+      'jsectionid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The section id from the Joomla database.",
+      ),
+    ),
+    'primary key' => array('vid'),
+    'unique keys' => array(
+      'jsectionid' => array('jsectionid'),
+    ),
+  );
+
+  $schema['joomla_categories'] = array(
+  'description' => 'Stores the original Joomla category ID and links to the {term_data} table',
+    'fields' => array(
+      'jcategoryid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The category id from the Joomla database.",
+      ),
+      'jsectionid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The section id from the Joomla database.",
+      ),
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The {term_data}.tid.",
+      ),
+    ),
+    'primary key' => array('jcategoryid'),
+  );
+
+  $schema['joomla_content'] = array(
+  'description' => 'Stores the original Joomla content ID links to the {node} table',
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The {node}.nid.",
+      ),
+      'jcontentid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The content id from the Joomla database.",
+      ),
+    ),
+    'primary key' => array('nid'),
+    'unique keys' => array(
+      'jcontentid' => array('jcontentid'),
+    ),
+  );
+
+  return $schema;
+}
