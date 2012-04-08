@@ -1969,6 +1969,9 @@ fieldset.group-documentcloud {
   text-decoration: none;
   border-radius: 2px;
 }
+#comments div.links {
+  padding-top: 0.5em;
+}
 /* Makes commentor's name bigger. TOTALLY FUCKS UP CKEDITOR ICONS. CAN'T GET CASCADE RIGHT ON THIS. */
 /*#comment-form div.form-item:first-of-type a {
   font-size: 1.2em;
@@ -2899,6 +2902,9 @@ html.js input.throbbing {
 #switch_edit-body {
   margin-top: -10px;
 }
+#op-content div.links {
+  clear: both;
+}
 
 /* Register form. */
 .not-logged-in #user-register #edit-taxonomy-tags-128-wrapper {
@@ -2977,14 +2983,14 @@ html.js input.throbbing {
 .image-caption-left {
   float: left;
   background-color: #EFEFEF;
-  margin: 5px 10px 3px 0;
+  margin: 3px 10px 3px 0;
   padding: 5px;
   border-radius: 2px;
 }
 .image-caption-right {
   float: right;
   background-color: #EFEFEF;
-  margin: 5px 0 3px 10px; 
+  margin: 3px 0 3px 10px; 
   padding: 5px;
   border-radius: 2px;
 }
