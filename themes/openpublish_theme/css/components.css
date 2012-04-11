@@ -362,7 +362,7 @@ span.submitted {
 .body-content .main-image, #op-content .main-image {
   background: #efefef;
   float: left;
-  margin: -5px 10px 6px 0;
+  margin: 0 25px 10px 0;
   padding: 5px 5px 2px 5px;
   position: relative;
   top: 6px;
@@ -1685,7 +1685,7 @@ a.noderelationships-noderef-multiselect-button:link, a.noderelationships-noderef
 /* User embedded node content images, not Main Image. */
 .body-content img {
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 3px 10px;
+  margin: 10px 25px;
   padding: 5px;
 }
 .body-content .full-width-image {
@@ -1722,7 +1722,7 @@ a.noderelationships-noderef-multiselect-button:link, a.noderelationships-noderef
 }
 .view-display-id-node_content_2 {
   float: left;
-  margin: 0 10px 6px 0;
+  margin: 5px 25px 10px 0;
 }
 .body-content .galleria-container img {
   background-color: transparent;
@@ -1778,7 +1778,7 @@ iframe {
 }
 .media_embed iframe {
 	background: none repeat scroll 0 0 #EFEFEF;
-  margin: 3px 10px;
+  margin: 10px 25px;
 	padding: 5px;
 }
 .media_embed p {
@@ -1833,9 +1833,9 @@ div.audio-embed-code {
 /* For inserted tables in node bodies. */
 .body-content table {
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 20px 20px 10px 20px;
+  margin: 10px 25px;
   padding: 5px;
-  max-width: 570px !important;
+  max-width: 540px !important;
 }
 /* Corrections on Documentcloud table due to above. */
 .body-content .field-type-document-cloud-doc table {
@@ -1982,7 +1982,7 @@ fieldset.group-documentcloud {
 .comment .content img {
   float: left;
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 3px 10px;
+  margin: 10px 25px;
   padding: 5px;
 }
 /* iframe sytling in comments. Always floats left. */
@@ -1995,7 +1995,7 @@ fieldset.group-documentcloud {
 .comment .content .media_embed iframe {
   float: left !important;
 	background: none repeat scroll 0 0 #EFEFEF;
-  margin: 3px 10px;
+  margin: 10px 25px;
 	padding: 5px;
 }
 /* P changed to just blend into other p's. */
@@ -2570,8 +2570,8 @@ h2 a:link, h2 a:hover, h3 a:active, h3 a:visited {
 
 /* Cap all embeds and images at a specific size. */
 iframe, object, embed, script {
-	max-width: 570px !important;
-  max-height: 570px !important;
+	max-width: 540px !important;
+  max-height: 540px !important;
   border-radius: 2px;
 }
 .video-embed-code iframe,
@@ -2589,8 +2589,8 @@ iframe, object, embed, script {
   max-height: 620px !important;
 }
 #container img {
-  max-width: 570px !important;
-  max-height: 570px !important;
+  max-width: 540px !important;
+  max-height: 540px !important;
 }
 #container .body-content img.full-width-image {
 	max-width: 610px !important;
@@ -2609,12 +2609,12 @@ body.node-type-op-image #container .main-image img {
 .comment .content object,
 .comment .content embed,
 .comment .content script {
-  max-width: 350px !important;
-  max-height: 200px !important; 
+  max-width: 320px !important;
+  max-height: 183px !important; 
 }
 .comment .content img {
-  max-width: 300px !important;
-  max-height: 300px !important;
+  max-width: 270px !important;
+  max-height: 270px !important;
 }
 table.cke_editor iframe,
 table.cke_editor object,
@@ -2631,7 +2631,7 @@ a {
 
 /* Image captions on node bodies via Insert. */
 .image-caption-container {
-  margin: 3px 10px;
+  margin: 10px 25px;
   padding: 5px;
   background: #EFEFEF;
   border-radius: 2px;
@@ -2983,14 +2983,14 @@ html.js input.throbbing {
 .image-caption-left {
   float: left;
   background-color: #EFEFEF;
-  margin: 3px 10px 3px 0;
+  margin: 10px 25px 10px 0;
   padding: 5px;
   border-radius: 2px;
 }
 .image-caption-right {
   float: right;
   background-color: #EFEFEF;
-  margin: 3px 0 3px 10px; 
+  margin: 10px 0 10px 25px; 
   padding: 5px;
   border-radius: 2px;
 }

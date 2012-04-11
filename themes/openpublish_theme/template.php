@@ -250,7 +250,9 @@ function openpublish_theme_preprocess_views_view_row_rss__feed(&$vars) {
   //http://api.drupal.org/api/drupal/modules--node--node.module/function/node_load/6#comment-69
   //$node = menu_get_object('node', 1, 'node/' . $vars['row']->nid);
   
-  $vars['node_teaser_image'] = l(theme('imagecache', 'teaser_image_rss', $node->field_thumbnail_image[0]['filepath'], $node->title, $node->title, array('height' => 180, 'width' => 180, 'align' => right, 'hspace' => 10, 'vspace' => 10, 'border' => 0)), $node->path, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
+  if ($node->field_thumbnail_image[0]['filepath']) {
+    $vars['node_teaser_image'] = l(theme('imagecache', 'teaser_image_rss', $node->field_thumbnail_image[0]['filepath'], $node->title, $node->title, array('height' => 180, 'width' => 180, 'align' => right, 'hspace' => 10, 'vspace' => 10, 'border' => 0)), $node->path, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
+  }
   
   $vars['node_deck'] = $node->field_deck[0]['value'];
   
