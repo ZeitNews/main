@@ -20,7 +20,6 @@ class views_handler_field_term_node_tid extends views_handler_field_prerender_li
     $options['link_to_taxonomy'] = array('default' => TRUE);
     $options['limit'] = array('default' => FALSE);
     $options['vids'] = array('default' => array());
-    $options['reorder'] = array('default' => FALSE); 
 
     return $options;
   }
@@ -40,13 +39,6 @@ class views_handler_field_term_node_tid extends views_handler_field_prerender_li
       '#type' => 'checkbox',
       '#title' => t('Limit terms by vocabulary'),
       '#default_value'=> $this->options['limit'],
-    );
-
-    $form['reorder'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Reorder terms to match hierarchy'),
-      '#description' => t('Terms will be displayed in hierarchical order. Items MUST be tagged with at least the root term. If a level in the hierarchy is missed then subsequent terms will be ignored.'), 
-      '#default_value'=> $this->options['reorder'],
     );
 
     $options = array();
@@ -90,12 +82,11 @@ class views_handler_field_term_node_tid extends views_handler_field_prerender_li
         $voc = " AND td.vid IN (" . implode(', ', array_keys($voc_ids)) . ")";
       }
 
-      $result = db_query("SELECT tn.vid AS node_vid, td.*, v.name as vocabulary, th.parent FROM {term_data} td INNER JOIN {term_node} tn ON td.tid = tn.tid INNER JOIN {term_hierarchy} th on th.tid = td.tid INNER JOIN {vocabulary} v ON v.vid = td.vid WHERE tn.vid IN (" . implode(', ', $vids) . ")$voc ORDER BY td.weight, td.name");
+      $result = db_query("SELECT tn.vid AS node_vid, td.*, v.name as vocabulary FROM {term_data} td INNER JOIN {term_node} tn ON td.tid = tn.tid INNER JOIN {vocabulary} v ON v.vid = td.vid WHERE tn.vid IN (" . implode(', ', $vids) . ")$voc ORDER BY td.weight, td.name");
 
       while ($term = db_fetch_object($result)) {
         $this->items[$term->node_vid][$term->tid]['name'] = check_plain($term->name);
         $this->items[$term->node_vid][$term->tid]['tid'] = $term->tid;
-        $this->items[$term->node_vid][$term->tid]['parent'] = $term->parent;
         $this->items[$term->node_vid][$term->tid]['vid'] = $term->vid;
         $this->items[$term->node_vid][$term->tid]['vocabulary'] = check_plain($term->vocabulary);
         
@@ -104,38 +95,7 @@ class views_handler_field_term_node_tid extends views_handler_field_prerender_li
           $this->items[$term->node_vid][$term->tid]['path'] = taxonomy_term_path($term);
         }
       }
-      if (!empty($this->options['reorder']))
-      {
-        $this->order_vocabs();
-      }
     }
-  }
-  
-  /* Loop through each vocab sorting terms*/
-  function order_vocabs() {
-    foreach($this->items as &$item) {
-       $this->sorted = array();
-       $this->filter_parent = 0;
-       $tmp =  $this->order_terms($item);  
-       $item = $this->sorted;
-    }
-    unset($this->sorted);
-    unset($this->filter_parent);
-  }
-  
-  /* Recursivley add terms to array which are children of previously added term*/
-  function order_terms($ary){
-    $filt = array_filter($ary, array($this, "filter_for_parent"));
-    $item = array_pop($filt);
-   if ($item != NULL) {
-      $this->sorted[$item['tid']] = $item;
-      $this->filter_parent = $item['tid'];  
-      $this->order_terms($ary);
-    }
-  }
-  
-  function filter_for_parent($item) {
-    return $item['parent'] == $this->filter_parent;
   }
 
   function render_item($count, $item) {

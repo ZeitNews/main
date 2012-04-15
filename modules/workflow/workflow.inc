@@ -589,7 +589,7 @@ function workflow_transition($node, $state_name) {
           '!scheduled_date' => format_date($scheduled),
         );
         watchdog('workflow', '@node_title scheduled for state change %state_name on !scheduled_date', $t_args, WATCHDOG_NOTICE, l('view', "node/$node->nid/workflow"));
-        drupal_set_message(t('@node_title is scheduled for state change %state_name on !scheduled_date (processed every 15 minutes).', $t_args));
+        drupal_set_message(t('<em>@node_title</em> is scheduled for state change <em>%state_name</em> on <em>!scheduled_date</em> (processed every 15 minutes).', $t_args));
       }
     }
   }
