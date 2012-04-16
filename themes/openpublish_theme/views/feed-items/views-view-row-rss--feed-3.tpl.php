@@ -48,5 +48,9 @@
     
     <br /><br /><br />
   ]]></description>
-  <?php print $item_elements; ?>
+  <?php if ($authors): ?>
+    <?php print $item_elements; ?>
+  <?php else: ?>
+    <?php print preg_replace('/<dc:creator>.*<\/dc:creator>/', '<dc:creator></dc:creator>', $item_elements); ?>
+  <?php endif; ?>
 </item>

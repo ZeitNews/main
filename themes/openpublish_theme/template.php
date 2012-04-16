@@ -251,7 +251,7 @@ function openpublish_theme_preprocess_views_view_row_rss__feed(&$vars) {
   //$node = menu_get_object('node', 1, 'node/' . $vars['row']->nid);
   
   if ($node->field_thumbnail_image[0]['filepath']) {
-    $vars['node_teaser_image'] = l(theme('imagecache', 'teaser_image_rss', $node->field_thumbnail_image[0]['filepath'], $node->title, $node->title, array('height' => 180, 'width' => 180, 'align' => right, 'hspace' => 10, 'vspace' => 10, 'border' => 0)), $node->path, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
+    $vars['node_teaser_image'] = l(theme('imagecache', 'teaser_image_rss', $node->field_thumbnail_image[0]['filepath'], $node->title, $node->title, array('height' => 180, 'width' => 180, 'align' => right, 'hspace' => 10, 'vspace' => 10, 'border' => 0)), 'node/' . $node->nid, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
   }
   
   $vars['node_deck'] = $node->field_deck[0]['value'];
@@ -273,7 +273,11 @@ function openpublish_theme_preprocess_views_view_row_rss__feed(&$vars) {
     $vars['event_date'] = content_format('field_event_date', $node->field_event_date[0]);
   }
   
-  $vars['node_teaser'] = strip_tags($node->teaser) . ' ' . l(t('More') . ' &raquo;', $node->path, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
+  if ($node->field_op_author[0]['nid']) {
+    $vars['author_check'] = 'yes';
+  }
+  
+  $vars['node_teaser'] = strip_tags($node->teaser) . ' ' . l(t('More') . ' &raquo;', 'node/' . $node->nid, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
 }
 
 /**
@@ -341,7 +345,7 @@ function openpublish_theme_preprocess_views_view_row_rss__feed_3(&$vars) {
     break;
     
     case 'slideshow':
-      $vars['slideshow'] = '<sub>' . l(t('Slideshows can only be viewed on the site.'), $node->path, array('attributes' => array('target' => '_blank'), 'absolute' => TRUE)) . '</sub>';
+      $vars['slideshow'] = '<sub>' . l(t('Slideshows can only be viewed on the site.'), 'node/' . $node->nid, array('attributes' => array('target' => '_blank'), 'absolute' => TRUE)) . '</sub>';
     break;
   }
   
@@ -352,7 +356,7 @@ function openpublish_theme_preprocess_views_view_row_rss__feed_3(&$vars) {
   $vars['node_body'] = str_replace($find_tags_body, $tag_mods_body, $node->body);
   
   if ($node->comment == 2 && $node->comment_count > 0) {
-    $vars['add_comment'] = l(t('Add new comment') . ' &raquo', $node->path, array('attributes' => array('target' => '_blank'), 'absolute' => TRUE, 'html' => TRUE, 'fragment' => 'comments'));
+    $vars['add_comment'] = l(t('Add new comment') . ' &raquo', 'node/' . $node->nid, array('attributes' => array('target' => '_blank'), 'absolute' => TRUE, 'html' => TRUE, 'fragment' => 'comments'));
   } elseif ($node->comment == 2) {
     $vars['add_comment'] = l(t('Add new comment') . ' &raquo', 'comment/reply/' . $node->nid, array('attributes' => array('target' => '_blank'), 'absolute' => TRUE, 'html' => TRUE, 'fragment' => 'comment-form'));
   }

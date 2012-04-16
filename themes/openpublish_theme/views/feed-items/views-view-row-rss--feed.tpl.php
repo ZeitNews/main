@@ -30,5 +30,9 @@
 
       <?php //$row->readmore = FALSE; ?>
     ]]></description>
-    <?php print $item_elements; ?>
+    <?php if ($author_check): ?>
+      <?php print $item_elements; ?>
+    <?php else: ?>
+      <?php print preg_replace('/<dc:creator>.*<\/dc:creator>/', '<dc:creator></dc:creator>', $item_elements); ?>
+    <?php endif; ?>
   </item>
