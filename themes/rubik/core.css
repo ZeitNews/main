@@ -859,4 +859,14 @@ label.calais_keyword_selected {
   background-color: #FFF;
 }
 
+/* Hide irrelevant filefield sources http transfer error. */
+.group-file-attachments div.error,
+.group-body-images div.error,
+.group-body-image div.error,
+.group-slideshow-images div.error,
+.group-teaser-image div.error,
+#edit-field-author-photo-0-ahah-wrapper div.error {
+  display: none;
+}
+
 /*** Mods - End ***/
