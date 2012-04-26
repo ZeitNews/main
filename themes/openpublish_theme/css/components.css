@@ -1780,9 +1780,12 @@ iframe {
 	background: none repeat scroll 0 0 #EFEFEF;
   margin: 10px 25px;
 	padding: 5px;
+  float: right;
 }
-.media_embed p {
-	margin: -15px 20px 20px 20px;
+.media_embed p,
+.media_embed span,
+.media_embed a {
+	display: none;
 }
 div.video-embed-code {
   width: 610px;
@@ -1998,9 +2001,12 @@ fieldset.group-documentcloud {
   margin: 10px 25px;
 	padding: 5px;
 }
-/* P changed to just blend into other p's. */
-.comment .content .media_embed p {
-	margin: 0.5em 0;
+/* OLD: P changed to just blend into other p's. */
+.comment .content .media_embed p,
+.comment .content .media_embed span,
+.comment .content .media_embed a {
+  display: none;
+	/*margin: 0.5em 0;*/
 }
 #comment-form #edit-author-wrapper input.form-text, #comment-form #edit-date-wrapper input.form-text {
   height: 10px;
