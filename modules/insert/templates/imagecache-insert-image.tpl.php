@@ -23,4 +23,4 @@
  *   use the file's name. i.e. __title_or_filename__.
  */
 ?>
-<p><img src="<?php print $url ?>" alt="__description__" title="__description__" class="imagecache-<?php print $preset_name ?><?php print $preset_name == 'Full_Width' ? ' ' . 'full-width-image' : '' ?><?php print $class ? ' ' . $class : '' ?> caption" style="float: left;" /></p>
+<img src="<?php print $url ?>" alt="__description__" title="__description__" class="imagecache-<?php print $preset_name ?><?php print $preset_name == 'Full_Width' ? ' ' . 'full-width-image' : '' ?><?php print $class ? ' ' . $class : '' ?> caption" style="float: left;" />

@@ -24,4 +24,4 @@
  *   use the file's name. i.e. __title_or_filename__.
  */
 ?>
-<p><img src="<?php print $url ?>" width="<?php print $width ?>" height="<?php print $height ?>" alt="__description__" title="__description__" class="caption<?php print $class ? ' ' . $class : '' ?>" style="float: left;" /></p>
+<img src="<?php print $url ?>" width="<?php print $width ?>" height="<?php print $height ?>" alt="__description__" title="__description__" class="caption<?php print $class ? ' ' . $class : '' ?>" style="float: left;" />

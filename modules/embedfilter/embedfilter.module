@@ -319,7 +319,7 @@ function embedfilter_noevents($input) {
  *  @return
  *  replacement $input HTML string containing revised width and height
  */
-function embedfilter_media_resize($input = '', $maxwidth = 610) {
+function embedfilter_media_resize($input = '', $maxwidth = 400) {
   preg_match('/height="([0-9]*)"/',$input,$fetchheight);
   preg_match('/width="([0-9]*)"/',$input,$fetchwidth);
   if ($fetchheight && $fetchwidth) {

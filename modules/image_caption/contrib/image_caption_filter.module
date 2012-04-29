@@ -45,8 +45,7 @@ function image_caption_filter_filter($op, $delta = 0, $format = -1, $text = '') 
 
     case "process":
       //Look for <img> tags and run the doImgTitles function on the <img> tag
-      $text = preg_replace_callback('|(<p><img.*?></p>)|s', 'doImgTitles', $text);
-      $text = preg_replace_callback('|(<p><a.*?><img.*?></a></p>)|s', 'doImgTitles', $text);
+      $text = preg_replace_callback('|(<img.*?>)|s', 'doImgTitles', $text);
       return $text;
 
     default:
@@ -81,16 +80,24 @@ function doImgTitles($matches) {
 
   //Only insert the caption and modify the <img> tag if it is has a title attribute and is one of the classes we are interested in
   if ($caption_class !== false && ($title)) {
-    $imgText = strip_tags($imgText, '<div><a><img>');
     if ($full_width_class !== false) {
-      $returnText = '<div class="image-caption-container-full-width" style="width: ' . $width . 'px; float:' . $float . ';">' . $imgText . '<div class="caption" style="width: ' . $width . 'px; float:' . $float . ';">' . $title . '</div></div>';
+      $returnText = '<span class="image-caption-container-full-width" style="width: ' . $width . 'px; float:' . $float . ';">' . $imgText . '<span class="caption" style="width: ' . $width . 'px; float:' . $float . ';">' . $title . '</span></span>';
       return $returnText;
     } else {
-      $returnText = '<div class="image-caption-container" style="width: ' . $width . 'px; float:' . $float . ';">' . $imgText . '<div class="caption" style="width: ' . $width . 'px; float:' . $float . ';">' . $title . '</div></div>';
+      $returnText = '<span class="image-caption-container" style="width: ' . $width . 'px; float:' . $float . ';">' . $imgText . '<span class="caption" style="width: ' . $width . 'px; float:' . $float . ';">' . $title . '</span></span>';
       return $returnText;
     }
   }
+  
+  // Parse the rest of the body images and set margin based on float.
+  if ($caption_class == false && ($float)) {
+    
+  }
+
+  // If none of the above conditions are true - no caption, no float.
   return $imgText;
+  
+
 } //function doImgTitles
 
 ?>

@@ -155,6 +155,8 @@ CKEDITOR.editorConfig = function(config) {
   //config.extraPlugins += (config.extraPlugins ? ',imce' : 'imce' );
   //CKEDITOR.plugins.addExternal('imce', Drupal.settings.ckeditor.module_path + '/plugins/imce/');
   
-config.fillEmptyBlocks = false;
+  config.fillEmptyBlocks = false;
+  
+  config.ignoreEmptyParagraph = true;
 
 };

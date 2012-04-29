@@ -1688,8 +1688,13 @@ a.noderelationships-noderef-multiselect-button:link, a.noderelationships-noderef
   margin: 10px 25px;
   padding: 5px;
 }
+.body-content p img {
+  float: left;
+  margin: 10px 25px 10px 0;
+  padding: 5px;
+}
 .body-content .full-width-image {
-  margin: 0.5em 0 1.5em 0;
+  margin: 0.5em 0 1.7em 0 !important;
 }
 /* Corrections on Main Image due to above. */
 .body-content .main-image img {
@@ -1762,11 +1767,6 @@ div.galleria-thumbnails-list {
 }
 
 /* iframe styling. Floats have to be hand-coded. */
-iframe {
-	background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 20px 20px 20px;
-	padding: 5px;
-}
 .ad iframe {
   margin: 0;
 }
@@ -1775,12 +1775,16 @@ iframe {
   padding: 0;
   margin: 0;
   background-color: #FFFFFF;
+  max-height: none !important;
 }
-.media_embed iframe {
+.media_embed {
 	background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 25px;
+  margin: 10px 0px 10px 25px;
 	padding: 5px;
-  float: right;
+  float: right !important;
+	max-width: 400px !important;
+  max-height: 225px !important;
+  border-radius: 2px;
 }
 .media_embed p,
 .media_embed span,
@@ -1836,15 +1840,18 @@ div.audio-embed-code {
 /* For inserted tables in node bodies. */
 .body-content table {
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 25px;
+  margin: 10px 0px 10px 25px;
   padding: 5px;
-  max-width: 540px !important;
+  float: right !important;
+  max-width: 400px !important;
 }
 /* Corrections on Documentcloud table due to above. */
 .body-content .field-type-document-cloud-doc table {
   background-color: transparent;
   margin: 0;
   padding: 0;
+  float: none;
+  max-width: none !important;
 }
 
 /* Spaces file attachment, related content fieldsets. */
@@ -1903,7 +1910,7 @@ div.audio-download div.filefield-file img {
   margin-top: 2em;
 }
 fieldset.group-documentcloud {
-  padding: 10px 0 5px 6px;
+  padding: 10px 0 5px 9px;
 }
 .document-link {
   margin: 5px 3px 25px 0;
@@ -1985,21 +1992,18 @@ fieldset.group-documentcloud {
 .comment .content img {
   float: left;
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 25px;
+  margin: 10px 25px 10px 0;
   padding: 5px;
 }
 /* iframe sytling in comments. Always floats left. */
-.comment .content iframe {
+.comment .content .media_embed {
   float: left !important;
 	background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 20px 20px 20px;
+  margin: 10px 25px 10px 0;
 	padding: 5px;
-}
-.comment .content .media_embed iframe {
-  float: left !important;
-	background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 25px;
-	padding: 5px;
+  max-width: 270px !important;
+  max-height: 150px !important;
+  border-radius: 2px;
 }
 /* OLD: P changed to just blend into other p's. */
 .comment .content .media_embed p,
@@ -2576,8 +2580,8 @@ h2 a:link, h2 a:hover, h3 a:active, h3 a:visited {
 
 /* Cap all embeds and images at a specific size. */
 iframe, object, embed, script {
-	max-width: 540px !important;
-  max-height: 540px !important;
+	max-width: 400px !important;
+  max-height: 225px !important;
   border-radius: 2px;
 }
 .video-embed-code iframe,
@@ -2595,8 +2599,8 @@ iframe, object, embed, script {
   max-height: 620px !important;
 }
 #container img {
-  max-width: 540px !important;
-  max-height: 540px !important;
+  max-width: 400px !important;
+  max-height: 400px !important;
 }
 #container .body-content img.full-width-image {
 	max-width: 610px !important;
@@ -2615,8 +2619,8 @@ body.node-type-op-image #container .main-image img {
 .comment .content object,
 .comment .content embed,
 .comment .content script {
-  max-width: 320px !important;
-  max-height: 183px !important; 
+  max-width: 270px !important;
+  max-height: 150px !important;
 }
 .comment .content img {
   max-width: 270px !important;
@@ -2641,16 +2645,18 @@ a {
   padding: 5px;
   background: #EFEFEF;
   border-radius: 2px;
+  display: block;
 }
 .image-caption-container-full-width {
   margin: 0.5em 0 1.7em 0;
   padding: 5px;
   background: #EFEFEF;
   border-radius: 2px;
+  display: block;
 }
 .body-content .image-caption-container img,
 .body-content .image-caption-container-full-width img {
-  margin: 0;
+  margin: 0 !important;
   padding: 0;
   border-radius: 0;
 }
@@ -2665,10 +2671,11 @@ a {
   font-style: italic;
   font-family: Arial, Helvetica, sans-serif;
   letter-spacing: 0.03em;
-  font-size: 0.9em;
+  font-size: 0.7em;
   color: #666;
   background: #EFEFEF;
   line-height: 1.4em;
+  display: block;
 }
 
 /* Removes excess space around breadcrumb on Tags vocabs terms panels. */
