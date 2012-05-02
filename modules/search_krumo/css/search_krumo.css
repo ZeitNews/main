@@ -1,0 +1,20 @@
+.krumo-element.krumo-query-result {
+  background: #625c43;
+  color: #b2b2b2;
+}
+  
+  .krumo-element.krumo-query-result:hover {
+    background: #576F6D;
+  }
+  
+  .krumo-element.krumo-query-result a.krumo-name {
+    color: #fff;
+  }
+  
+  .krumo-element.krumo-query-result em.krumo-type {
+    color: #b2b2b2;
+  }
+  
+  .krumo-element.krumo-query-result strong {
+    color: #fff;
+  }

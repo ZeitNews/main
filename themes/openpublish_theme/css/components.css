@@ -1189,6 +1189,9 @@ body.node-view-page #tabs-wrapper div#drupal-control-bar li a {
 #op-workflow-node-state-published {
   padding: 5px 10px 4px 10px;
 }
+#op-workflow-node-state-notpublished {
+  padding: 5px 10px 4px 10px;
+}
   
 #tabs-wrapper div#drupal-control-bar li a:hover {
  text-decoration: none;
@@ -3034,6 +3037,42 @@ html.js input.throbbing {
 }
 .image-caption-right p {
   clear: right;
+}
+
+/* Cleanup of h2 and h3 in body and comments. */
+.body-content h2 {
+  font-size: 1.8em;
+  font-weight: normal;
+  font-style: normal;
+  margin: 1em 0 0.3em 0;
+  padding: 0;
+  border: none;
+  background: none;
+}
+.body-content h2::after {
+  content: "";
+}
+.body-content h3 {
+  font-size: 1.4em;
+  font-weight: normal;
+  margin: 1.2em 0 0.3em 0;
+}
+.comment .content h2 {
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 1.4em;
+  font-style: normal;
+  color: #333;
+  margin: 0.6em 0 0.3em 0;
+  padding: 0;
+  border: none;
+  background: none;
+}
+.comment .content h2::after {
+  content: "";
+}
+.comment .content h3 {
+  font-size: 1.2em;
+  margin: 0.6em 0 0.3em 0;
 }
 
 

@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * @file
+ *   Module file for Search Krumo module.
+ *   Written by Bram ten Hove.
+ */
+
+/**
+ * Implement hook_init.
+ *
+ * Add the required JavaScript and CSS.
+ */
+function search_krumo_init() {
+  drupal_add_css(drupal_get_path('module', 'search_krumo') .'/css/search_krumo.css');
+  drupal_add_js(drupal_get_path('module', 'search_krumo') .'/js/search_krumo.js');
+}

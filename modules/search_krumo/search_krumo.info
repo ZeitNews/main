@@ -1,0 +1,11 @@
+name = Search Krumo
+description = Search krumo's and highlight query results.
+core = 6.x
+package = Development
+
+; Information added by drupal.org packaging script on 2012-01-18
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "search_krumo"
+datestamp = "1326847689"
+
