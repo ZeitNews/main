@@ -496,10 +496,9 @@ body.node-type-op-image .body-content .main-image {
 .image-credit, .views-field-field-main-image-credit-value,
 .views-field-field-thumb-image-credit-value {
   font-style: italic;
-    font-family: Arial, Helvetica, sans-serif;
-    letter-spacing: 0.03em;
-     font-size: .917em; 
-    color: #666;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .917em; 
+  color: #666;
   }
   
 body.node-type-op-image .image-credit {
@@ -2673,7 +2672,6 @@ a {
   padding: 5px 0 0 0;
   font-style: italic;
   font-family: Arial, Helvetica, sans-serif;
-  letter-spacing: 0.03em;
   font-size: 0.7em;
   color: #666;
   background: #EFEFEF;
@@ -3073,6 +3071,21 @@ html.js input.throbbing {
 .comment .content h3 {
   font-size: 1.2em;
   margin: 0.6em 0 0.3em 0;
+}
+
+/* Fix for God-awful inline styling on imported articles from joomla zn. */
+.body-content,
+.body-content p {
+  text-align: left !important;
+}
+.body-content p span {
+  font-family: Georgia,"Times New Roman",serif !important;
+  font-size: 1em !important;
+}
+.body-content .image-caption-container .caption,
+.body-content .image-caption-container-full-width .caption {
+  font-family: Arial,Helvetica,sans-serif !important;
+  font-size: 0.7em !important;
 }
 
 
