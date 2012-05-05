@@ -3010,7 +3010,7 @@ html.js input.throbbing {
 }
 .body-content .image-caption-left img,
 .body-content .image-caption-right img {
-  margin: 0;
+  margin: 0 !important;
   padding: 0;
   border-radius: 0;
 }
@@ -3019,16 +3019,19 @@ html.js input.throbbing {
   text-decoration: none;
 }
 .image-caption-left p,
-.image-caption-right p {
+.image-caption-right p,
+.body-content .image-caption-left p span,
+.body-content .image-caption-right p span,
+.body-content .image-caption-left p span span,
+.body-content .image-caption-right p span span {
   margin: 0;
   padding: 5px 0 0 0;
   font-style: italic;
-  font-family: Arial, Helvetica, sans-serif;
-  letter-spacing: 0.03em;
-  font-size: 0.9em !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  letter-spacing: 0;
+  font-size: 0.917em !important;
   color: #666 !important;
   background: #EFEFEF;
-  line-height: 1.4em;
 }
 .image-caption-left p {
   clear: left;
