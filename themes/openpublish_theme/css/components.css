@@ -3032,6 +3032,7 @@ html.js input.throbbing {
   font-size: 0.917em !important;
   color: #666 !important;
   background: #EFEFEF;
+  line-height: 1.4em;
 }
 .image-caption-left p {
   clear: left;
