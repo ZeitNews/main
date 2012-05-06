@@ -20,17 +20,29 @@ $('#op-content img').each(function(i) {
     if (img_float == "left") {
       // If it has an image caption.
       if ($(this).parent().hasClass("image-caption-container")) {
-        $(this).parent().css("margin","10px 25px 10px 0px");
+        $(this).parent().css({
+          'margin': '10px 25px 10px 0px',
+          'clear': 'left'
+          });
       } else {
-        $(this).css("margin","10px 25px 10px 0px");
+        $(this).css({
+          'margin': '10px 25px 10px 0px',
+          'clear': 'left'
+          });
       }
     }
   
     if (img_float == "right") {
       if ($(this).parent().hasClass("image-caption-container")) {
-        $(this).parent().css("margin","10px 0px 10px 25px");
+        $(this).parent().css({
+          'margin': '10px 0px 10px 25px',
+          'clear': 'right'
+        });
       } else {
-        $(this).css("margin","10px 0px 10px 25px");
+        $(this).css({
+          'margin': '10px 0px 10px 25px',
+          'clear': 'right'
+        });
       }
     }
   }

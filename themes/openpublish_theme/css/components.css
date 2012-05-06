@@ -2648,6 +2648,7 @@ a {
   background: #EFEFEF;
   border-radius: 2px;
   display: block;
+  max-width: 400px /* This matches #container img having a 400px max-width. */
 }
 .image-caption-container-full-width {
   margin: 0.5em 0 1.7em 0;
@@ -2655,6 +2656,7 @@ a {
   background: #EFEFEF;
   border-radius: 2px;
   display: block;
+  max-width: 610px; /* This matches #container .body-content img.full-width-image having a 610px max-width. */
 }
 .body-content .image-caption-container img,
 .body-content .image-caption-container-full-width img {
@@ -2677,6 +2679,12 @@ a {
   background: #EFEFEF;
   line-height: 1.4em;
   display: block;
+}
+.image-caption-container .caption {
+  max-width: 400px /* This matches #container img having a 400px max-width. */
+}
+.image-caption-container-full-width .caption {
+  max-width: 610px; /* This matches #container .body-content img.full-width-image having a 610px max-width. */
 }
 
 /* Removes excess space around breadcrumb on Tags vocabs terms panels. */
@@ -3000,6 +3008,7 @@ html.js input.throbbing {
   margin: 10px 25px 10px 0;
   padding: 5px;
   border-radius: 2px;
+  max-width: 400px; /* This matches #container img having a 400px max-width. */
 }
 .image-caption-right {
   float: right;
@@ -3007,6 +3016,7 @@ html.js input.throbbing {
   margin: 10px 0 10px 25px; 
   padding: 5px;
   border-radius: 2px;
+  max-width: 400px; /* This matches #container img having a 400px max-width. */
 }
 .body-content .image-caption-left img,
 .body-content .image-caption-right img {
@@ -3033,6 +3043,7 @@ html.js input.throbbing {
   color: #666 !important;
   background: #EFEFEF;
   line-height: 1.6em;
+  max-width: 400px; /* This matches #container img having a 400px max-width. */
 }
 .image-caption-left p {
   clear: left;
@@ -3081,6 +3092,7 @@ html.js input.throbbing {
 .body-content,
 .body-content p {
   text-align: left !important;
+  color: #333 !important;
 }
 .body-content p span {
   font-family: Georgia,"Times New Roman",serif !important;
@@ -3090,6 +3102,30 @@ html.js input.throbbing {
 .body-content .image-caption-container-full-width .caption {
   font-family: Arial,Helvetica,sans-serif !important;
   font-size: 0.7em !important;
+}
+
+/* Center button in WYSIWYG. */
+.body-content .rtecenter img {
+  margin: 0 !important;
+  float: none !important;
+}
+.body-content .rtecenter .image-caption-container {
+  margin: 0 auto 1.7em auto !important;
+  float: none !important;
+}
+.body-content .rtecenter,
+.body-content p.rtecenter {
+  text-align: center !important;
+  padding-top: 0.7em;
+}
+.body-content .rtecenter span.caption,
+.body-content p.rtecenter span.caption {
+  text-align: left !important;
+  float: none !important;
+}
+.body-content .rtecenter a,
+.body-content p.rtecenter a {
+  text-decoration: none;
 }
 
 

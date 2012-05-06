@@ -20,6 +20,13 @@
 }
 .rtecenter {
   text-align: center;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  clear: both;
+}
+.rtecenter img {
+  float: none !important;
 }
 .rtejustify {
   text-align: justify;
