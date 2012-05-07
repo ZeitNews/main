@@ -2624,7 +2624,7 @@ body.node-type-op-image #container .main-image img {
   max-width: 270px !important;
   max-height: 150px !important;
 }
-.comment .content img {
+#container .comment .content img {
   max-width: 270px !important;
   max-height: 270px !important;
 }
@@ -2648,7 +2648,10 @@ a {
   background: #EFEFEF;
   border-radius: 2px;
   display: block;
-  max-width: 400px /* This matches #container img having a 400px max-width. */
+  max-width: 400px; /* This matches #container img having a 400px max-width. */
+}
+.comment .content .image-caption-container {
+  max-width: 270px !important; /* This matches #container .comment .content img having a 270px max-width. */
 }
 .image-caption-container-full-width {
   margin: 0.5em 0 1.7em 0;
@@ -2659,13 +2662,15 @@ a {
   max-width: 610px; /* This matches #container .body-content img.full-width-image having a 610px max-width. */
 }
 .body-content .image-caption-container img,
-.body-content .image-caption-container-full-width img {
+.body-content .image-caption-container-full-width img,
+.comment .content .image-caption-container img {
   margin: 0 !important;
   padding: 0;
   border-radius: 0;
 }
 .body-content .image-caption-container a,
-.body-content .image-caption-container-full-width a {
+.body-content .image-caption-container-full-width a,
+.comment .content .image-caption-container a {
   text-decoration: none;
 }
 .image-caption-container .caption,
@@ -2681,10 +2686,13 @@ a {
   display: block;
 }
 .image-caption-container .caption {
-  max-width: 400px /* This matches #container img having a 400px max-width. */
+  max-width: 400px; /* This matches #container img having a 400px max-width. */
 }
 .image-caption-container-full-width .caption {
   max-width: 610px; /* This matches #container .body-content img.full-width-image having a 610px max-width. */
+}
+.comment .content .image-caption-container .caption {
+  max-width: 270px; /* This matches #container .comment .content img having a 270px max-width. */
 }
 
 /* Removes excess space around breadcrumb on Tags vocabs terms panels. */
@@ -2917,7 +2925,7 @@ html.js input.throbbing {
   background-color: #ffffff;
 }
 
-/* Node form on OpenPublish Theme. */
+/* Node edit form on OpenPublish Theme. */
 #op-content .node-form .form-item {
   margin-bottom: 15px;
 }
@@ -3105,7 +3113,8 @@ html.js input.throbbing {
 }
 
 /* Center button in WYSIWYG. */
-.body-content .rtecenter img {
+.body-content .rtecenter img,
+.comment .content .rtecenter img {
   margin: 0 !important;
   float: none !important;
 }
@@ -3113,19 +3122,28 @@ html.js input.throbbing {
   margin: 0 auto 1.7em auto !important;
   float: none !important;
 }
+.comment .content .rtecenter .image-caption-container {
+  margin: 0 auto 1em auto !important;
+  float: none !important;
+}
 .body-content .rtecenter,
-.body-content p.rtecenter {
+.comment .content .rtecenter {
   text-align: center !important;
   padding-top: 0.7em;
 }
 .body-content .rtecenter span.caption,
-.body-content p.rtecenter span.caption {
+.comment .content .rtecenter span.caption {
   text-align: left !important;
   float: none !important;
 }
 .body-content .rtecenter a,
-.body-content p.rtecenter a {
-  text-decoration: none;
+.comment .content .rtecenter a {
+  text-decoration: none !important;
+}
+
+/* Controlling floats introduced by default in WYSIWYG. */
+#header .block .content img {
+  float: none !important;
 }
 
 
