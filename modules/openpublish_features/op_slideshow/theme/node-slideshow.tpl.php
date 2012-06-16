@@ -37,6 +37,20 @@
   <?php if ($authors): ?>
     | <?php print $authors; ?>
   <?php endif; ?>
+
+	<?php if ($node->links['addtoany']): ?>
+		<?php print 
+		'<div id="add-this" class="float-left clearfix">'
+		. $node->links['addtoany']['title'] .
+		'<a id="comment-button" href="/comment/reply/'. $node->nid .'#comment-form" title="Add new comment.">Comment</a><span id="comment-arrow"></span><a id="comment-count" href="#comments" title="Read comments.">'. $node->comment_count .'</a>
+		<div class="a2a_kit a2a_default_style">
+			<a class="a2a_button_twitter_tweet"></a>
+			<a class="a2a_button_google_plusone"></a>
+			<a class="a2a_button_facebook_like"></a>
+		</div>
+		</div>';
+		?>
+	<?php endif; ?>
 </div><!-- /.section-date-author -->
 
 <div class="body-content">

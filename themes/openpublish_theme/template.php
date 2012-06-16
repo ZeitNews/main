@@ -192,11 +192,10 @@ function openpublish_theme_preprocess_page(&$vars) {
   } elseif (arg(0) == 'blog' && is_numeric(arg(1))) {
       // Allow breadcrumbs for blog user pages.
       return;
+  } elseif ($vars['node']->type == 'article' && empty($vars['node']->taxonomy)) {
+      // Handle legacy joomla uncategorized articles: Replace "Home" with a space.
+      $vars['breadcrumb'] = theme('op_breadcrumb', array('<a href="/">&nbsp;</a>'));
   } elseif (in_array($vars['node']->type, $allow_bread)) {
-      // Handle legacy joomla uncategorized articles.
-      if (empty($vars['node']->taxonomy)) {
-        $vars['breadcrumb'] = theme('op_breadcrumb', array('<a href="/">&nbsp;</a>'));
-      }
       // Allow breadcrumbs for node types listed above.
       return;
   } else {
@@ -226,7 +225,7 @@ function openpublish_theme_preprocess_page(&$vars) {
 */
 function openpublish_theme_preprocess_node(&$vars) {
   if($vars['node']->links['comment_add']){
-    $vars['add_new_comment'] = '<div class="add-comment">';
+    $vars['add_new_comment'] = '<div id="comments"><div id="add-comment">';
     $vars['add_new_comment'] .=  l(
       $vars['node']->links['comment_add']['title'], $vars['node']->links['comment_add']['href'], array(
         'attributes' => array(
@@ -235,7 +234,7 @@ function openpublish_theme_preprocess_node(&$vars) {
         'fragment' => 'comment-form'
       )
     );
-    $vars['add_new_comment'] .= '</div>';
+    $vars['add_new_comment'] .= '</div></div>';
   }
 }
 

@@ -6,6 +6,16 @@ Drupal.behaviors.openpublish = function(context) {
 // Focus cursor into username field for login.
 $('#edit-name').focus();
 
+// http://cssbeauty.com/skillshare/discussion/1593/#Item_5
+$(document).ready(function(){
+  $("#add-this").fadeTo("100", 0.6);
+  $("#add-this").hover(function(){
+    $(this).fadeTo("400", 1.0);
+  },function(){
+    $(this).fadeTo("400", 0.6);
+  });
+});
+
 // Iterate over all images in #op-content div (body and comments).
 $('#op-content img').each(function(i) {
   

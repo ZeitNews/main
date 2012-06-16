@@ -94,9 +94,9 @@
 
   <?php if ($mission): print '<div id="mission">'. $mission .'</div>'; endif; ?>
   
-  <?php if ($node->links['addtoany']): ?>
-    <?php print '<div id="add-this" class="float-right clearfix">' . $node->links['addtoany']['title'] . '</div>'; ?>
-  <?php endif; ?>
+  <?php //if ($node->links['addtoany']): ?>
+    <?php //print '<div id="add-this" class="float-right clearfix"><div class="a2a_kit a2a_default_style"><a class="a2a_button_twitter_tweet"></a><a class="a2a_button_google_plusone"></a><a class="a2a_button_facebook_like"></a></div>' . $node->links['addtoany']['title'] . '</div>'; ?>
+  <?php //endif; ?>
   
     <?php if ($tabs): print '<div id="tabs-wrapper" class="clear-block">'; endif; ?>
       <?php if ($title && $node->type != 'topichub'): ?>

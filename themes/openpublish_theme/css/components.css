@@ -302,7 +302,7 @@ span.submitted {
   letter-spacing: normal;
 }
 
-.add-comment {
+#add-comment {
   float: right;
   margin: 22px 1px 0 0;
 }
@@ -316,10 +316,10 @@ span.submitted {
 }
 
 
-.add-comment a {
+#add-comment a {
   background: #46607B;
   display: block;
-  color: #FFF;
+  color: #FFFFFF;
   font-family: Arial, Verdana, Helvetica;
   text-transform: uppercase;
   padding: 8px;
@@ -330,10 +330,14 @@ span.submitted {
   border-radius: 2px;
 }
 
-.add-comment a:hover {
+#add-comment a:hover {
   text-decoration: none;
   background: #393939;
-  }
+}
+
+#comments #add-comment a.comment-add:hover {
+  color: #FFFFFF;
+}
   
 .comment h3 a {background: none;}
 
@@ -360,6 +364,10 @@ span.submitted {
   margin: 10px;
   padding: 3px;
   border: none;
+}
+
+div.body-content {
+  clear: left;
 }
 
 .body-content .main-image, #op-content .main-image {
@@ -424,7 +432,7 @@ body.node-type-op-image .body-content .main-image {
   clear: both;
 }
 
-.body-content .event-date, .user-name {
+.event-date, .user-name {
   font-weight: bold;
 }
 .body-content .user-profile {
@@ -702,9 +710,9 @@ padding-left:12px;
   font-size: 1em;
 }
 
-.body-content .event-date {
+.event-date {
   font-family: Arial, Helvetica, sans-serif;
-  margin: -5px 0 20px;
+  margin-top: -5px;
   font-weight: normal;
   font-size: 1.25em; 
   color: #808285;
@@ -891,12 +899,6 @@ min-width:220px;
   font-size: .8em;
   padding: 3px 8px;
   color: #FFF;
-}
-
-#add-this {
-  width: auto;
-  position: relative;
-  top: -7px;
 }
 
 #facebook-like {
@@ -1644,15 +1646,10 @@ ul.secondary {
 }
 
 /* Restyles Add new comment in Links variable (end of node body). */
-.links .add-comment {
+.links #add-comment {
   float: none;
   margin-top: 2em;
   clear: left;
-}
-
-/* Floats AddtoAny image link to the right. */
-#da2a_1 {
-  float: right;
 }
 
 /* Overrides rule in sites/all/modules/openpublish_core/openpublish_menu/openpublish_menu.css in regard to
@@ -1675,14 +1672,83 @@ a.noderelationships-noderef-multiselect-button:link, a.noderelationships-noderef
   padding: 0.4em 12px 0.4em 24px;
 }
 
-/* Move AddtoAny above breadcrumb line. */
-#add-this {
-  top: -24px;
-  height: 0;
-}
-/* Breadcrumb on node types with addtoany*/
+/* Breadcrumb on node types with addtoany. */
 .node-view-page .breadcrumb {
   margin-bottom: 0;
+}
+/* Make full width to push text down and spacing. */
+#add-this {
+  width: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  padding: 15px 0 20px 0;
+}
+.node-type-project div#add-this,
+.node-type-resource div#add-this {
+  padding-top: 0;
+}
+/* Floats AddtoAny image link to the left. */
+#da2a_1 {
+  float: left;
+  margin-right: 10px;
+}
+.a2a_default_style {
+  float: left;
+}
+/* Hide Lockerz.com "Earn" tab. */
+#a2apage_PTZ {
+  display:none !important;
+}
+/* Tame Twitter width. */
+#add-this div.a2a_default_style a.a2a_button_twitter_tweet iframe {
+  max-width: 88px !important;
+}
+/* Tame G+ width. */
+#add-this div.a2a_default_style a.a2a_button_google_plusone div {
+  max-width: 71px !important;
+}
+#add-this div.a2a_default_style a.a2a_button_google_plusone iframe {
+  max-width: 71px !important;
+}
+/* ZN Comment widget. */
+a#comment-button {
+  display: block;
+  float: left;
+  background-color: #46607B;
+  border-radius: 3px;
+  color: #FFFFFF;
+  text-transform: none;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  height: 16px;
+  padding: 4px 5px 0 5px;
+  line-height: 12px;
+}
+a#comment-button:hover {
+  background-color: #393939;
+}
+span#comment-arrow {
+  display: block;
+  float: left;
+  width: 10px;
+  height: 8px;
+  background: url("/sites/all/themes/openpublish_theme/images/socialite-icons.png") -112px -4px #FFFFFF;
+  position: relative;
+  top: 6px;
+  left: 3px;
+  margin-left: -3px;
+}
+a#comment-count {
+  display: block;
+  float: left;
+  border: 1px solid #BBBBBB;
+  border-radius: 3px;
+  cursor: pointer;
+  height: 15px;
+  padding: 3px 4px 0 4px;
+  margin-right: 10px;
+  line-height: 12px;
 }
 
 /* Reduce space over Author node type h1. No breadcrumb. */
@@ -1814,6 +1880,7 @@ div.audio-embed-code {
   padding: 5px 5px 2px 5px;
   background: none repeat scroll 0 0 #EFEFEF;
   border-radius: 2px;
+  clear: left;
 }
 .video-embed-code p,
 .audio-embed-code p {
@@ -1986,7 +2053,7 @@ fieldset.group-documentcloud {
   margin-top: 2em;
 }
 /* Remove underline from Add comment "button".*/
-#comments div.add-comment a {
+#comments div#add-comment a {
   text-decoration: none;
   border-radius: 2px;
 }
