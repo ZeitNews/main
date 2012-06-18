@@ -1868,7 +1868,7 @@ div.galleria-thumbnails-list {
 div.video-embed-code {
   width: 610px;
   margin: 2.25em 0 1.7em;
-  padding: 5px 5px 2px 5px;
+  padding: 5px;
   background: none repeat scroll 0 0 #EFEFEF;
   border-radius: 2px;
 }
@@ -1882,10 +1882,10 @@ div.audio-embed-code {
   border-radius: 2px;
   clear: left;
 }
-.video-embed-code p,
-.audio-embed-code p {
+div.video-embed-code p,
+div.audio-embed-code p {
   text-align: center;
-  margin: 0 auto;
+  margin: 0 auto !important;
   padding: 0;
   line-height: 0;
 }
@@ -3178,6 +3178,9 @@ html.js input.throbbing {
 .body-content p {
   text-align: left !important;
   color: #333 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  margin: 0 0 1.1em !important;
+  padding: 0 !important;
 }
 .body-content p span {
   font-family: Georgia,"Times New Roman",serif !important;
