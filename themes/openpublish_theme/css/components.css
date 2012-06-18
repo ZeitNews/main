@@ -3178,7 +3178,7 @@ html.js input.throbbing {
 .body-content p,
 .body-content strong {
   text-align: left !important;
-  color: #333 !important;
+  color: #333333 !important;
   font-family: Georgia, "Times New Roman", serif !important;
   margin: 0 0 1.1em !important;
   padding: 0 !important;
@@ -3186,6 +3186,18 @@ html.js input.throbbing {
 .body-content p,
 .body-content strong {
   line-height: 1.7em !important;
+}
+.body-content h1 {
+  color: #333333;
+  font-family: Georgia,"Times New Roman",Times,serif;
+  font-size: 1.2em;
+  font-weight: normal;
+  line-height: 1.7em;
+  margin: 0 0 1.1em;
+}
+.body-content h1 span {
+  font-family: Georgia,"Times New Roman",Times,serif !important;
+  font-size: 1em !important;
 }
 .body-content p span {
   font-family: Georgia,"Times New Roman",serif !important;
