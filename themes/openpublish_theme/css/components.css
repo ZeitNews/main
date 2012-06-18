@@ -3175,12 +3175,17 @@ html.js input.throbbing {
 
 /* Fix for God-awful inline styling on imported articles from joomla zn. */
 .body-content,
-.body-content p {
+.body-content p,
+.body-content strong {
   text-align: left !important;
   color: #333 !important;
   font-family: Georgia, "Times New Roman", serif !important;
   margin: 0 0 1.1em !important;
   padding: 0 !important;
+}
+.body-content p,
+.body-content strong {
+  line-height: 1.7em !important;
 }
 .body-content p span {
   font-family: Georgia,"Times New Roman",serif !important;
