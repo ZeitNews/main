@@ -754,20 +754,10 @@ padding-left:12px;
   width: 600px;
   font-family: Arial, Helvetica, sans-serif;
   text-transform: uppercase;
+  font-size: 0.9em;
 }
-.related-terms-label {
-  padding-right: 10px;
-}
-.related-term {
-  margin-right: 12px;
-  display: inline;
-  font-size: .9em;
-}
-.related-terms strong {
-  font-family: Arial, Helvetica, sans-serif;
-  color: #000;
-  font-size: .9em;
-  letter-spacing: 0.02em;
+.body-content .related-terms .related-terms-label strong {
+  font-family: Arial, Helvetica, sans-serif !important;
 }
 
 .field-label {

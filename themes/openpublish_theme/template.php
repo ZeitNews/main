@@ -256,14 +256,16 @@ function openpublish_theme_preprocess_views_view_row_rss__feed(&$vars) {
   $vars['node_deck'] = $node->field_deck[0]['value'];
   
   $specific_feeds = array('articles', 'projects', 'events', 'resources');
+  $specific_types = array('article', 'blog');
   if (!in_array(arg(0), $specific_feeds)) {
     // NOT a feed where listing type is unnecessary.
-    if ($node->type != 'blog') {
+    if (!in_array($node->type, $specific_types)) {
       // Not a blog teaser because we do special things with that below.
+      // Not an article, so :: article :: isn't repeated in the feed.
       $vars['node_type'] = ucfirst($node->type);
     }
-    elseif (arg(0) != 'blog' && arg(3) != 'feed') {
-      // NOT a viewpoints/jane-doe/feed (blog/7/0/feed) where listing type/author is unnecessary.
+    elseif ($node->type == 'blog' && arg(0) != 'blog' && arg(3) != 'feed') {
+      // IS blog only, NOT a viewpoints/jane-doe/feed (blog/7/0/feed) where listing type/author is unnecessary.
       $vars['node_type'] = l($node->name . '&rsquo;s Viewpoint', 'blog/' . $node->uid, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
     }
   }
@@ -302,7 +304,6 @@ function openpublish_theme_preprocess_views_view_row_rss__feed_3(&$vars) {
       global $base_url;
       $vars['authors'] = str_replace('<a href="', '<a target="_blank" href="' . $base_url, trim($str_author, ', '));
     }
-  
     $nodes_with_cats = array('article', 'audio', 'video', 'slideshow');
     if (in_array($node->type, $nodes_with_cats) && !empty($node->taxonomy)) {
       $cats = array();
