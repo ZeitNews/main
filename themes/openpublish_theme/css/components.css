@@ -153,6 +153,10 @@ ul#login-menu li a {color: #46607B;}
   margin: 0;
 }
 
+#top-menu .socialite-icons-menu li a {
+  text-decoration: none;
+}
+
 
 .breadcrumb {
   color: #46607B;
