@@ -1871,7 +1871,7 @@ div.video-embed-code iframe {
 }
 div.audio-embed-code {
   margin: 2.25em 0 1.7em;
-  padding: 5px 5px 2px 5px;
+  padding: 5px;
   background: none repeat scroll 0 0 #EFEFEF;
   border-radius: 2px;
   clear: left;
@@ -1881,7 +1881,7 @@ div.audio-embed-code p {
   text-align: center;
   margin: 0 auto !important;
   padding: 0;
-  line-height: 0;
+  line-height: 0 !important; /* This solves the CCK field <p> problem. */
 }
 .video-embed-code iframe,
 .audio-embed-code iframe {
