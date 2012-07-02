@@ -29,7 +29,7 @@ __TODO:__ _We are currently in the process of moving off Joomla! to Drupal._
     Apache Tomcat 6.0.x
     ```
     
-    Our environment is pretty close to [Pantheon's Project Mercury 1.1](http://groups.drupal.org/pantheon/documentation), if you want to build a new environment from scratch.
+    Our environment is pretty close to [Pantheon's Project Mercury 1.1](http://groups.drupal.org/pantheon/documentation), if you want to build a new environment from scratch. Prepackaged environments are in the works.
 
 5. [Submit a Pull Request](http://help.github.com/send-pull-requests/#initiating_the_pull_request) for review and inclusion.
 
