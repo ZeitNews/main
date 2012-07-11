@@ -3123,6 +3123,7 @@ html.js input.throbbing {
   background: #EFEFEF;
   line-height: 1.6em;
   max-width: 400px; /* This matches #container img having a 400px max-width. */
+  display: block; /* Fix caption position due to bad span styling. */
 }
 .image-caption-left p {
   clear: left;
