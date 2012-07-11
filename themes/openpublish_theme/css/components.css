@@ -3182,6 +3182,10 @@ html.js input.throbbing {
 .body-content strong {
   line-height: 1.7em !important;
 }
+.body-content .image-caption-left p,
+.body-content .image-caption-right p {
+  margin-bottom: 0 !important;
+}
 .body-content h1 {
   color: #333333;
   font-family: Georgia,"Times New Roman",Times,serif;
