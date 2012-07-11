@@ -1468,6 +1468,7 @@ body.node-type-audio div.field-field-op-audio-thumbnail img {
 .page-user .user-bio ul, .page-user .user-bio ol,
 .page-user .user-profile ul, .page-user .user-profile ol {
   font-size: 1.2em;
+  line-height: 1.7em;
 }
 
 body.admin-vertical .help {

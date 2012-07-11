@@ -128,12 +128,12 @@ dl dd {
 }
 
 ol, ul {
-  margin: 12px 5px 15px 5px;
+  margin: 12px 20px 15px 20px;
   padding: 0 0 0 5px;
 }
 
 ul li, ol li {
-  list-style-position: inside;
+  list-style-position: outside;
   padding: 0;
   margin: 5px 0;
 }
