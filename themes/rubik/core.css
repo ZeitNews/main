@@ -727,7 +727,12 @@ body.rubik #admin-toolbar a.menu-hover span.menu-description span.icon {
   padding: 1em 0 0.75em 0;
 }
 /* Removes duplicate heading for Workflow. */
-.column-side fieldset:first-of-type label {
+.node-type-article .column-side fieldset:first-of-type label,
+.node-type-audio .column-side fieldset:first-of-type label,
+.node-type-event .column-side fieldset:first-of-type label,
+.node-type-slideshow .column-side fieldset:first-of-type label,
+.node-type-video .column-side fieldset:first-of-type label,
+.node-type-blog .column-side fieldset:first-of-type label {
   height: 0;
   text-indent: -999em;
   margin-top: -5px;
