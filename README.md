@@ -7,6 +7,7 @@
 ## Get Involved
 
 __Current site version:__ _0.9_
+
 __TODO:__ _We are currently in the process of moving off Joomla! to Drupal._
 
 There are two different levels on which you can get involved. First is on a design and development level, which requires some experience in PHP and/or HTML/CSS. Drupal experience is a plus. You'll have to be comfortable with points 4 and 5 in the list below in order to contribute.
