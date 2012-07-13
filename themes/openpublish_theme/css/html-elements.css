@@ -134,6 +134,7 @@ ol, ul {
 
 ul li, ol li {
   list-style-position: outside;
+  list-style-type: circle;
   padding: 0;
   margin: 5px 0;
 }
