@@ -65,7 +65,7 @@
   <?php endif; ?>		
 
   <div id="logo-area" class="clearfix">	    
-    <div id="logo"><a href="<?php print check_url($front_page); ?>" title="<?php print check_plain($site_name); ?>"><img src="<?php print check_url($logo); ?>" alt="<?php print check_plain($site_name); ?>" width="475" height="70" /></a>
+    <div id="logo"><a href="<?php print check_url($front_page); ?>" title="<?php print check_plain($site_name); ?>"><img src="<?php print check_url($logo); ?>" alt="<?php print check_plain($site_name); ?>" width="341" height="79" /></a>
     </div><!--/ #logo -->
     <div id="search_box_top" class="clearfix">
       <?php if ($search_box): ?><?php print $search_box; ?><?php endif; ?>
