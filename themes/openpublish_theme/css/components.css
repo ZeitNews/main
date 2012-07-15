@@ -420,7 +420,7 @@ body.node-type-op-image .body-content .main-image {
 }
 
 .body-content p a, #comments p a, .user-bio p a, .page-user .user-profile p a,
-.body-content ul a, #comments ul a, .user-bio ul a, .page-user .user-profile ul a,
+.body-content li a, #comments li a, .user-bio li a, .page-user .user-profile li a,
 .body-content blockquote a, #comments blockquote a, .user-bio blockquote a, .page-user .user-profile blockquote a,
 .body-content table a, #comments table a, .user-bio table a, .page-user .user-profile table a,
 .node-type-webform .content a,
@@ -2672,6 +2672,10 @@ iframe, object, embed, script {
 	max-width: 620px !important;
   max-height: 620px !important;
 }
+iframe.imce-frame {
+  max-width: none !important;
+  max-height: none !important;
+}
 #container img {
   max-width: 400px !important;
   max-height: 400px !important;
@@ -2688,6 +2692,12 @@ body.node-type-op-image #container .main-image img {
   max-width: none !important;
   max-height: none !important;
   border-radius: 0;
+}
+#container #staff-header img {
+  max-width: 610px !important;
+  max-height: none !important;
+  background-color: #EFEFEF;
+  padding: 5px;
 }
 .comment .content iframe,
 .comment .content object,
@@ -3248,6 +3258,14 @@ html.js input.throbbing {
   float: none !important;
 }
 
+#staff-header {
+  margin: -5px 0 30px 0;
+}
+
+/* CMF in user profile. */
+#node-admin-filter ul li {
+  list-style-type: none;
+}
 
 /* START - Webkit hacks. */
 @media screen and (-webkit-min-device-pixel-ratio:0) {
