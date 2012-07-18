@@ -2315,6 +2315,9 @@ fieldset.group-documentcloud {
   border: none;
   list-style-type: none;
 }
+.sidebar ul.bef-tree-child li {
+  list-style-type: none;
+}
 .sidebar div.bef-checkboxes {
   max-height: 200px;
   overflow: auto;
