@@ -1,0 +1,367 @@
+<?php
+/**
+ * @file
+ * The brain of Menu Cloud.
+ *
+ * Displays a given menu as a Flash-based 3D link cloud.
+ * Based on comulus.module, which is based on WP-Cumulus for WordPress, by Roy Tanck.
+ */
+
+/**
+ * Implementation of hook_enable().
+ */
+function cloudmenu_enable() {
+  drupal_set_message(t('Cloud Menu has now been enabled. You need to !configure the Cloud Menu block settings before you use it.', array('!configure' => l(t('configure and save'), 'admin/build/block'))));
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function cloudmenu_menu() {
+  $items = array();
+  $items['admin/settings/cloudmenu'] = array(
+    'title' => 'CloudMenu',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('cloudmenu_admin_settings'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer blocks'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'cloudmenu.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function cloudmenu_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+    case 'list':
+      for ($delta = 0; $delta < variable_get('cloudmenu_blocks', 1); $delta++) {
+        $settings = variable_get('cloudmenu_block_' . $delta, cloudmenu_defaults($delta));
+        $blocks[$delta]['info'] = $settings['description'];
+        $blocks[$delta]['cache'] = BLOCK_NO_CACHE;
+      }
+      return $blocks;
+
+    case 'configure':
+      return cloudmenu_block_configure($delta);
+
+    case 'save':
+      $settings = array(
+        'description' => $edit['description'],
+        'menu' => $edit['menu'],
+        'step' => $edit['step'],
+        'limit' => $edit['limit'],
+        'flash_width' => $edit['flash_width'],
+        'flash_height' => $edit['flash_height'],
+        'flash_background' => $edit['flash_background'],
+        'flash_transparency' => $edit['flash_transparency'],
+        'flash_color' => $edit['flash_color'],
+        'flash_color2' => $edit['flash_color2'],
+        'flash_hicolor' => $edit['flash_hicolor'],
+        'flash_speed' => $edit['flash_speed'],
+        'flash_distribute' => $edit['flash_distribute'],
+        'flash_font_size' => $edit['flash_font_size'],
+        'flash_font_size_interval' => $edit['flash_font_size_interval']
+      );
+      variable_set('cloudmenu_block_' . $delta, $settings);
+      return;
+
+    case 'view':
+      $settings = variable_get('cloudmenu_block_' . $delta, cloudmenu_defaults());
+      $links = cloudmenu_get_weighted_menu($settings['menu']);
+      $links = array_slice($links, 0, $settings['limit']);
+
+      $tags_formatted_alt = theme('cloudmenu_weighted_alt', $links);
+
+      // Output block HTML
+      $block['subject'] = t('Cloud Menu');
+      $block['content'] = "<div id='cloudmenu-{$delta}'>{$tags_formatted_alt}</div>";
+
+      $js = drupal_get_path('module', 'cloudmenu') .'/cumulus.js';
+      if (file_exists($js)) {
+        drupal_add_js($js, 'module', 'header', FALSE, TRUE, FALSE);
+      }
+      else {
+        drupal_set_message(t('The file @folder is missing. Please download it from !link, and add it to the Cloud Menu module folder!', array('@folder' => $js, '!link' => l('http://pratul.in/files/cumulus.js', 'http://pratul.in/files/cumulus.js'))), 'error');
+      }
+      if (empty($settings['menu'])) {
+        drupal_set_message(t('You haven\'t yet configured and saved the Cloud Menu settings on !link. Cloud Menu might not work properly!', array('!link' => l('your blocks configuration page', 'admin/build/block/configure/cloudmenu/0'))), 'warning');
+      }
+
+      // All settings for all clouds.
+      $params = _cloudmenu_js_settings();
+      drupal_add_js(array('cloudmenu' => $params), 'setting');
+
+      // CloudMenu specific javascript, uses the values set in Drupal.behaviours
+      // in the lines just above.
+      drupal_add_js(drupal_get_path('module', 'cloudmenu') .'/cloudmenu.js', 'module', 'footer', FALSE, TRUE, FALSE);
+
+      return $block;
+  }
+}
+
+/**
+ * Helper that returns all cloudmenu settings for Drupal.behaviours.
+ */
+function _cloudmenu_js_settings() {
+  static $cloudmenu_blocks;
+
+  if (!empty($cloudmenu_blocks)) {
+    return $cloudmenu_blocks;
+  }
+
+  $cloudmenu_blocks = array();
+
+  for ($delta = 0; $delta < variable_get('cloudmenu_blocks', 1); $delta++) {
+    // Fetch settings for the current block.
+    $settings = variable_get('cloudmenu_block_'. $delta, cloudmenu_defaults());
+
+    // Need to get the links for this block. Again. Fail.
+    $links = cloudmenu_get_weighted_menu($settings['menu']);
+    $links = array_slice($links, 0, $settings['limit']);
+
+    // Flash params, will go into drupal.behaviours.
+    $params = array(
+      'delta' => $delta,
+      'path_to_flash' => base_path() . drupal_get_path('module', 'cloudmenu') .'/cumulus.swf',
+      'width' => $settings['flash_width'],
+      'height' => $settings['flash_height'],
+      'background' => $settings['flash_background'],
+      'color' => '0x'. $settings['flash_color'],
+      'color2' => '0x'. $settings['flash_color2'],
+      'hicolor' => '0x'. $settings['flash_hicolor'],
+      'speed' => $settings['flash_speed'],
+      'distribute' => $settings['flash_distribute'],
+      'tags_formatted_flash' => theme('cloudmenu_weighted', $links, $settings),
+    );
+    $cloudmenu_blocks[$delta] = $params;
+  }
+  return $cloudmenu_blocks;
+}
+
+/**
+ * Helper that returns menu items to be displayed in a sorted array.
+ *
+ * menu_tree_page_data() already performs an access check, so we
+ * never have items here that the current user may not access.
+ */
+function cloudmenu_get_weighted_menu($menu) {
+  $items = array();
+
+  $tree = menu_tree_page_data($menu);
+  $items = cloudmenu_tree_output($tree);
+
+  uasort($items, 'cloudmenu_sort_by_depth');
+
+  return $items;
+}
+
+/**
+ * Helper that is a hacked up version of menu_tree_output()
+ * which can traverse menu trees, but doesn't do classes or
+ * theme stuff.
+ */
+function cloudmenu_tree_output($tree) {
+  $links = array();
+  $items = array();
+
+  // Pull out just the menu items we are going to render so that we
+  // get an accurate count for the first/last classes.
+  foreach ($tree as $data) {
+    if (!$data['link']['hidden']) {
+      $items[] = $data;
+    }
+  }
+
+  foreach ($items as $i => $data) {
+    $links[$data['link']['mlid']] = $data['link'];
+    if ($data['below']) {
+      $links += cloudmenu_tree_output($data['below']);
+    }
+  }
+
+  return $links;
+}
+
+/**
+ * Helper that sorts menu tree items by depth.
+ */
+function cloudmenu_sort_by_depth($a, $b) {
+  if ($a['depth'] == $b['depth']) {
+    return 0;
+  }
+  return ($a['depth'] < $b['depth']) ? -1 : 1;
+}
+
+/**
+ * Implementation for hook_theme().
+ */
+function cloudmenu_theme() {
+  return array(
+    'cloudmenu_weighted' => array(
+      'arguments' => array('items' => NULL, $settings => NULL),
+      'file' => 'cloudmenu.theme.inc',
+    ),
+    'cloudmenu_weighted_alt' => array(
+      'arguments' => array('items' => NULL),
+      'file' => 'cloudmenu.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function cloudmenu_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#cloudmenu':
+      $output = '<p>'. t('Cloud Menu allows you to display a menu tree\'s links using a Flash movie that rotates them in 3D. This way, you can set it up as if it were a 3D tag cloud, which is more visually exciting!') .'</p>';
+      $output .= '<p>'.'<strong>'. t('Configuring Cloud Menu: ') .'</strong>'.'<br />';
+      $output .= t('By default, Cloud Menu is rendered as a block. You need to enable and configure that block to see it. If you don\'t configure and save the Cloud Menu block settings once, it will not work! Do that before wondering what\'s wrong :-)') .'</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implementation of hook_configure().
+ */
+function cloudmenu_block_configure($delta) {
+  $settings = variable_get('cloudmenu_block_' . $delta, cloudmenu_defaults($delta));
+    $form['description'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Block description'),
+    '#default_value' => $settings['description'],
+    '#description' => t('A brief description of your block. Used on the <a href="@block-overview-page">block overview page</a>.', array('@block-overview-page' => url('admin/build/block')))
+  );
+  $form['menu'] = array(
+    '#type' => 'select',
+    '#title' => t('Menu'),
+    '#default_value' => $settings['menu'],
+    '#options' => menu_get_menus(TRUE),
+    '#description' => t('The menu whose contents will be displayed as a cloud.'),
+  );
+  $form['step'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Tag size interval'),
+    '#default_value' => $settings['step'],
+    '#maxlength' => 2,
+    '#description' => t('The number of tag sizes you want to use.'),
+  );
+  $form['limit'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of tags to display'),
+    '#default_value' => $settings['limit'],
+    '#maxlength' => 2,
+    '#description' => t('The maximum number of tags that will be displayed.'),
+  );
+  $form['flash_width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Width of cloud menu'),
+    '#default_value' => $settings['flash_width'],
+    '#maxlength' => 3,
+    '#description' => t('The width of the cloud menu in pixels.'),
+  );
+  $form['flash_height'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Height of cloud menu'),
+    '#default_value' => $settings['flash_height'],
+    '#maxlength' => 3,
+    '#description' => t('The height of the cloud menu in pixels.'),
+  );
+  $form['flash_background'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Background color of cloud menu'),
+    '#default_value' => $settings['flash_background'],
+    '#maxlength' => 6,
+    '#description' => t('The hex color value for the background of the cloud menu. E.g. ffffff. If "Background transparency" is enabled, this option will have no effect.'),
+  );
+  $form['flash_transparency'] = array(
+    '#type' => 'select',
+    '#title' => t('Background transparency'),
+    '#default_value' => $settings['flash_transparency'],
+    '#options' => array(
+      'false' => t('no'),
+      'true' => t('yes'),
+    ),
+    '#description' => t('Enabling background transparency might cause issues with some (mostly older) browsers.<br />Under Linux, transparency doesn\'t work at all due to a known limitation in the current Flash player.'),
+  );
+  $form['flash_color'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Font color of cloud menu'),
+    '#default_value' => $settings['flash_color'],
+    '#maxlength' => 6,
+    '#description' => t('The hex color value you would like to use for the tags. E.g. 000000.'),
+  );
+  $form['flash_color2'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Second font color of cloud menu'),
+    '#default_value' => $settings['flash_color2'],
+    '#maxlength' => 6,
+    '#description' => t('Second tag color. If supplied, tags will get a color from a gradient between both colors based on their popularity.'),
+  );
+  $form['flash_hicolor'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Highlight color of cloud menu'),
+    '#default_value' => $settings['flash_hicolor'],
+    '#maxlength' => 6,
+    '#description' => t('The hex color value you would like to use for the tag mouseover/hover color'),
+  );
+  $form['flash_speed'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Rotation speed'),
+    '#default_value' => $settings['flash_speed'],
+    '#maxlength' => 3,
+    '#description' => t('Set the speed of the cloud menu. Options between 25 and 500 work best.'),
+  );
+  $form['flash_distribute'] = array(
+    '#type' => 'select',
+    '#title' => t('Distribute tags evenly on cloud menu'),
+    '#default_value' => $settings['flash_distribute'],
+    '#options' => array(
+      'false' => t('no'),
+      'true' => t('yes'),
+    ),
+    '#description' => t('When enabled, the movie will attempt to distribute the tags evenly over the surface of the cloud menu.'),
+  );
+  $form['flash_font_size'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Font size'),
+    '#default_value' => $settings['flash_font_size'],
+    '#maxlength' => 2,
+    '#description' => t('Set the font size of the tag with the lowest tag-size in pixels (level 1).'),
+  );
+  $form['flash_font_size_interval'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Font size interval'),
+    '#default_value' => $settings['flash_font_size_interval'],
+    '#maxlength' => 1,
+    '#description' => t('Set the font size interval used for the different tag-sizes (level 2 and higher).'),
+  );
+  return $form;
+}
+
+/**
+ * Helper that returns an array of default settings.
+ */
+function cloudmenu_defaults($delta = 0) {
+  return array(
+    'description' => t('CloudMenu: unconfigured @delta', array('@delta' => $delta)),
+    'menu' => '',
+    'step' => 6,
+    'limit' => 24,
+    'flash_width' => 240,
+    'flash_height' => 180,
+    'flash_background' => 'ffffff',
+    'flash_transparency' => false,
+    'flash_color' => '000000',
+    'flash_color2' => 'ff0000',
+    'flash_hicolor' => '666666',
+    'flash_speed' => 220,
+    'flash_distribute' => true,
+    'flash_font_size' => 10,
+    'flash_font_size_interval' => 2,
+  );
+}
+

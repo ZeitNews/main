@@ -1,0 +1,45 @@
+<?php
+/**
+ * @file
+ * The install file for cloudmenu.module
+ */
+
+/**
+ * Implements hook_uninstall()
+ */
+function cloudmenu_uninstall() {
+  db_query("DELETE FROM {variable} WHERE name LIKE 'cloudmenu_%'");
+}
+
+/**
+ * Migrate old style single-block settings to new multi-block arrangement.
+ */
+function cloudmenu_update_6000() {
+  $ret = array();
+
+  $ret[] = array('success' => TRUE, 'query' => t('Reading old style cloudmenu block settings from the database.'));
+  $block = array(
+    'menu' => variable_get('cloudmenu_menu', ''),
+    'step' => variable_get('cloudmenu_step', 6),
+    'limit' => variable_get('cloudmenu_limit', 12),
+    'flash_width' => variable_get('cloudmenu_flash_width', 1),
+    'flash_height' => variable_get('cloudmenu_flash_height', 1),
+    'flash_background' => variable_get('cloudmenu_flash_background', 'ffffff'),
+    'flash_color' => '0x'. variable_get('cloudmenu_flash_color', '000000'),
+    'flash_color2' => '0x'. variable_get('cloudmenu_flash_color2', 'ff0000'),
+    'flash_hicolor' => '0x'. variable_get('cloudmenu_flash_hicolor', '666666'),
+    'flash_speed' => variable_get('cloudmenu_flash_speed', 220),
+    'flash_distribute' => variable_get('cloudmenu_flash_distribute', 'true'),
+    'flash_font_size' => variable_get('cloudmenu_flash_font_size', 10),
+    'flash_font_size_interval' => variable_get('cloudmenu_flash_font_size_interval', 2),
+  );
+
+  // Delete the old settings.
+  $ret[] = array('success' => TRUE, 'query' => t('Removing old style cloudmenu block settings from the database.'));
+  db_query("DELETE FROM {variable} WHERE name LIKE 'cloudmenu_%'");
+
+  variable_set('cloudmenu_block_0', $block);
+  $ret[] = array('success' => TRUE, 'query' => t('Saved original cloud menu block settings to new style.'));
+
+  return $ret;
+}

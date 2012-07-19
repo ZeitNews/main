@@ -2716,7 +2716,8 @@ body.node-type-op-image #container .main-image img {
 table.cke_editor iframe,
 table.cke_editor object,
 table.cke_editor embed,
-table.cke_editor script {
+table.cke_editor script,
+embed#cumulusflash {
 	max-width: none !important;
   max-height: none !important;
 }
@@ -3268,6 +3269,12 @@ html.js input.throbbing {
 /* CMF in user profile. */
 #node-admin-filter ul li {
   list-style-type: none;
+}
+
+/* CloudMenu spacing. */
+#cloudmenu-0 embed#cumulusflash {
+  position: relative;
+  top: -37px;
 }
 
 /* START - Webkit hacks. */

@@ -1,0 +1,10 @@
+name = Cloud Menu
+description = Displays a given menu as a Flash-based 3D link cloud.
+core = 6.x
+
+; Information added by drupal.org packaging script on 2012-04-25
+version = "6.x-2.0-beta1"
+core = "6.x"
+project = "cloudmenu"
+datestamp = "1335312681"
+
