@@ -3273,8 +3273,7 @@ html.js input.throbbing {
 
 /* CloudMenu spacing. */
 #cloudmenu-0 embed#cumulusflash {
-  position: relative;
-  top: -37px;
+  margin-top: -42px;
 }
 
 /* START - Webkit hacks. */
