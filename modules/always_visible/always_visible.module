@@ -1,0 +1,46 @@
+<?php
+//largely based on http://drupal.org/node/300607#comment-2805992
+
+/**
+* Implementation of hook_form_alter()
+**/
+function always_visible_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'menu_edit_item' || $form_id == 'og_menu_edit_item_form') {
+    $form['menu']['always_visible'] = array(
+      '#title' => t('Always show this menu item.'),
+      '#type' => 'checkbox',
+      '#weight' => '0',
+      '#default_value' => $form['menu']['options']['#value']['always_visible'],
+    );
+  array_unshift($form['#submit'], 'always_visible_menu_edit_form_submit');
+  }
+}
+
+
+function always_visible_menu_edit_form_submit($form, &$form_state) {
+  $menu =& $form_state['values']['menu'];
+  if ($menu['always_visible']) {
+    $menu['options']['always_visible'] = 1;
+    $menu['options']['alter'] = 1;
+  }
+  else {
+    $menu['options']['always_visible'] = 0;
+    $menu['options']['alter'] = 0;
+  }
+}
+
+/**
+* Implementation of hook_translated_menu_link_alter().
+*/
+function always_visible_translated_menu_link_alter(&$item, $map) {
+  if ($item['options']['always_visible'] == TRUE) {
+    $item['access'] = TRUE;
+    $item['title'] = $item['link_title'];
+    if ( isset($item['localized_options']['attributes']['class']) ) {
+      $item['localized_options']['attributes']['class'] .= ' restricted';
+    }
+    else {
+      $item['localized_options']['attributes']['class'] = 'restricted';
+    }
+  }
+}

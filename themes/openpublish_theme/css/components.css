@@ -3275,6 +3275,16 @@ html.js input.throbbing {
 #cloudmenu-0 embed#cumulusflash {
   margin-top: -42px;
 }
+/* Cloudmenu - no JS or Flash styling. */
+#cloudmenu-0 a {
+  color: #333333;
+  display: list-item;
+  font-size: 1.2em;
+  line-height: 1.7em;
+  list-style-type: disc;
+  margin-left: 15px;
+  padding-bottom: 5px;
+}
 
 /* START - Webkit hacks. */
 @media screen and (-webkit-min-device-pixel-ratio:0) {
