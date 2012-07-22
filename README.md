@@ -6,7 +6,7 @@
 
 ## Get Involved
 
-__Current site version:__ _0.9_
+__Current site version:__ _1.0_
 
 __TODO:__ _We are currently in the process of moving off Joomla! to Drupal._
 
