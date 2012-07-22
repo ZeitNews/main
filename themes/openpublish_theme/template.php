@@ -250,7 +250,7 @@ function openpublish_theme_preprocess_views_view_row_rss__feed(&$vars) {
   //$node = menu_get_object('node', 1, 'node/' . $vars['row']->nid);
   
   if ($node->field_thumbnail_image[0]['filepath']) {
-    $vars['node_teaser_image'] = l(theme('imagecache', 'teaser_image_rss', $node->field_thumbnail_image[0]['filepath'], $node->title, $node->title, array('height' => 180, 'width' => 180, 'align' => right, 'hspace' => 10, 'vspace' => 10, 'border' => 0)), 'node/' . $node->nid, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
+    $vars['node_teaser_image'] = l(theme('imagecache', 'teaser_image_rss', $node->field_thumbnail_image[0]['filepath'], $node->title, $node->title, array('height' => 180, 'width' => 180, 'align' => right, 'hspace' => 10, 'vspace' => 10, 'border' => 0, 'style' => 'float:right !important;padding:5px 0 5px 5px !important;')), 'node/' . $node->nid, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
   }
   
   $vars['node_deck'] = $node->field_deck[0]['value'];

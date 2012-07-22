@@ -26,7 +26,7 @@
         <sub><strong>Event Date:</strong> <?php print $event_date; ?></sub>
       <?php endif; ?>
       
-      <p><?php print $node_teaser; ?></p>
+      <p><?php print $node_teaser; ?></p><p style="clear:both !important;margin-bottom:1em !important;">&nbsp;</p>
 
       <?php //$row->readmore = FALSE; ?>
     ]]></description>

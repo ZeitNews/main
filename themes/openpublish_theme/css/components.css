@@ -1925,6 +1925,7 @@ div.audio-embed-code p {
 /* Spaces file attachment, related content fieldsets. */
 .body-content fieldset {
   margin: 2em 0;
+  clear: both;
 }
 
 /* Clean up of Filefield items. */
