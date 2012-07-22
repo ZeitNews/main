@@ -404,19 +404,17 @@ body.node-type-op-image .body-content .main-image {
 .body-content a:hover,
 #comments a:hover,
 .user-bio a:hover,
-.page-user .user-profile p a:hover, .page-user .user-profile ul a:hover, .page-user .user-profile blockquote a:hover {
+.page-user .user-profile p a:hover,
+.page-user .user-profile ul a:hover,
+.page-user .user-profile blockquote a:hover,
+.node-type-webform .content a:hover,
+#contact-mail-page a:hover {
   text-decoration: none;
   color: #666666;
 }
 .body-content .related-terms a:hover {
   text-decoration: underline;
   color: #666666;
-}
-
-.node-type-webform .content a:hover,
-#contact-mail-page a:hover {
-  text-decoration: none;
-  color: #000000;
 }
 
 .body-content p a, #comments p a, .user-bio p a, .page-user .user-profile p a,
