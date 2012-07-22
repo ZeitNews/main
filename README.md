@@ -14,7 +14,7 @@ There are two different levels on which you can get involved. First is on a desi
 
 On a second level, for those who aren't designers or developers, you can contribute by helping with general administration of the website. Things like moderating comments, managing advertisements and menus, etc.. This requires some experience with a website CMS (Joomla, Wordpress, Drupal, etc.). You don't have to be concerned with points 4 and 5 in the list below.
 
-1. Please [drop us a line](http://www.zeitnews.org/contact-us.html?view=rsform) to get in touch with the lead developer. We'll provide some necessary files you'll need to get started.
+1. Please [drop us a line](http://www.zeitnews.org/contact) to get in touch with the lead developer. We'll provide some necessary files you'll need to get started.
 
 2. Read the [User Guide](https://github.com/ZeitNews/main/wiki/User-Guide). In particular, the [Development section](https://github.com/ZeitNews/main/wiki/Development) for designers and devs, and the [Administration section](https://github.com/ZeitNews/main/wiki/Administration) for administrators.
 
