@@ -50,7 +50,7 @@ html[xmlns] .clearfix {
 
 .messages, .preview { margin: .75em 0; padding: .5em 1em; }
 .messages      { background-color: #fff; border: 1px solid #C7F2C8; }
-.messages ul   { margin: 0; }
+.messages ul   { margin: 0 15px; }
 .preview       { background-color: #fcfce8; border: 1px solid #e5e58f; }
 .preview .node { background-color: #fcfce8; }
 

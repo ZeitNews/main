@@ -1877,9 +1877,9 @@ div.audio-embed-code {
 }
 div.video-embed-code p,
 div.audio-embed-code p {
-  text-align: center;
+  text-align: center !important;
   margin: 0 auto !important;
-  padding: 0;
+  padding: 0 !important;
   line-height: 0 !important; /* This solves the CCK field <p> problem. */
 }
 .video-embed-code iframe,
@@ -3195,6 +3195,9 @@ html.js input.throbbing {
 .body-content p,
 .body-content strong {
   line-height: 1.7em !important;
+}
+.body-content p {
+  font-size: 1.2em !important;
 }
 .body-content .image-caption-left p,
 .body-content .image-caption-right p {
