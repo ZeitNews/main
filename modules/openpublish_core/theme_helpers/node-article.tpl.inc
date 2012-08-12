@@ -28,7 +28,11 @@ function openpublish_node_article_preprocess(&$vars) {
     $vars['main_image_credit'] = $vars['field_main_image_credit'][0]['view'];
     $main_image_title  = $vars['field_main_image'][0]['data']['title'];
     $main_image_desc = $vars['field_main_image'][0]['data']['description'];
-    $vars['main_image'] = theme('imagecache', 'body_image', $vars['field_main_image'][0]['filepath'], $main_image_title, $main_image_title);
+    if ($vars['field_main_image_link'][0]['value'] == '1') {
+      $vars['main_image'] = theme('imagecache_imagelink', 'body_image', $vars['field_main_image'][0]['filepath'], $vars['field_main_image_credit'][0]['view'], 'Click to enlarge.', $attributes = NULL);
+    } else {
+      $vars['main_image'] = theme('imagecache', 'body_image', $vars['field_main_image'][0]['filepath'], $vars['field_main_image_credit'][0]['view'], $title = '', $attributes = NULL, $getsize = TRUE, $absolute = TRUE);
+    }
   }
   
   // Used for the format_plural

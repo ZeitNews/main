@@ -15,9 +15,6 @@ function imagecache_insert_styles() {
     $insert_styles['imagecache_' . $preset['presetname']] = array(
       'label' => t($preset['presetname']),
     );
-    $insert_styles['imagecache_' . $preset['presetname'] . '___link'] = array(
-      'label' => t("@preset - linked to full-size image", array('@preset' => $preset['presetname'])),
-    );
   }
   return $insert_styles;
 }
@@ -27,20 +24,7 @@ function imagecache_insert_styles() {
  */
 function imagecache_insert_content($item, $style, $widget) {
   $preset_name = preg_replace('/^imagecache_/', '', $style['name']);
-  $linkpos = strpos($preset_name, '___link');
-  if ($linkpos > 0) {
-    $preset_name = substr($preset_name, 0, $linkpos);
-  }
-  $img = theme(array('imagecache_insert_image__' . str_replace('-', '_', $preset_name), 'imagecache_insert_image'), $item, $widget, $preset_name);
-
-  if ($linkpos > 0) {
-    return l($img, insert_create_url($item['filepath']), array(
-        'html' => TRUE,
-        'attributes' => array('class' => $style['name']),
-      ));
-  }
-
-  return $img;
+  return theme(array('imagecache_insert_image__' . str_replace('-', '_', $preset_name), 'imagecache_insert_image'), $item, $widget, $preset_name);
 }
 
 /**

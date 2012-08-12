@@ -19,6 +19,8 @@ stylesheets[all][]   = css/components.css
 ; Print-version styles
 stylesheets[print][] = css/print.css
 
+; jQuery Lightbox Plugin 0.5
+stylesheets[all][] = js/jquery.fancybox-1.3.4/fancybox/jquery.fancybox-1.3.4.yui.css
 
 ; The regions for page-level tpl files, like: page.tpl.php, page-front.tpl.php etc.
 ; The name in the brackets is the name of the variable you can use in the tpl file. 
@@ -40,6 +42,9 @@ features[] = favicon
 
 scripts[] = js/jquery.easing.1.3.js
 scripts[] = js/openpublish_theme.js
+scripts[] = js/jquery.fancybox-1.3.4/fancybox/jquery.fancybox-1.3.4.ugly.js
+scripts[] = js/jquery.expander-1.4.3.ugly.js
+scripts[] = js/jquery.unwrap.min.js
 
 ; Information added by drupal.org packaging script on January 1, 1970 - 00:00
 version = "6.x-1.19"

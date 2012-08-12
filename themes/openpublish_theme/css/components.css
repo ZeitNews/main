@@ -513,7 +513,12 @@ body.node-type-op-image .body-content .main-image {
   font-size: .917em; 
   color: #666;
   }
-  
+/* For Safari mainly. */
+.main-image-credit {
+  float: left;
+  clear: left;
+  line-height: 14px;
+}
 body.node-type-op-image .image-credit {
   padding-top: 10px;
 }
@@ -1846,11 +1851,11 @@ div.galleria-thumbnails-list {
 }
 .media_embed {
 	background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 0px 10px 25px;
+  margin: 10px 25px 25px 0px;
 	padding: 5px;
-  float: right !important;
-	max-width: 400px !important;
-  max-height: 225px !important;
+  float: left !important;
+	max-width: 610px !important;
+  max-height: 343px !important;
   border-radius: 2px;
 }
 .media_embed p,
@@ -1864,6 +1869,7 @@ div.video-embed-code {
   padding: 5px;
   background: none repeat scroll 0 0 #EFEFEF;
   border-radius: 2px;
+  line-height: 0; /* This solves if there's no CCK field <p> problem. */
 }
 div.video-embed-code iframe {
   border-radius: 0;
@@ -1874,6 +1880,7 @@ div.audio-embed-code {
   background: none repeat scroll 0 0 #EFEFEF;
   border-radius: 2px;
   clear: left;
+  line-height: 0;
 }
 div.video-embed-code p,
 div.audio-embed-code p {
@@ -1908,10 +1915,10 @@ div.audio-embed-code p {
 /* For inserted tables in node bodies. */
 .body-content table {
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 0px 10px 25px;
+  margin: 10px 25px 10px 0px;
   padding: 5px;
-  float: right !important;
-  max-width: 400px !important;
+  float: left !important;
+  max-width: 610px !important;
 }
 /* Corrections on Documentcloud table due to above. */
 .body-content .field-type-document-cloud-doc table {
@@ -2656,8 +2663,8 @@ h2 a:link, h2 a:hover, h3 a:active, h3 a:visited {
 
 /* Cap all embeds and images at a specific size. */
 iframe, object, embed, script {
-	max-width: 400px !important;
-  max-height: 225px !important;
+	max-width: 610px !important;
+  max-height: 343px !important;
   border-radius: 2px;
 }
 .video-embed-code iframe,
@@ -2679,8 +2686,8 @@ iframe.imce-frame {
   max-height: none !important;
 }
 #container img {
-  max-width: 400px !important;
-  max-height: 400px !important;
+  max-width: 610px !important;
+  max-height: 610px !important;
 }
 #container .body-content img.full-width-image {
 	max-width: 610px !important;
@@ -2733,7 +2740,7 @@ a {
   background: #EFEFEF;
   border-radius: 2px;
   display: block;
-  max-width: 400px; /* This matches #container img having a 400px max-width. */
+  max-width: 610px; /* This matches #container img having a 610px max-width. */
 }
 .comment .content .image-caption-container {
   max-width: 270px !important; /* This matches #container .comment .content img having a 270px max-width. */
@@ -2753,10 +2760,19 @@ a {
   padding: 0;
   border-radius: 0;
 }
+.body-content .main-image-credit a,
 .body-content .image-caption-container a,
 .body-content .image-caption-container-full-width a,
 .comment .content .image-caption-container a {
   text-decoration: none;
+  color: #46607B;
+}
+.body-content .main-image-credit a:hover,
+.body-content .image-caption-container a:hover,
+.body-content .image-caption-container-full-width a:hover,
+.comment .content .image-caption-container a:hover {
+  text-decoration: underline;
+  color: #46607B;
 }
 .image-caption-container .caption,
 .image-caption-container-full-width .caption {
@@ -2771,7 +2787,7 @@ a {
   display: block;
 }
 .image-caption-container .caption {
-  max-width: 400px; /* This matches #container img having a 400px max-width. */
+  max-width: 610px; /* This matches #container img having a 610px max-width. */
 }
 .image-caption-container-full-width .caption {
   max-width: 610px; /* This matches #container .body-content img.full-width-image having a 610px max-width. */
@@ -3101,7 +3117,7 @@ html.js input.throbbing {
   margin: 10px 25px 10px 0;
   padding: 5px;
   border-radius: 2px;
-  max-width: 400px; /* This matches #container img having a 400px max-width. */
+  max-width: 610px; /* This matches #container img having a 610px max-width. */
 }
 .image-caption-right {
   float: right;
@@ -3109,7 +3125,7 @@ html.js input.throbbing {
   margin: 10px 0 10px 25px; 
   padding: 5px;
   border-radius: 2px;
-  max-width: 400px; /* This matches #container img having a 400px max-width. */
+  max-width: 610px; /* This matches #container img having a 610px max-width. */
 }
 .body-content .image-caption-left img,
 .body-content .image-caption-right img {
@@ -3136,7 +3152,7 @@ html.js input.throbbing {
   color: #666 !important;
   background: #EFEFEF;
   line-height: 1.6em;
-  max-width: 400px; /* This matches #container img having a 400px max-width. */
+  max-width: 610px; /* This matches #container img having a 610px max-width. */
   display: block; /* Fix caption position due to bad span styling. */
 }
 .image-caption-left p {
@@ -3220,9 +3236,19 @@ html.js input.throbbing {
   font-size: 1em !important;
 }
 .body-content .image-caption-container .caption,
-.body-content .image-caption-container-full-width .caption {
+.body-content .image-caption-container-full-width .caption,
+.body-content .image-caption-container .caption span,
+.body-content .image-caption-container-full-width .caption span {
   font-family: Arial,Helvetica,sans-serif !important;
   font-size: 0.7em !important;
+}
+.body-content .image-caption-container .caption span.read-more,
+.body-content .image-caption-container .caption span.read-less,
+.body-content .image-caption-container .caption span.details,
+.body-content .image-caption-container-full-width .caption span.read-more,
+.body-content .image-caption-container-full-width .caption span.read-less,
+.body-content .image-caption-container-full-width .caption span.details {
+  font-size: 1em !important;
 }
 .body-content h2 span {
   font-family: Georgia,"Times New Roman",serif !important;
@@ -3286,6 +3312,11 @@ html.js input.throbbing {
   list-style-type: disc;
   margin-left: 15px;
   padding-bottom: 5px;
+}
+
+/* Editors misusing br's. */
+.body-content br {
+  display: none !important;
 }
 
 /* START - Webkit hacks. */

@@ -4,11 +4,15 @@
  * Preprocess variables for node-page.tpl.php
  */
 function openpublish_node_page_preprocess(&$vars) {
-  // Main image
+  // Main Image
   if ($vars['field_main_image'][0]['filepath']) {
     $vars['main_image_credit'] = $vars['field_main_image_credit'][0]['view'];
-    $vars['main_image_title']  = $vars['field_main_image'][0]['data']['title'];
-    $vars['main_image_desc'] = $vars['field_main_image'][0]['data']['description'];
-    $vars['main_image'] = theme('imagecache', 'body_image',$vars['field_main_image'][0]['filepath'], $vars['main_image_title'], $vars['main_image_title']);  
-  }  
+    $main_image_title  = $vars['field_main_image'][0]['data']['title'];
+    $main_image_desc = $vars['field_main_image'][0]['data']['description'];
+    if ($vars['field_main_image_link'][0]['value'] == '1') {
+      $vars['main_image'] = theme('imagecache_imagelink', 'body_image', $vars['field_main_image'][0]['filepath'], $vars['field_main_image_credit'][0]['view'], 'Click to enlarge.', $attributes = NULL);
+    } else {
+      $vars['main_image'] = theme('imagecache', 'body_image', $vars['field_main_image'][0]['filepath'], $vars['field_main_image_credit'][0]['view'], $title = '', $attributes = NULL, $getsize = TRUE, $absolute = TRUE);
+    }
+  }
 }
