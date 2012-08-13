@@ -19,9 +19,6 @@ stylesheets[all][]   = css/components.css
 ; Print-version styles
 stylesheets[print][] = css/print.css
 
-; jQuery Lightbox Plugin 0.5
-stylesheets[all][] = js/jquery.fancybox-1.3.4/fancybox/jquery.fancybox-1.3.4.yui.css
-
 ; The regions for page-level tpl files, like: page.tpl.php, page-front.tpl.php etc.
 ; The name in the brackets is the name of the variable you can use in the tpl file. 
 ; The text after the equal sign ("=") is the huma-friendly name of the region that 

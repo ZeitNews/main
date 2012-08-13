@@ -588,3 +588,6 @@ function openpublish_theme_preprocess_views_view_field__author_biography__block_
   }
   $vars['fields_of_expertise'] = implode(', ', $fields_of_expertise);
 }
+
+// For fancybox jQuery plugin's CSS file. It can't be aggregated - won't work.
+drupal_add_css(path_to_theme() . '/js/jquery.fancybox-1.3.4/fancybox/jquery.fancybox-1.3.4.yui.css','theme', 'all', FALSE);
