@@ -60,7 +60,7 @@ function openpublish_core_init() {
      array("#block-views-most_commented_blogs-block_1", "#block-views-most_viewed_by_node_type-block"),
      array("#block-views-most_commented_articles-block_1", "#block-views-most_viewed_by_node_type-block"),
      array("#block-views-most_commented_articles-block_2", "#block-views-most_viewed_multimedia-block"),
-   );
+    );
    drupal_add_js(array('combineBlocks'=>$combineBlocks), 'setting');
 
 }

@@ -1851,12 +1851,13 @@ div.galleria-thumbnails-list {
 }
 .media_embed {
 	background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 25px 25px 0px;
+  margin: 10px 25px 10px 0px;
 	padding: 5px;
   float: left !important;
 	max-width: 610px !important;
   max-height: 343px !important;
   border-radius: 2px;
+  line-height: 0px !important;
 }
 .media_embed p,
 .media_embed span,
@@ -1962,11 +1963,12 @@ div.field-field-audio-file {
 .flowplayer #audiofield_api {
   width: 610px;
 }
-.flowplayer object,
-.flowplayer embed,
-.flowplayer script,
-.flowplayer iframe {
+.body-content .flowplayer object,
+.body-content .flowplayer embed,
+.body-content .flowplayer script,
+.body-content .flowplayer iframe {
   max-width: 610px !important;
+  padding: 0px !important;
 }
 div.audio-download {
   margin-top: 0.5em;
@@ -2053,6 +2055,7 @@ fieldset.group-documentcloud {
 #comments {
   margin-top: 0;
   padding-top: 2em;
+  clear: left;
 }
 /* Remove underline from Add comment "button".*/
 #comments div#add-comment a {
@@ -2084,6 +2087,7 @@ fieldset.group-documentcloud {
   max-width: 270px !important;
   max-height: 150px !important;
   border-radius: 2px;
+  line-height: 0px !important;
 }
 /* OLD: P changed to just blend into other p's. */
 .comment .content .media_embed p,
@@ -2667,19 +2671,33 @@ iframe, object, embed, script {
   max-height: 343px !important;
   border-radius: 2px;
 }
-.video-embed-code iframe,
-.video-embed-code object,
-.video-embed-code embed,
-.video-embed-code script,
-.audio-embed-code iframe {
+.body-content iframe,
+.body-content object,
+.body-content script {
+  padding: 10px 0 25px 0; /* Editors not using .media_embed button. */
+}
+.body-content .video-embed-code iframe,
+.body-content .video-embed-code object,
+.body-content .video-embed-code embed,
+.body-content .video-embed-code script,
+.body-content .audio-embed-code iframe {
 	max-width: 610px !important;
   max-height: 610px !important;
+  min-width: 610px !important;
+  padding: 0px;
 }
-.audio-embed-code object,
-.audio-embed-code embed,
-.audio-embed-code script {
+.body-content .audio-embed-code object,
+.body-content .audio-embed-code embed,
+.body-content .audio-embed-code script {
 	max-width: 620px !important;
   max-height: 620px !important;
+  padding: 0px;
+}
+.body-content .media_embed iframe,
+.body-content .media_embed object,
+.body-content .media_embed embed,
+.body-content .media_embed script {
+  padding: 0px;
 }
 iframe.imce-frame {
   max-width: none !important;
@@ -2714,6 +2732,16 @@ body.node-type-op-image #container .main-image img {
 .comment .content script {
   max-width: 270px !important;
   max-height: 150px !important;
+}
+.comment .content iframe,
+.comment .content object,
+.comment .content script {
+  padding: 10px 0 25px 0; /* When not using .media_embed button. */
+}
+.comment .content .media_embed iframe,
+.comment .content .media_embed object,
+.comment .content .media_embed script {
+  padding: 0px;
 }
 #container .comment .content img {
   max-width: 270px !important;

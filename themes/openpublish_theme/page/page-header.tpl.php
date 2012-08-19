@@ -17,7 +17,7 @@
      xmlns:ctag="http://commontag.org/ns#"
      xmlns:foaf="http://xmlns.com/foaf/0.1/"      
      xmlns:v="http://rdf.data-vocabulary.org/#"
-     xmlns:fb="http://www.facebook.com/2008/fbml"
+     xmlns:fb="http://ogp.me/ns/fb#"
      lang="<?php print $language->language; ?>" 
      dir="<?php print $language->dir; ?>"
      version="XHTML+RDFa 1.0" >

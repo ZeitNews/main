@@ -58,33 +58,38 @@ $('#op-content img').each(function() {
   }
 });
 
-// Creates :parents filter. http://stackoverflow.com/a/965962/1055558
+// Creates :parents filter. Filter any level parent. http://stackoverflow.com/a/965962/1055558
 jQuery.expr[':'].parents = function(a,i,m){
   return jQuery(a).parents(m[3]).length < 1;
 };
 
 // Set fancybox class and rel attributes for images linked to images in .body-content, including main-image.
-$('.body-content img').filter(':parents(.views-slideshow-galleria)').each(function() {
-  // Does the img element have an <a> parent?
-  if ($(this).closest('a').length > 0) {
-    // Does the <a> parent link to an image? If so, add the fancybox class and rel.
-    $(this).closest('a')
-      .filter(function(){
-        return /(jpe?g|png|gif)$/i.test($(this).attr('href'));
-      })
-      .addClass('fancybox').attr('rel', 'gallery')
-    ;
-    // Does the image have a .fancybox class (is it an image link)?
-    if ($(this).closest('a').hasClass('fancybox')) {
-      if ($(this).hasClass('caption')) {
-        // Get title (explicit caption, if exists)
-        var title = $(this).attr('title');
-        // and assign to alt for fancybox use.
-        $(this).attr('alt', title);
+// Also combat image theft.
+$('.body-content img').filter(':parents(.views-slideshow-galleria, .fieldgroup)').each(function() {
+  if (/zeitnews/i.test($(this).attr('src'))) {
+    // Does the img element have an <a> parent?
+    if ($(this).closest('a').length > 0) {
+      // Does the <a> parent link to an image? If so, add the fancybox class and rel.
+      $(this).closest('a')
+        .filter(function(){
+          return /(jpe?g|png|gif)$/i.test($(this).attr('href'));
+        })
+        .addClass('fancybox').attr('rel', 'gallery')
+      ;
+      // Does the image have a .fancybox class (is it an image link)?
+      if ($(this).closest('a').hasClass('fancybox')) {
+        if ($(this).hasClass('caption')) {
+          // Get title (explicit caption, if exists)
+          var title = $(this).attr('title');
+          // and assign to alt for fancybox use.
+          $(this).attr('alt', title);
+        }
+        // Set informative hover title for fancybox images.
+        $(this).attr('title', 'Click to enlarge.');
       }
-      // Set informative hover title for fancybox images.
-      $(this).attr('title', 'Click to enlarge.');
     }
+  } else {
+    $(this).attr('src', '/sites/all/themes/openpublish_theme/images/hijack.jpg')
   }
 });
 
@@ -105,7 +110,7 @@ $('a.fancybox').each(function() {
   // For title and pager for Fancybox titleFormat setting.
   function formatTitle(title, currentArray, currentIndex, currentOpts) {
     if (title && title.length) {
-      return '<div id="fancybox-title-over"><strong style="display:block;padding-bottom:5px;line-height:1.4em;">' + title + '</strong>' + (currentArray.length > 1 ? 'Image ' + (currentIndex + 1) + ' of ' + currentArray.length : '') + '</div>';
+      return '<div id="fancybox-title-over"><span style="display:block;line-height:1.4em;font-weight:bold;">' + title + '</span>' + (currentArray.length > 1 ? '<span style="display:block;padding-top:5px;">Image ' + (currentIndex + 1) + ' of ' + currentArray.length + '</span>' : '') + '</div>';
     }
     return (currentArray.length > 1 ? '<div id="fancybox-title-over">Image ' + (currentIndex + 1) + ' of ' + currentArray.length + '</div>' : '');
   }
@@ -143,4 +148,8 @@ $('div.body-content span.main-image-credit, div.body-content span.caption').expa
   userCollapseText: '« less'
 });
 
+// Make sure floated .media_embed has div parent with overflow:hidden property for fieldset crowding.
+$('.body-content .media_embed').wrap('<div style="overflow:hidden"/>');
+
+// END
 };
