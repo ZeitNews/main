@@ -2710,6 +2710,7 @@ iframe.imce-frame {
 #container .body-content img.full-width-image {
 	max-width: 610px !important;
   max-height: 610px !important;
+  min-width: 610px !important; /* Due to size requirement removal and need to enforce width. */
 }
 body.node-type-op-image #container .main-image img {
   max-width: 960px !important;
@@ -2779,7 +2780,8 @@ a {
   background: #EFEFEF;
   border-radius: 2px;
   display: block;
-  max-width: 610px; /* This matches #container .body-content img.full-width-image having a 610px max-width. */
+  max-width: 610px !important; /* This matches #container .body-content img.full-width-image having a 610px max-width. */
+  min-width: 610px !important; /* Due to size requirement removal and need to enforce width. */
 }
 .body-content .image-caption-container img,
 .body-content .image-caption-container-full-width img,
@@ -2818,7 +2820,8 @@ a {
   max-width: 610px; /* This matches #container img having a 610px max-width. */
 }
 .image-caption-container-full-width .caption {
-  max-width: 610px; /* This matches #container .body-content img.full-width-image having a 610px max-width. */
+  max-width: 610px !important; /* This matches #container .body-content img.full-width-image having a 610px max-width. */
+  min-width: 610px !important; /* Due to size requirement removal and need to enforce width. */
 }
 .comment .content .image-caption-container .caption {
   max-width: 270px; /* This matches #container .comment .content img having a 270px max-width. */
