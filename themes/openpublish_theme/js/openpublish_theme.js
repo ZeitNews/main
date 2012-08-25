@@ -151,5 +151,8 @@ $('div.body-content span.main-image-credit, div.body-content span.caption').expa
 // Make sure floated .media_embed has div parent with overflow:hidden property for fieldset crowding.
 $('.body-content .media_embed').wrap('<div style="overflow:hidden"/>');
 
+// One carriage return in plain text editors makes a break, resulting in commenters making bad spacing.
+$('.comment .content p br').replaceWith('<span class="break"></span>');
+
 // END
 };

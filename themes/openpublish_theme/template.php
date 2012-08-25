@@ -278,7 +278,7 @@ function openpublish_theme_preprocess_views_view_row_rss__feed(&$vars) {
     $vars['author_check'] = 'yes';
   }
   
-  $vars['node_teaser'] = strip_tags($node->teaser) . ' ' . l(t('More') . ' &raquo;', 'node/' . $node->nid, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
+  $vars['node_teaser'] = truncate_utf8(strip_tags($node->body), 400, TRUE, FALSE) . '... ' . l(t('More') . ' &raquo;', 'node/' . $node->nid, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
 }
 
 /**

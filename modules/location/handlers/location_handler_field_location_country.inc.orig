@@ -18,16 +18,13 @@ class location_handler_field_location_country extends views_handler_field {
     $form['style'] = array(
       '#title' => t('Display style'),
       '#type' => 'select',
-      '#options' => array('name' => t('Country name'), 'code_low' => t('country code'), 'code' => t('COUNTRY CODE')),
+      '#options' => array('name' => t('Country name'), 'code' => t('Country code')),
       '#default_value' => $this->options['style'],
     );
   }
 
   function render($values) {
-    if ($this->options['style'] == 'code_low') {
-      return check_plain($values->{$this->field_alias});
-    }
-    else if ($this->options['style'] == 'name') {
+    if ($this->options['style'] == 'name') {
       return check_plain(location_country_name($values->{$this->field_alias}));
     }
     else {

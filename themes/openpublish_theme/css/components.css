@@ -855,9 +855,13 @@ min-width:220px;
 }
 
 .views-field-field-teaser-value p {
+  font-family: Georgia,"Times New Roman",serif;
   margin-bottom: 0;
   font-size: 1em;
   line-height: 1.45em;
+}
+.topichubs-layout-wrapper .views-field-field-teaser-value p {
+  line-height: 1.2em;
 }
 
 .views-exposed-form .views-exposed-widget .form-submit {
@@ -2314,6 +2318,7 @@ fieldset.group-documentcloud {
 .sidebar ul.bef-tree {
   max-height: 200px;
   padding: 0 0.5em 0.5em 0.5em;
+  overflow: auto;
 }
 .sidebar ul.bef-tree-child {
   margin-bottom: 0;
@@ -3348,6 +3353,11 @@ html.js input.throbbing {
 /* Editors misusing br's. */
 .body-content br {
   display: none !important;
+}
+/* Commenter's misusing plain-text p spacing. */
+.break {
+  display: block;
+  padding-bottom: 0.5em;
 }
 
 /* START - Webkit hacks. */
