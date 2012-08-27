@@ -4,7 +4,7 @@
 Drupal.behaviors.openpublish = function(context) {
   
 // Focus cursor into username field for login.
-$('#edit-name').focus();
+$('#user-register #edit-name, #user-login #edit-name, #user-pass #edit-name').focus();
 
 // Fade out distracting social media icons slightly.
 // http://cssbeauty.com/skillshare/discussion/1593/#Item_5
@@ -153,6 +153,52 @@ $('.body-content .media_embed').wrap('<div style="overflow:hidden"/>');
 
 // One carriage return in plain text editors makes a break, resulting in commenters making bad spacing.
 $('.comment .content p br').replaceWith('<span class="break"></span>');
+
+// Only way I could fix spacing on topic hub slider when no image caption is present.
+if (!$('.term-page-slideshow-credit').length) {
+  $('div.views_slideshow_main').css({'margin-bottom' : '23px'});
+}
+
+// Highlight active exposed filters.
+// Title
+if (!!$('input#edit-title').attr('value')) {
+  $('label[for="edit-title"]').css({'color' : '#46607B', 'font-style' : 'italic'});
+}
+// Date
+if (!!$('.views-widget-filter-date_filter input').attr('value')) {
+  $('.views-widget-filter-date_filter').children('label').css({'color' : '#46607B', 'font-style' : 'italic'});
+}
+// Type
+if ($('.views-widget-filter-type .bef-checkboxes').find('input[checked]').length) {
+  $('label[for="edit-type"]').css({'color' : '#46607B', 'font-style' : 'italic'});
+  $('.views-widget-filter-type legend a:link, .views-widget-filter-type legend a:visited').css({'color' : '#46607B', 'font-style' : 'italic'});
+}
+// Taxonomy 1
+if ($('.views-widget-filter-tid .bef-tree').find('input[checked]').length) {
+  $('.views-widget-filter-tid legend a:link, .views-widget-filter-tid legend a:visited').css({'color' : '#46607B', 'font-style' : 'italic'});
+}
+// Taxonomy 2
+if ($('.views-widget-filter-tid_1 .bef-tree').find('input[checked]').length) {
+  $('.views-widget-filter-tid_1 legend a:link, .views-widget-filter-tid_1 legend a:visited').css({'color' : '#46607B', 'font-style' : 'italic'});
+}
+// Author
+if ($('.views-widget-filter-field_op_author_nid .bef-tree').find('input[checked]').length) {
+  $('.views-widget-filter-field_op_author_nid legend a:link, .views-widget-filter-field_op_author_nid legend a:visited').css({'color' : '#46607B', 'font-style' : 'italic'});
+}
+// Map
+if (!$('.views-widget-filter-country .bef-checkboxes').find('input[checked]').length) {
+  $('input#edit-province').attr('disabled', 'disabled');
+} else {
+  $('label[for="edit-country"]').css({'color' : '#46607B', 'font-style' : 'italic'});
+}
+// A nice way to check against both false and undefined is to use the double not trick.
+// This is done instead of using .length because if .attr('value') is empty it returns undefined & breaks.
+if (!!$('input#edit-province').attr('value')) {
+  $('label[for="edit-province"]').css({'color' : '#46607B', 'font-style' : 'italic'});
+}
+if (!!$('input#edit-city').attr('value')) {
+  $('label[for="edit-city"]').css({'color' : '#46607B', 'font-style' : 'italic'});
+}
 
 // END
 };

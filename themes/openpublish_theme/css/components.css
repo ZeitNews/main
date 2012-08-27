@@ -1640,6 +1640,7 @@ form#user-register #edit-profile-bio-wrapper {
 }
 .page-user .user-locale {
   margin: -5px 0 12px 0;
+  text-transform: capitalize;
 }
 
 /* Removes odd border from secondary edit tabs. */
@@ -3023,6 +3024,7 @@ pre {
 .page-users .views-field-created,
 .page-staff .author-listing .views-field-created {
   margin: 0 0 5px 0;
+  text-transform: capitalize;
 }
 .page-users .attachment-before {
   background-color: #EFEFEF;
@@ -3049,6 +3051,7 @@ pre {
   position: relative;
   top: 5px;
   left: 2px;
+  text-transform: capitalize;
 }
 
 /* Autocomplete inputs. */
@@ -3358,6 +3361,10 @@ html.js input.throbbing {
 .break {
   display: block;
   padding-bottom: 0.5em;
+}
+
+#edit-homepage-wrapper {
+display: none;
 }
 
 /* START - Webkit hacks. */
