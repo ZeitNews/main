@@ -53,3 +53,20 @@ table.cke_editor fieldset {
 tbody {
     border: 0;
 }
+
+body.cke_show_borders .short-quote-left {
+  border-top: 3px solid black;
+  float: left;
+  font-size: 1.4em;
+  margin: 0 0.5em 0.25em 0.5em;
+  padding: 0.25em 0 0 0.2em;
+  width: 40%;
+}
+body.cke_show_borders .short-quote-right {
+  border-top: 3px solid black;
+  float: right;
+  font-size: 1.4em;
+  margin: 0 0.5em 0.25em 0.5em;
+  padding: 0.25em 0 0 0.2em;
+  width: 40%;
+}

@@ -45,10 +45,10 @@ CKEDITOR.editorConfig = function(config) {
   config.toolbar_Authenticated = [ [ 'Undo', 'Scayt', '-', 'Format', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', '-', 'Link', 'Image', 'MediaEmbed', 'SpecialChar', '-', 'Maximize', 'Source' ] ];
   
   // JRS - Contributor role toolbar
-  config.toolbar_Contributor = [ [ 'Undo', 'Scayt', '-', 'Format', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', 'JustifyCenter', '-', 'Link', 'LinkToNode', 'LinkToMenu', 'Image', 'MediaEmbed', 'Table', 'SpecialChar', '-', 'Maximize', 'Source' ] ];
+  config.toolbar_Contributor = [ [ 'Undo', 'Scayt', '-', 'Styles', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', 'JustifyCenter', '-', 'Link', 'LinkToNode', 'LinkToMenu', 'Image', 'MediaEmbed', 'Table', 'SpecialChar', '-', 'Maximize', 'Source' ] ];
   
   // JRS - Administrator role toolbar
-  config.toolbar_Administrator = [ [ 'Undo', 'Scayt', '-', 'Format', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', 'JustifyCenter', '-', 'Link', 'LinkToNode', 'LinkToMenu', 'Image', 'MediaEmbed', 'Table', 'SpecialChar', '-', 'Maximize', 'Source' ] ];
+  config.toolbar_Administrator = [ [ 'Undo', 'Scayt', '-', 'Styles', '-', 'Bold', 'Italic', 'Blockquote', '-', 'BulletedList', 'NumberedList', 'JustifyCenter', '-', 'Link', 'LinkToNode', 'LinkToMenu', 'Image', 'MediaEmbed', 'Table', 'SpecialChar', '-', 'Maximize', 'Source' ] ];
 
   // This toolbar should work fine with "Filtered HTML" filter
   config.toolbar_DrupalFiltered = [
