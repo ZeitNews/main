@@ -1,0 +1,333 @@
+<?php
+// $Id$
+
+/**
+ * Implements hook_init()
+ */
+function goaway_init() {
+  $ip = ip_address();
+	$result = db_query("select count(gid) AS count from {goaway} where ip = '%s'", $ip);
+	while ($data = db_fetch_object($result)) {
+		$banned = $data->count;
+	}
+	if ($banned) {
+		$jumpto = variable_get('goaway_dest', 'http://www.google.com');
+		if ($_SERVER['REDIRECT_URL'] != $jumpto) {
+			$msg = 'YOU ARE BANNED.';
+			drupal_set_message($msg);
+			drupal_goto($jumpto);
+		}
+	}
+}
+
+/**
+ * Implements hook_menu()
+ */
+function goaway_menu() {
+	$items = array();
+	$items['admin/settings/goaway'] = array(
+		'title' => t('GoAway'),
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('goaway_settings'),
+		'type' => MENU_NORMAL_ITEM,
+		'access arguments' => array('administer goaway'),
+	);
+	$items['admin/user/goaway'] = array(
+		'title' => t('GoAway Banlist'),
+		'description' => t('Administer GoAway Banlist'),
+		'page callback' => 'goaway_banlist',
+		'type' => MENU_NORMAL_ITEM,
+		'access arguments' => array('ban by IP'),
+	);
+	$items['admin/user/goaway/%'] = array(
+		'title' => t('Add IP to GoAway Banlist'),
+		'description' => t('Add IP to GoAway Banlist'),
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('goaway_ban_ip',3),
+		'type' => MENU_CALLBACK,
+		'access arguments' => array('ban by IP'),
+	);
+	$items['admin/user/goaway/unban/%'] = array(
+		'title' => t('Unban IP Address'),
+		'description' => t('Remove IP Address from GoAway Banlist'),
+		'page callback' => 'goaway_unban',
+		'type' => MENU_NORMAL_ITEM,
+		'access arguments' => array('unban by IP'),
+	);
+	return $items;
+}
+
+/**
+ * Implements hook_perm()
+ */
+function goaway_perm() {
+	return array('administer goaway', 'ban by IP', 'unban by IP');
+}
+
+/**
+ * Implements hook_settings()
+ */
+function goaway_settings() {
+	$form = array();
+	$form['goaway_dest'] = array(
+		'#prefix' => t('Enter a destination for miscreants. If using a remote address, the full URL (including http://) must be used.	For a local page, use the Drupal path beginning with a slash.'),
+		'#type' => 'textfield',
+		'#title' => t('Redirect Destination'),
+		'#default_value' => variable_get('goaway_dest', 'http://www.google.com'),
+		'#size' => '60',
+	);
+	return system_settings_form($form);
+}
+
+/**
+ *	Implements hook_link()
+ */
+function goaway_link($type, $object = null, $teaser = false) {
+	if($type == 'comment') {
+		$links = array();
+		if (user_access('ban by IP')) {
+			$camefrom = 'node/' . $object->nid . '#comment-' . $object->cid;
+			$addy = goaway_get_ip_from_comment($object->cid);
+			$banned = goaway_check_for_ban($addy);
+			if($banned) {
+				$links['unban_ip'] = array(
+					'title' => t('Unban IP'),
+					'href' => "admin/user/goaway/unban/" . $banned,
+					'query' => array('destination' => $camefrom),
+					'attributes' => array(
+						'class' => 'unban_ip',
+						'title' => t('Unban this IP Address'),
+						'rel' => 'nofollow'
+					)
+				);
+			} else {
+				$links['ban_ip'] = array(
+					'title' => t('Ban IP'),
+					'href' => "admin/user/goaway/" . $addy,
+					'query' => array('destination' => $camefrom),
+					'attributes' => array(
+						'class' => 'ban_ip',
+						'title' => t('Ban this IP Address'),
+						'rel' => 'nofollow'
+					)
+				);
+			}
+		}
+		return $links;
+	}
+}
+
+/**
+ *	Implements hook_comment()
+ */
+function goaway_comment(&$comment, $op) {
+	$addy = goaway_get_ip_from_comment($comment->cid);
+	switch ($op) {
+		case 'view':
+			if (!$comment->uid && user_access('ban by IP')) {
+				$comment->name .= ' [' . $addy . ']';
+			}
+			break;
+	}
+}
+
+/**
+* Creates goaway banlist page
+*/
+function goaway_banlist() {
+	$page_content = '';
+	$page_content .= drupal_get_form('goaway_banlist_form');
+	$get_banlists = db_query("SELECT gid, ip FROM {goaway} ORDER BY gid DESC");
+	if ($get_banlists) {
+		$page_content .= '<h2>' . t('Banned IPs:') . '</h2>';
+		while ($row = db_fetch_array($get_banlists)) {
+			$page_content .= '<li> ' . $row['ip'] . ' - ' . l('unban', 'admin/user/goaway/unban/' . $row['gid']) . "</li>\n";
+		}
+	}
+	return '<ul>' . $page_content . '</ul>';
+}
+
+/**
+* Processes an individual banning
+*/
+function goaway_ban_ip(&$form_state, $ip = '') {
+	if(arg(3)) { $ip = arg(3); }
+	$path = $_SERVER['HTTP_REFERER'];
+	$form['goaway_banlist'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Ban IP Address'),
+		'#default_value' => $ip,
+		'#size' => 18,
+		'#maxlength' => 15,
+		'#description' => t('You have entered the above IP Address for banning.'),
+	);
+	return confirm_form(
+		$form,
+		t('Are you sure you want to ban the IP Address @ip ?', array('@ip' => $ip)),
+		!empty($_GET['destination']) ? $_GET['destination'] : $path,
+		t(''),
+		t('Yes, Ban IP'),
+		t('No, Cancel')
+	);
+}
+
+/**
+* Creates form for goaway_banlist()
+*/
+function goaway_banlist_form() {
+	$form['goaway_banlist'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Ban New IP'),
+		'#default_value' => '',
+		'#size' => 18,
+		'#maxlength' => 15,
+		'#description' => t('Enter an IP Address for banning (e.g.: 123.123.123.123)'),
+	);
+	$form['submit'] = array(
+		'#type' => 'submit',
+		'#value' => t('Add to List'),
+	);
+	return $form;
+}
+
+/**
+* Validates banlist form input
+*/
+function goaway_banlist_form_validate($form, &$form_state) {
+	// TODO: REGEXP FOR IP ADDRESS FORMAT
+	$goaway_banlist = $form_state['values']['goaway_banlist'];
+	if (isset($goaway_banlist)) {
+		if (!preg_match( "/^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]).){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/", $goaway_banlist)) {
+			form_set_error('goaway_banlist', t('Data submitted not in IP format'));
+		}
+	}
+}
+
+/**
+* Handles banlist form submission
+*/
+function goaway_banlist_form_submit($form, &$form_state) {
+	$banned_ip = $form_state['values']['goaway_banlist'];
+	$ban_success = db_query("INSERT INTO {goaway} (gid, ip) VALUES('', '%s')", $banned_ip);
+	if ($ban_success) {
+		$msg = 'Banned IP: ' . $banned_ip;
+		$vars = array('%ip' => $banned_ip);
+		watchdog('goaway', $msg, $vars, WATCHDOG_INFO);
+		drupal_set_message(t($msg));
+	}
+	else {
+		$msg = 'Failed to ban IP: ' . $banned_ip;
+		$vars = array();
+		watchdog('goaway', $msg, $vars, WATCHDOG_ERROR);
+		drupal_set_message(t($msg));
+	}
+	$form_state['redirect'] = 'admin/user/goaway';
+}
+
+/**
+* Handles single IP ban submission
+*/
+function goaway_ban_ip_submit($form, &$form_state) {
+	$banned_ip = $form_state['values']['goaway_banlist'];
+	$ban_success = db_query("INSERT INTO {goaway} (gid, ip) VALUES('', '%s')", $banned_ip);
+	if ($ban_success) {
+		$msg = 'Banned IP: ' . $banned_ip;
+		$vars = array('%ip' => $banned_ip);
+		watchdog('goaway', $msg, $vars, WATCHDOG_INFO);
+		drupal_set_message(t($msg));
+	}
+	else {
+		$msg = 'Failed to ban IP: ' . $banned_ip;
+		$vars = array();
+		watchdog('goaway', $msg, $vars, WATCHDOG_ERROR);
+		drupal_set_message(t($msg));
+	}
+	$form_state['redirect'] = 'admin/user/goaway';
+}
+
+/**
+* Creates goaway unban page
+*/
+function goaway_unban() {
+	$page_content = '<h2>' . t('Are you sure you want to unban this IP address?') . '</h2>';
+	$page_content .= '<p>' . goaway_get_ip_from_ban(arg(4)) . '</p>';
+	$page_content .= drupal_get_form('goaway_unban_form');
+	return $page_content;
+}
+
+/**
+* Creates form for goaway_unban()
+*/
+function goaway_unban_form() {
+	$form['goaway_unban'] = array(
+		'#type' => 'hidden',
+		'#value' => arg(4),
+	);
+	$form['submit'] = array(
+		'#type' => 'submit',
+		'#value' => t('Unban'),
+	);
+	return $form;
+}
+
+/**
+* Handles unban form submission
+*/
+function goaway_unban_form_submit($form, &$form_state) {
+	$gid = $form_state['values']['goaway_unban'];
+	$ip = goaway_get_ip_from_ban($gid);
+	// deprecated - version 1.1 used the gid
+	// $unban_success = db_query("DELETE FROM {goaway} WHERE gid = %d", $gid);
+	// version 1.2 uses the ip
+	$unban_success = db_query("DELETE FROM {goaway} WHERE ip = '%s'", $ip);
+	if ($unban_success) {
+		$msg = 'Unbanned IP: ' . $ip;
+		$vars = array('%ip' => $ip);
+		watchdog('goaway', $msg, $vars, WATCHDOG_INFO);
+		drupal_set_message(t($msg));
+	}
+	else {
+		$msg = 'Failed to Unban IP: ' . $ip;
+		$vars = array();
+		watchdog('goaway', $msg, $vars, WATCHDOG_ERROR);
+		drupal_set_message(t($msg));
+	}
+	$form_state['redirect'] = 'admin/user/goaway';
+}
+
+/**
+* Returns hostname (IP) for a cid
+*/
+function goaway_get_ip_from_comment($cid) {
+	$addy = 0;
+	$result = db_query("SELECT hostname FROM {comments} WHERE cid = %d", $cid);
+	while ($data = db_fetch_object($result)) {
+		$addy = $data->hostname;
+	}
+	return $addy;
+}
+
+/**
+* Returns hostname (IP) for a gid
+*/
+function goaway_get_ip_from_ban($gid) {
+	$addy = 0;
+	$result = db_query("SELECT ip FROM {goaway} WHERE gid = %d", $gid);
+	while ($data = db_fetch_object($result)) {
+		$addy = $data->ip;
+	}
+	return $addy;
+}
+
+/**
+* Returns 1 if IP is banned, 0 if not banned
+*/
+function goaway_check_for_ban($addy) {
+	$banned = 0;
+	$result = db_query("SELECT gid FROM {goaway} WHERE ip = '%s' ORDER BY gid dESC LIMIT 0,1", $addy);
+	while ($data = db_fetch_object($result)) {
+		$banned = $data->gid;
+	}
+	return $banned;
+}
+

@@ -561,7 +561,7 @@ body.node-type-op-image .image-credit {
  }
  
 .not-front .featured-view-item img {
-  margin: 0 15px 7px 0;
+  margin: 0 15px 5px 0;
 }
 .package-center-section, .package-lower-section, .package-related-articles {
   margin-top: 20px;
@@ -3357,12 +3357,12 @@ html.js input.throbbing {
 .body-content br {
   display: none !important;
 }
-/* Commenter's misusing plain-text p spacing. */
+/* Commenters misusing plain-text p spacing. */
 .break {
   display: block;
   padding-bottom: 0.5em;
 }
-
+/* Commenters (spammers) misusing homepage (URL) field. */
 #edit-homepage-wrapper {
 display: none;
 }

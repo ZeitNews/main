@@ -1,0 +1,44 @@
+$Id
+
+
+GoAway 6.x-1.6, 2011-03-29
+-------------------------------
+by As If
+#594354 - no table created for goaway
+
+
+GoAway 6.x-1.5, 2011-01-18
+-------------------------------
+by ChrisRut & As If
+#988446 - fix to work with reverse proxy
+
+
+GoAway 6.x-1.4, 2010-07-06
+-------------------------------
+by As If
+Package maintenance release
+
+
+GoAway 6.x-1.3, 2010-07-06
+-------------------------------
+by As If
+#846748 - remove ban/unban links from node links
+
+
+GoAway 6.x-1.2, 2010-06-14
+-------------------------------
+by As If
+#826482 - Added ban/unban link to comment links
+#826482 - Auto-inserting IP address to ban form
+
+
+GoAway 6.x-1.1, 2010-01-07
+-------------------------------
+by As If
+#662486 - Removed goaway.tar.gz from CVS
+
+
+GoAway 6.x-1.0, 2009-09-12
+-------------------------------
+Original release by As If
+

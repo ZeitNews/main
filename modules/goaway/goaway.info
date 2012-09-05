@@ -1,0 +1,13 @@
+; $Id$
+name = GoAway
+description = Allows ban/redirects based on IP address
+package = "Other"
+project = "goaway"
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-03-30
+version = "6.x-1.6"
+core = "6.x"
+project = "goaway"
+datestamp = "1301461867"
+

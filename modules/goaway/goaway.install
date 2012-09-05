@@ -1,0 +1,27 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Installation file for GoAway module.
+ */
+
+function goaway_install() {
+  drupal_install_schema('goaway');
+}
+
+function goaway_uninstall() {
+  drupal_uninstall_schema('goaway');
+  db_query("DELETE FROM {variable} WHERE name LIKE 'goaway_%'");
+}
+
+function goaway_schema() {
+  $schema['goaway'] = array(
+    'fields' => array(
+      'gid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Identifier for a ban'),
+      'ip' => array('type' => 'varchar', 'length' => '15', 'not null' => TRUE, 'default' => '', 'description' => 'An IP address'),
+    ),
+    'primary key' => array('gid'),
+  );
+  return $schema;
+}
