@@ -20,9 +20,9 @@ CKEDITOR.addStylesSet( 'drupal',
 	{ name : 'Heading 2'		, element : 'h2' },
 	{ name : 'Heading 3'		, element : 'h3' },
 	{ name : 'Normal DIV', element : 'div' },
-	{ name : 'Formatted', element : 'pre' },
 	{ name : 'Short Quote - Left', element : 'div', attributes : { 'class' : 'short-quote-left' } },
-	{ name : 'Short Quote - Right', element : 'div', attributes : { 'class' : 'short-quote-right' } }
+	{ name : 'Short Quote - Right', element : 'div', attributes : { 'class' : 'short-quote-right' } },
+	{ name : 'Formatted', element : 'pre' }
 
 	/*
 	{ name : 'Blue Title'		, element : 'h3', styles : { 'color' : 'Blue' } },

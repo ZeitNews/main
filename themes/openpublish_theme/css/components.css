@@ -1233,7 +1233,6 @@ body.node-view-page #tabs-wrapper div#drupal-control-bar li a {
 }
 
 /* Tweets */
-
 div.tweets-pulled-listing {
   border: 1px solid #d9d9d9;
   background: #EFEFEF;
@@ -1241,39 +1240,35 @@ div.tweets-pulled-listing {
   margin: -14px 0 0 0;
   color: #000;
 }
-
 ul.tweets-pulled-listing {
   margin: 0; 
   padding: 0;
 }
-
 div.tweets-pulled-listing a {
   color: #000;
 }
-
 .tweets-pulled-listing li {
   background: #FFF;
   border: 1px solid #d9d9d9;
   padding: 10px;
   margin: 0 0 7px 0;
+  list-style-type: none;
+  min-height: 50px;
 }
-
 div.tweets-pulled-listing ul {
   font-family: Arial, helvetica, sans-serif;
   font-size: .917em;  
   background: none;
   border: none;
 }
-
 div.tweets-pulled-listing .tweet-author a {
   font-weight:bold;
   color: #808285;
 }
-
 div.tweets-pulled-listing .tweet-time a {
   color: #46607B;
   font-style: italic;
-   font-family: Georgia, "Times New Roman", Times, serif;
+  font-family: Georgia, "Times New Roman", Times, serif;
 }
 
 .views-field-title-1 {
@@ -1295,52 +1290,6 @@ div.tweets-pulled-listing .tweet-time a {
   text-align: left;
   background: #FFF;
   border: 1px solid #d9d9d9;
-}
-
-/* Tweets */
-div.tweets-pulled-listing {
-  border: 1px solid #d9d9d9;
-  background: #EFEFEF;
-  padding: 8px 8px 3px 8px;
-  margin: -14px 0 0 0;
-  color: #000;
-}
-#block-twitter_pull-op_tweets div.tweets-pulled-listing {
-  margin: 0; 
-}
-
-ul.tweets-pulled-listing {
-  margin: 0; 
-  padding: 0;
-}
-
-div.tweets-pulled-listing a {
-  color: #000;
-}
-
-.tweets-pulled-listing li {
-  background: #FFF;
-  border: 1px solid #d9d9d9;
-  padding: 10px;
-  margin: 0 0 7px 0;
-}
-
-div.tweets-pulled-listing ul {
-  font-family: Arial, helvetica, sans-serif;
-  font-size: .917em;  
-  background: none;
-  border: none;
-}
-
-div.tweets-pulled-listing .tweet-author a {
-  font-weight:bold;
-  color: #808285;
-}
-
-div.tweets-pulled-listing .tweet-time a {
-  color: #46607B;
-  font-style: italic;
-   font-family: Georgia, "Times New Roman", Times, serif;
 }
 
 .views-field-title-1 {
@@ -3384,6 +3333,14 @@ display: none;
 .short-quote-right {
   float: right;
   margin: 10px 0 0 25px;
+}
+
+/* Twitter Block - @ZeitNews */
+.twitter-zeitnews div.tweets-pulled-listing {
+  margin: 0; 
+}
+.twitter-zeitnews .tweet-divider {
+  display: none;
 }
 
 /* START - Webkit hacks. */
