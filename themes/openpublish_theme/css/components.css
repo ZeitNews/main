@@ -2093,14 +2093,22 @@ fieldset.group-documentcloud {
 #block-block-1 {
   clear: none;
   position: relative;
-  top: -14px;
+  top: -50px;
   float: right;
-  width: 200px;
+  width: 341px;
 }
-#block-block-1 #credits a {
+#block-block-1 #credits a#tech-team-logo {
+  background: url("/sites/all/themes/openpublish_theme/images/banner/tech-team-logo.png") no-repeat scroll 0 3px transparent;
+  width: 157px;
+  height: 78px;
+  float: left;
+  padding-right: 10px;
+}
+#block-block-1 #credits a#tzm-logo {
   background: url("/sites/all/themes/openpublish_theme/images/banner/footer_zeitgeist_movement.jpg") no-repeat scroll 0 0 transparent;
   width: 174px;
   height: 88px;
+  float: left;
 }
 
 /* Ad block styling.*/
