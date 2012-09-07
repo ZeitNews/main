@@ -6,7 +6,7 @@
 
 ## Get Involved
 
-__Current site version:__ _1.0_
+__Current site version:__ _1.1_
 
 __TODO:__ _We are currently in the process of fixing issues and adding features._
 
