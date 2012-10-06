@@ -31,12 +31,12 @@ $('#op-content img').each(function() {
       // If it has an image caption.
       if ($(this).parent().hasClass('image-caption-container')) {
         $(this).parent().css({
-          'margin': '10px 25px 10px 0px',
+          'margin': '10px 25px 23px 0px',
           'clear': 'left'
           });
       } else {
         $(this).css({
-          'margin': '10px 25px 10px 0px',
+          'margin': '10px 25px 23px 0px',
           'clear': 'left'
           });
       }
@@ -45,12 +45,12 @@ $('#op-content img').each(function() {
     if (img_float == 'right') {
       if ($(this).parent().hasClass('image-caption-container')) {
         $(this).parent().css({
-          'margin': '10px 0px 10px 25px',
+          'margin': '10px 0px 23px 25px',
           'clear': 'right'
         });
       } else {
         $(this).css({
-          'margin': '10px 0px 10px 25px',
+          'margin': '10px 0px 23px 25px',
           'clear': 'right'
         });
       }
@@ -149,7 +149,8 @@ $('div.body-content span.main-image-credit, div.body-content span.caption').expa
 });
 
 // Make sure floated .media_embed has div parent with overflow:hidden property for fieldset crowding.
-$('.body-content .media_embed').wrap('<div style="overflow:hidden"/>');
+// Going with 25px bottom margin on .media_embed because this stops floating.
+//$('.body-content .media_embed').wrap('<div style="overflow:hidden"/>');
 
 // One carriage return in plain text editors makes a break, resulting in commenters making bad spacing.
 $('.comment .content p br').replaceWith('<span class="break"></span>');
@@ -199,6 +200,33 @@ if (!!$('input#edit-province').attr('value')) {
 if (!!$('input#edit-city').attr('value')) {
   $('label[for="edit-city"]').css({'color' : '#46607B', 'font-style' : 'italic'});
 }
+
+// Not needed with 2 below.
+// Replace p parents of media with div
+//$('#op-content p').find('iframe, object, script').each(function() {
+//  $(this).unwrap().wrap('<div></div>');
+//});
+
+// Remove empty p tags.
+$('#op-content p')
+  .filter(function() {
+    return $.trim($(this).text()) === ''
+  })
+  .remove()
+
+// Hide media not inserted properly.
+$('#op-content iframe, #op-content object, #op-content script').filter(':parents(.media_embed, .video-embed-code, .audio-embed-code)').hide();
+
+// Highlight footnotes with scroll effect.
+$("sup > a").click(function(event) {
+  var href = $(this).attr("href").substring(1);
+  $(".ref-highlight").removeClass("ref-highlight");
+  $('[name='+href+']').addClass("ref-highlight");
+  $("html, body").animate({"scrollTop": $('[name='+href+']').offset().top}, 1000);
+});
+
+// Remove link styling from a anchors that don't link anywhere.
+$('.body-content a:not([href])').addClass('link-to-nowhere');
 
 // END
 };

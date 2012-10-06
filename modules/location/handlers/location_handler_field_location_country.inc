@@ -24,7 +24,7 @@ class location_handler_field_location_country extends views_handler_field {
   }
 
   function render($values) {
-    if ($this->options['style'] == 'code_low') {
+  if ($this->options['style'] == 'code_low') {
       return check_plain($values->{$this->field_alias});
     }
     else if ($this->options['style'] == 'name') {

@@ -35,7 +35,7 @@ function filefield_source_remote_menu() {
   $items['filefield/remote/progress/%/%/%'] = array(
     'page callback' => 'filefield_source_remote_progress',
     'page arguments' => array(3, 4, 5),
-    'access arguments' => array('access content'),
+    'access callback' => TRUE,
     'file' => 'sources/remote.inc',
     'type' => MENU_CALLBACK,
   );

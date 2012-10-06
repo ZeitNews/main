@@ -1,5 +1,4 @@
 <?php
-// $Id: twitter-pull-listing.tpl.php,v 1.1.2.5 2011/01/11 02:49:38 inadarei Exp $
 
 /**
  * @file

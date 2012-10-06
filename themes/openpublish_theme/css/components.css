@@ -377,7 +377,7 @@ div.body-content {
 .body-content .main-image, #op-content .main-image {
   background: #efefef;
   float: left;
-  margin: 0 25px 10px 0;
+  margin: 0 25px 23px 0;
   padding: 5px 5px 2px 5px;
   position: relative;
   top: 6px;
@@ -440,7 +440,7 @@ body.node-type-op-image .body-content .main-image {
 .body-content .user-profile {
   display: block;
   clear: both;
-  margin: 3em 0 0 0;
+  margin: 2em 0 0 0;
   background: #F1F1F1;
   padding: 1em;
   border-radius: 2px;
@@ -1711,12 +1711,12 @@ a#comment-count {
 /* User embedded node content images, not Main Image. */
 .body-content img {
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 25px;
+  margin: 10px 25px 23px 25px;
   padding: 5px;
 }
 .body-content p img {
   float: left;
-  margin: 10px 25px 10px 0;
+  margin: 10px 25px 23px 0;
   padding: 5px;
 }
 .body-content .full-width-image {
@@ -1805,11 +1805,11 @@ div.galleria-thumbnails-list {
 }
 .media_embed {
 	background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 25px 10px 0px;
+  margin: 10px 25px 19px 0px; /* 19px is for when video is a bottom of body text and above fieldset. */
 	padding: 5px;
   float: left !important;
-	max-width: 610px !important;
-  max-height: 343px !important;
+	max-width: 400px !important;
+  max-height: 225px !important;
   border-radius: 2px;
   line-height: 0px !important;
 }
@@ -1870,10 +1870,10 @@ div.audio-embed-code p {
 /* For inserted tables in node bodies. */
 .body-content table {
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 25px 10px 0px;
+  margin: 10px 25px 23px 0;
   padding: 5px;
   float: left !important;
-  max-width: 610px !important;
+  max-width: 400px !important;
 }
 /* Corrections on Documentcloud table due to above. */
 .body-content .field-type-document-cloud-doc table {
@@ -2630,14 +2630,14 @@ h2 a:link, h2 a:hover, h3 a:active, h3 a:visited {
 
 /* Cap all embeds and images at a specific size. */
 iframe, object, embed, script {
-	max-width: 610px !important;
-  max-height: 343px !important;
+	max-width: 400px !important;
+  max-height: 225px !important;
   border-radius: 2px;
 }
 .body-content iframe,
 .body-content object,
 .body-content script {
-  padding: 10px 0 25px 0; /* Editors not using .media_embed button. */
+  padding: 10px 0 23px 0; /* Editors not using .media_embed button. */
 }
 .body-content .video-embed-code iframe,
 .body-content .video-embed-code object,
@@ -2667,8 +2667,8 @@ iframe.imce-frame {
   max-height: none !important;
 }
 #container img {
-  max-width: 610px !important;
-  max-height: 610px !important;
+  max-width: 400px !important;
+  max-height: 400px !important;
 }
 #container .body-content img.full-width-image {
 	max-width: 610px !important;
@@ -2700,7 +2700,7 @@ body.node-type-op-image #container .main-image img {
 .comment .content iframe,
 .comment .content object,
 .comment .content script {
-  padding: 10px 0 25px 0; /* When not using .media_embed button. */
+  padding: 10px 0 23px 0; /* When not using .media_embed button. */
 }
 .comment .content .media_embed iframe,
 .comment .content .media_embed object,
@@ -2727,12 +2727,12 @@ a {
 
 /* Image captions on node bodies via Insert. */
 .image-caption-container {
-  margin: 10px 25px;
+  margin: 10px 25px 23px 25px;
   padding: 5px;
   background: #EFEFEF;
   border-radius: 2px;
   display: block;
-  max-width: 610px; /* This matches #container img having a 610px max-width. */
+  max-width: 400px; /* This matches #container img having a 610px max-width. */
 }
 .comment .content .image-caption-container {
   max-width: 270px !important; /* This matches #container .comment .content img having a 270px max-width. */
@@ -2780,7 +2780,7 @@ a {
   display: block;
 }
 .image-caption-container .caption {
-  max-width: 610px; /* This matches #container img having a 610px max-width. */
+  max-width: 400px; /* This matches #container img having a 610px max-width. */
 }
 .image-caption-container-full-width .caption {
   max-width: 610px !important; /* This matches #container .body-content img.full-width-image having a 610px max-width. */
@@ -3110,7 +3110,7 @@ html.js input.throbbing {
 .image-caption-left {
   float: left;
   background-color: #EFEFEF;
-  margin: 10px 25px 10px 0;
+  margin: 10px 25px 23px 0;
   padding: 5px;
   border-radius: 2px;
   max-width: 610px; /* This matches #container img having a 610px max-width. */
@@ -3118,7 +3118,7 @@ html.js input.throbbing {
 .image-caption-right {
   float: right;
   background-color: #EFEFEF;
-  margin: 10px 0 10px 25px; 
+  margin: 10px 0 23px 25px;
   padding: 5px;
   border-radius: 2px;
   max-width: 610px; /* This matches #container img having a 610px max-width. */
@@ -3148,7 +3148,7 @@ html.js input.throbbing {
   color: #666 !important;
   background: #EFEFEF;
   line-height: 1.6em;
-  max-width: 610px; /* This matches #container img having a 610px max-width. */
+  max-width: 400px; /* This matches #container img having a 610px max-width. */
   display: block; /* Fix caption position due to bad span styling. */
 }
 .image-caption-left p {
@@ -3255,7 +3255,7 @@ html.js input.throbbing {
 /* Center button in WYSIWYG. */
 .body-content .rtecenter img,
 .comment .content .rtecenter img {
-  margin: 0 !important;
+  margin: 0px 0px 20px 0px !important;
   float: none !important;
 }
 .body-content .rtecenter .image-caption-container {
@@ -3279,6 +3279,11 @@ html.js input.throbbing {
 .body-content .rtecenter a,
 .comment .content .rtecenter a {
   text-decoration: none !important;
+}
+#op-content .rtecenter .media_embed {
+  margin: 0 auto 23px auto;
+  float: none !important;
+  text-align: center;
 }
 
 /* Controlling floats introduced by default in WYSIWYG. */
@@ -3336,11 +3341,11 @@ display: none;
 }
 .short-quote-left {
   float: left;
-  margin: 10px 25px 0 0;
+  margin: 10px 25px 10px 0;
 }
 .short-quote-right {
   float: right;
-  margin: 10px 0 0 25px;
+  margin: 10px 0 10px 25px;
 }
 
 /* Twitter Block - @ZeitNews */
@@ -3349,6 +3354,21 @@ display: none;
 }
 .twitter-zeitnews .tweet-divider {
   display: none;
+}
+
+/* Referencing footnotes. */
+sup {
+  color: #000;
+  font-weight: bold;
+  padding-left: 2px;
+}
+.ref-highlight {
+  background-color: #FFFE95;
+}
+.body-content a.link-to-nowhere,
+.body-content a.link-to-nowhere:hover {
+  text-decoration: none;
+  color: #333;
 }
 
 /* START - Webkit hacks. */

@@ -15,20 +15,20 @@ CKEDITOR.addStylesSet( 'drupal',
 	// These styles are already available in the "Format" combo, so they are
 	// not needed here by default. You may enable them to avoid placing the
 	// "Format" combo in the toolbar, maintaining the same features.
-	/*
+	
 	{ name : 'Paragraph'		, element : 'p' },
-	{ name : 'Heading 1'		, element : 'h1' },
+	{ name : 'Normal DIV', element : 'div' },
 	{ name : 'Heading 2'		, element : 'h2' },
 	{ name : 'Heading 3'		, element : 'h3' },
-	{ name : 'Heading 4'		, element : 'h4' },
-	{ name : 'Heading 5'		, element : 'h5' },
-	{ name : 'Heading 6'		, element : 'h6' },
-	{ name : 'Preformatted Text', element : 'pre' },
-	{ name : 'Address'			, element : 'address' },
-	*/
+	{ name : 'Short Quote - Left', element : 'div', attributes : { 'class' : 'short-quote-left' } },
+	{ name : 'Short Quote - Right', element : 'div', attributes : { 'class' : 'short-quote-right' } },
+	{ name : 'Center Item', element : 'div', attributes : { 'class' : 'rtecenter' } },
+	{ name : 'Formatted', element : 'pre' }
 
+	/*
 	{ name : 'Blue Title'		, element : 'h3', styles : { 'color' : 'Blue' } },
 	{ name : 'Red Title'		, element : 'h3', styles : { 'color' : 'Red' } },
+	*/
 
 	/* Inline Styles */
 
@@ -43,6 +43,7 @@ CKEDITOR.addStylesSet( 'drupal',
 	{ name : 'Superscript'		, element : 'sup' },
 	*/
 
+	/*
 	{ name : 'Marker: Yellow'	, element : 'span', styles : { 'background-color' : 'Yellow' } },
 	{ name : 'Marker: Green'	, element : 'span', styles : { 'background-color' : 'Lime' } },
 
@@ -63,9 +64,11 @@ CKEDITOR.addStylesSet( 'drupal',
 
 	{ name : 'Language: RTL'	, element : 'span', attributes : { 'dir' : 'rtl' } },
 	{ name : 'Language: LTR'	, element : 'span', attributes : { 'dir' : 'ltr' } },
+	*/
 
 	/* Object Styles */
 
+	/*
 	{
 		name : 'Image on Left',
 		element : 'img',
@@ -87,4 +90,6 @@ CKEDITOR.addStylesSet( 'drupal',
 			'align' : 'right'
 		}
 	}
+	*/
+	
 ]);

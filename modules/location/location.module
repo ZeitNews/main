@@ -1449,12 +1449,18 @@ function _location_geo_logic(&$location, $changed, $filled, $inhibit_geocode = F
   }
 
   // If city and/or province weren't set, see if we can fill them in with
-  // postal data.
+  // postal data OR if the city and/or province aren't configured to be
+  // collected through the form, set them to whatever the postal code data
+  // says they should be.
   if (!empty($location['postal_code'])) {
-    if (empty($location['city']) || empty($location['province'])) {
+    if (  empty($location['city']) ||
+          empty($location['province']) ||
+          empty($location['location_settings']['form']['fields']['city']['collect']) ||
+          empty($location['location_settings']['form']['fields']['province']['collect'])
+       ) {
       if ($data = location_get_postalcode_data($location)) {
-        $location['city'] = $data['city'];
-        $location['province'] = $data['province'];
+        $location['city'] = (empty($location['city']) || empty($location['location_settings']['form']['fields']['city']['collect'])) ? $data['city'] : $location['city'];
+        $location['province'] = (empty($location['province']) || empty($location['location_settings']['form']['fields']['province']['collect'])) ? $data['province'] : $location['province'];
       }
     }
   }

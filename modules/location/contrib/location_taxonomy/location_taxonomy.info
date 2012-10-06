@@ -5,9 +5,9 @@ dependencies[] = taxonomy
 package = Location
 core = 6.x
 
-; Information added by drupal.org packaging script on 2011-12-22
-version = "6.x-3.x-dev"
+; Information added by drupal.org packaging script on 2012-09-03
+version = "6.x-3.2+1-dev"
 core = "6.x"
 project = "location"
-datestamp = "1324513735"
+datestamp = "1346676284"
 

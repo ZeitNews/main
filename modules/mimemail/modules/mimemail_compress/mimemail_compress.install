@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_requirements().
+ * Implements hook_requirements().
  */
 function mimemail_compress_requirements($phase) {
   $requirements = array();

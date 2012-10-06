@@ -2,19 +2,14 @@
 
 /**
  * @file
- * Admin settings pages for sending Mime-encoded emails.
+ * Admin settings pages for sending MIME-encoded e-mails.
  */
 
 /**
- * Administration settings.
- *
- * @return
- *   The administration from.
+ * Module configuration form.
  */
 function mimemail_admin_settings() {
-
-  // override the smtp_library value if mimemail is chosen to handle all mail
-  // this will cause drupal_mail to call mimemail()
+  // Override the smtp_library value if Mime Mail is chosen to handle all mail.
   if (variable_get('mimemail_alter', 0)) {
     if (variable_get('smtp_library', '') != drupal_get_filename('module', 'mimemail')) {
       variable_set('smtp_library', drupal_get_filename('module', 'mimemail'));
@@ -71,16 +66,29 @@ function mimemail_admin_settings() {
     '#description'   => t('Gather all style sheets when no mail.css found in the default theme directory.'),
     '#disabled'      => $disable_sitestyle,
   );
-
-  $filter_format = variable_get('mimemail_format', FILTER_FORMAT_DEFAULT);
-  $form['mimemail']['mimemail_format'] =  filter_form($filter_format, NULL, array("mimemail_format"));
-
+  $form['mimemail']['mimemail_linkonly'] = array(
+    '#type'          => 'checkbox',
+    '#title'         => t('Link images only'),
+    '#default_value' => variable_get('mimemail_linkonly', 0),
+    '#description'   => t('This option disables the embedding of images. All image will be available as external content. This can make email messages much smaller.'),
+  );
   $form['mimemail']['mimemail_textonly'] = array(
     '#type'          => 'checkbox',
     '#title'         => t('Plaintext email only'),
     '#default_value' => variable_get('mimemail_textonly', 0),
     '#description'   => t('This option disables the use of email messages with graphics and styles.  All messages will be converted to plain text.'),
   );
+  if (module_exists('mimemail_compress')) {
+    $form['mimemail']['mimemail_preserve_class'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Preserve class attributes'),
+      '#default_value' => variable_get('mimemail_preserve_class', 0),
+      '#description' => t('This option disables the removing of class attributes from the message source. Useful for debugging.'),
+    );
+  }
+
+  $filter_format = variable_get('mimemail_format', FILTER_FORMAT_DEFAULT);
+  $form['mimemail']['mimemail_format'] =  filter_form($filter_format, NULL, array("mimemail_format"));
 
   $form['mimemail']['incoming'] = array(
     '#type'          => 'fieldset',
@@ -102,7 +110,7 @@ function mimemail_admin_settings() {
     '#description'   => t('This string will be used to validate incoming messages.  It can be anything, but must be used on both sides of the transfer'),
   );
 
-  // hide the settings if only 1 engine is available
+  // Hide the settings if only one engine is available.
   if (count($engines) == 1) {
     variable_set('mimemail_engine', key($engines));
     $form['mimemail_engine'] = array(

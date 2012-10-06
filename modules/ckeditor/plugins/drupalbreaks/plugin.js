@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2011, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 
@@ -43,14 +43,12 @@ CKEDITOR.plugins.add( 'drupalbreaks',
 					command : 'drupalbreak'
 				});
 
-			if ( Drupal.settings.ckeditor.pagebreak ) {
-				editor.ui.addButton( 'DrupalPageBreak',
-						{
-							label : Drupal.t( 'Insert Page Break' ),
-							icon : this.path + 'images/drupalpagebreak.png',
-							command : 'drupalpagebreak'
-						});
-			}
+                        editor.ui.addButton( 'DrupalPageBreak',
+                                {
+                                        label : Drupal.t( 'Insert Page Break' ),
+                                        icon : this.path + 'images/drupalpagebreak.png',
+                                        command : 'drupalpagebreak'
+                                });
 		}
 
 		// Register the commands.

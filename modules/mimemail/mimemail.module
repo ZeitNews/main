@@ -2,11 +2,11 @@
 
 /**
  * @file
- * Component module for sending Mime-encoded emails.
+ * Component module for sending MIME-encoded e-mails.
  */
 
 /**
- * Implementation of hook_menu()
+ * Implements hook_menu().
  */
 function mimemail_menu() {
   $path = drupal_get_path('module', 'mimemail') .'/includes';
@@ -22,7 +22,7 @@ function mimemail_menu() {
   );
   $items['mimemail'] = array(
     'page callback' => 'mimemail_post',
-    'access callback' => variable_get('mimemail_incoming', FALSE),
+    'access callback' => 'mimemail_incoming_access',
     'type' => MENU_CALLBACK,
     'file' => 'mimemail.incoming.inc',
     'file path' => $path,
@@ -31,16 +31,31 @@ function mimemail_menu() {
 }
 
 /**
- * Implementation of hook_user().
+ * Access callback to process incoming messages.
+ */
+function mimemail_incoming_access() {
+  return variable_get('mimemail_incoming', FALSE);
+}
+
+/**
+ * Implements hook_perm().
+ */
+function mimemail_perm() {
+  return array('send arbitrary files - Warning: has security implications!', 'edit mimemail user settings');
+}
+
+/**
+ * Implements hook_user().
  */
 function mimemail_user($op, &$edit, &$account, $category = '') {
   if ($op == 'form' && $category == 'account') {
     $form = array();
     $form['mimemail'] = array(
-        '#type'          => 'fieldset',
-        '#title'         => t('Email settings'),
-        '#weight'        => 5,
-        '#collapsible' => TRUE,
+      '#type'          => 'fieldset',
+      '#title'         => t('Email settings'),
+      '#weight'        => 5,
+      '#collapsible' => TRUE,
+      '#access' => user_access('edit mimemail user settings'),
     );
     $form['mimemail']['mimemail_textonly'] = array(
       '#type'           => 'checkbox',
@@ -54,7 +69,7 @@ function mimemail_user($op, &$edit, &$account, $category = '') {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function mimemail_theme() {
   module_load_include('theme.inc', 'mimemail', 'theme/mimemail');
@@ -62,7 +77,7 @@ function mimemail_theme() {
 }
 
 /**
- * Implementation of hook_mail().
+ * Implements hook_mail().
  *
  * Set's the message subject and body as configured in the $settings of the action.
  */
@@ -115,7 +130,7 @@ function mimemail_mail($key, &$message, $params) {
 
   $message['to'] = strtr($message['to'], $variables);
   $message['subject'] = strtr($params['subject'], $variables);
-  $message['body'][] = strtr(filter_xss_admin($params['message_html']), $variables);
+  $message['body'][] = check_markup(strtr($params['message_html'], $variables), $params['message_html_filter'], FALSE);
 
   $message['params']['plaintext'] = strtr($params['message_plaintext'], $variables);
   $message['params']['attachments'] = $attachments;
@@ -139,9 +154,11 @@ function mimemail_prepare_message($sender, $recipient, $subject, $body, $plainte
   // Override site mails default sender when using default engine.
   if (variable_get('mimemail_engine', 'mimemail') == 'mimemail') {
     if ((empty($sender) || $sender == $site_mail)) {
+      $mimemail_name = variable_get('mimemail_name', $site_name);
+      $mimemail_mail = variable_get('mimemail_mail', $site_mail);
       $sender = array(
-        'name' => variable_get('mimemail_name', $site_name),
-        'mail' => variable_get('mimemail_mail', $site_mail),
+        'name' => !empty($mimemail_name) ? $mimemail_name : $site_name,
+        'mail' => !empty($mimemail_mail) ? $mimemail_mail : $site_mail,
       );
     }
     elseif (is_array($sender)) {
@@ -155,8 +172,8 @@ function mimemail_prepare_message($sender, $recipient, $subject, $body, $plainte
   }
 
   // Body is empty, this is a plaintext message.
- if (empty($body)) {
-   $plaintext = 1;
+  if (empty($body)) {
+    $plaintext = 1;
   }
  // Try to determine recpient's text mail preference.
   elseif (is_null($plaintext)) {
@@ -168,11 +185,11 @@ function mimemail_prepare_message($sender, $recipient, $subject, $body, $plainte
     elseif (is_string($recipient) && valid_email_address($recipient)) {
       if (is_object($r = user_load(array('mail' => $recipient))) && isset($r->mimemail_textonly)) {
         $plaintext = $r->mimemail_textonly;
-        $recipient = $r; // might as well pass the user object to the address function
+        $recipient = $r; // Pass the user object to the address function.
       }
     }
   }
-  $subject = str_replace("\n", '', trim(drupal_html_to_text($subject)));
+  $subject = str_replace(array(" \n", "\n"), '', trim(drupal_html_to_text($subject)));
   $body = theme(array('mimemail_message__'. $mailkey, 'mimemail_message'), $subject, $body, $mailkey, $recipient);
   foreach (module_implements('mail_post_process') as $module) {
     $function = $module .'_mail_post_process';
@@ -209,7 +226,7 @@ function mimemail_send_message($message) {
   $mailengine = $engine .'_mailengine';
 
   if (!$engine || !function_exists($mailengine)) {
-     return FALSE;
+    return FALSE;
   }
 
   return $mailengine('send', $message);
@@ -240,14 +257,10 @@ function mimemail_send_message($message) {
  *   An array of arrays which describe one or more attachments.
  *   Existing files can be added by path, dinamically-generated files
  *   can be added by content. The internal array consists of the following parts:
- *   - 'filepath':
- *      Relative Drupal path to an existing file (filecontent is NULL).
- *   - 'filecontent':
- *      The actual content of the file (filepath is NULL).
- *   - 'filename':
- *      The filename of the file.
- *   - 'filemime':
- *      The MIME type of the file.
+ *   - filepath: Relative Drupal path to an existing file (filecontent is NULL).
+ *   - filecontent: The actual content of the file (filepath is NULL).
+ *   - filename: The filename of the file.
+ *   - filemime: The MIME type of the file.
  *   The array of arrays looks something like this:
  *   Array
  *   (
@@ -265,7 +278,7 @@ function mimemail_send_message($message) {
  *   Send the message directly.
  *
  * @return
- *   An array containing the MIME encoded message, including headers and body.
+ *   An array containing the MIME-encoded message, including headers and body.
  */
 function mimemail($sender, $recipient, $subject, $body, $plaintext = NULL, $headers = array(), $text = NULL, $attachments = array(), $mailkey = '', $send = TRUE) {
   $engine = variable_get('mimemail_engine', 'mimemail');
@@ -315,14 +328,15 @@ function mimemail_get_engines() {
  *   The operation to perform on the message.
  * @param $message
  *   The message to be sent.
+ *
  * @return
  *   Returns TRUE if the operation was successful or FALSE if it was not.
  */
 function mimemail_mailengine($op, $message = array()) {
   module_load_include('inc', 'mimemail');
 
-  //default values
-  $message = array_merge( array(
+  // Default values.
+  $message = array_merge(array(
       'address' => '',
       'subject' => '',
       'body' => '',
@@ -337,7 +351,8 @@ function mimemail_mailengine($op, $message = array()) {
     case 'description':
       return t("Default mailing engine using drupal_mail().");
 
-    case 'settings': //not implemented
+    // Not implemented.
+    case 'settings':
       return FALSE;
 
     case 'multiple':
@@ -394,29 +409,6 @@ function mimemail_mailengine($op, $message = array()) {
 
 /**
  * Overrides Drupal's default mail sending process.
- *
- * @param $to
- *   An email address or user object who is receiving the message.
- * @param $subject
- *   A subject line string.
- * @param $body
- *   The message body in HTML format.
- * @param $from
- *   The email address or user object who is sending the message.
- * @param $plaintext
- *   Whether to send the message as plaintext only or HTML. If set to 1, Yes
- *   or TRUE, then the message will be sent as plaintext.
- * @param $headers
- *   Optional e-mail headers in a keyed array.
- * @param $text
- *   Optional plaintext portion of a multipart e-mail.
- * @param $attachments
- *   An array of arrays which describe one or more attachments.
- * @param $mailkey
- *   An identifier for the message.
- *
- * @return
- *   Returns TRUE if the mail was successfully accepted for delivery, FALSE otherwise.
  */
 if (strpos(variable_get('smtp_library', ''), 'mimemail') !== FALSE
   && !function_exists('drupal_mail_wrapper')) {
@@ -444,4 +436,5 @@ if (strpos(variable_get('smtp_library', ''), 'mimemail') !== FALSE
 
     return $message['result'];
   }
+
 }

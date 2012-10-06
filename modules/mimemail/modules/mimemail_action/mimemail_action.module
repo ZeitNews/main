@@ -2,12 +2,12 @@
 
 /**
  * @file
- * Provide actions for Mime Mail.
+ * Provide actions for the Mime Mail module.
  */
 
 /**
-* Implementation of hook_action_info().
-*/
+ * Implements hook_action_info().
+ */
 function mimemail_action_info() {
   return array(
     'mimemail_send_mail_action' => array(
@@ -25,7 +25,7 @@ function mimemail_action_info() {
 }
 
 /**
- * Implementation of a configurable Drupal action. Sends an email.
+ * Implements a configurable Drupal action. Sends an email.
  */
 function mimemail_send_mail_action(&$object, $context = array()) {
   global $user;
@@ -83,9 +83,6 @@ function mimemail_send_mail_action(&$object, $context = array()) {
 
   $message = drupal_mail('mimemail', 'action_send_mail', $to, user_preferred_language($account), $params, NULL, FALSE);
 
-  $format = variable_get('mimemail_format', FILTER_FORMAT_DEFAULT);
-  $message['body'] = check_markup($message['body'], $format, FALSE);
-
   $message = mimemail(
     $message['from'],
     $message['to'],
@@ -112,7 +109,7 @@ function mimemail_send_mail_action(&$object, $context = array()) {
  * Form for configurable Drupal action to send an HTML mail.
  */
 function mimemail_send_mail_action_form($context) {
-  $context += array('to' => '', 'cc' => '', 'bcc' => '', 'subject' => '', 'message_html' => '', 'message_plaintext' => '', 'attachments' => '');
+  $context += array('to' => '', 'cc' => '', 'bcc' => '', 'subject' => '', 'message_html' => '', 'message_html_filter' => FILTER_FORMAT_DEFAULT, 'message_plaintext' => '', 'attachments' => '');
 
   $form['to'] = array(
     '#type' => 'textfield',
@@ -122,7 +119,7 @@ function mimemail_send_mail_action_form($context) {
     '#description' => t("The mail's recipient address. You may separate multiple addresses with comma and use %author if the recipient is the author of the original post.", array('%author' => '%author')),
     '#required' => TRUE,
   );
- $form['cc'] = array(
+  $form['cc'] = array(
     '#type' => 'textfield',
     '#title' => t('CC Recipient'),
     '#default_value' => $context['cc'],
@@ -159,10 +156,10 @@ function mimemail_send_mail_action_form($context) {
     '#type' => 'textarea',
     '#title' => t('Attachments'),
     '#default_value' => $context['attachments'],
-    '#description' => t('A list of attachments, one file per line like [mimetype]:[path] e.g. "image/png:/files/images/mypic.png".'),
+    '#description' => t('A list of attachments, one file per line like [mimetype]:[path] e.g. "image/png:/files/images/mypic.png" without quotes.'),
   );
 
-  $form['message_html_filter']['format'] = filter_form(variable_get('mimemail_format', FILTER_FORMAT_DEFAULT));
+  $form['message_html_filter']['format'] = filter_form($context['message_html_filter']);
 
   return $form;
 }
@@ -207,6 +204,7 @@ function mimemail_send_mail_action_submit($form, $form_state) {
     'bcc' => $form_values['bcc'],
     'subject' => $form_values['subject'],
     'message_html' => $form_values['message_html'],
+    'message_html_filter' => $form_values['format'],
     'message_plaintext' => $form_values['message_plaintext'],
     'attachments' => $form_values['attachments'],
   );

@@ -63,6 +63,58 @@ function _location_search($op = 'search', $keys = null) {
       $arguments1 = array();
       $conditions1 = '1 = 1';
 
+      $access_joins = array();
+      $access_conditions = array();
+
+      $has_user_location_access = user_access('access user profiles') && user_access('view all user locations');
+      $has_content_access = user_access('access content');
+
+      if (!$has_user_location_access && !$has_content_access) {
+        // The user has access to no locations
+        $conditions1 = '1 = 0';
+      }
+      elseif ($has_user_location_access && !$has_content_access) {
+        // The user doesn't have access to nodes, so include only locations
+        // that don't belong to nodes
+        $access_joins[] = ' INNER JOIN {location_instance} li ON (l.lid = li.lid AND li.nid = 0) ';
+      }
+      elseif (!$has_user_location_access && $has_content_access) {
+        // The user doesn't have access to user locations, so include only
+        // locations that don't belong to users.
+        // Since this also means we'll need to enforce node access, we'll want
+        // to include the query fragments returned by _db_rewrite_sql()
+        $access_joins[] = ' INNER JOIN {location_instance} li ON (l.lid = li.lid AND li.uid = 0) ';
+        $access_joins[] = ' INNER JOIN {node} n ON (li.nid = n.nid AND n.status = 1) ';
+        $sql_rewrites = _db_rewrite_sql();
+        if ($sql_rewrites[0]) {
+          $access_joins[] = $sql_rewrites[0];
+        }
+        if ($sql_rewrites[1]) {
+          $access_conditions[] = $sql_rewrites[1];
+        }
+      }
+      else {
+        // The user has access to both.  However, for the locations that
+        // belong to nodes, we want to use the node access sql clauses
+        // returned by _db_rewrite_sql().  These are the ones with
+        // location_instance.nid != 0
+        // location_instance.nid = 0 means the location instance belongs
+        // to a user record.
+        $access_joins[] = ' INNER JOIN {location_instance} li ON (l.lid = li.lid) ';
+        $access_joins[] = ' LEFT JOIN {node} n ON (li.nid = n.nid AND n.status = 1) ';
+        $sql_rewrites = _db_rewrite_sql();
+        // If we have rewrite JOINs or WHEREs, restrict the results.
+        if ($sql_rewrites[0] || $sql_rewrites[1]) {
+          // The node part must use a sub-select because if the node access
+          // rewrites get added to the main query there will never be any user
+          // results because location instance will be inner joined to node
+          // access.
+          $access_conditions[] = ' (li.uid <> 0 OR (li.nid <> 0 AND li.nid IN (SELECT n.nid FROM {node} n ' . $sql_rewrites[0] . ($sql_rewrites[1] ? ' WHERE ' . $sql_rewrites[1] : '') . '))) ';
+        }
+      }
+      $access_joins = implode(' ', $access_joins);
+      $access_conditions = implode(' ', $access_conditions);
+
       // This gets rewritten for proximity searches.
       $select2 = 'i.relevance AS score';
       $join2 = '';
@@ -123,6 +175,10 @@ function _location_search($op = 'search', $keys = null) {
         $keys = search_query_insert($keys, 'from');
       }
 
+      if (!empty($access_conditions)) {
+        $conditions1 = $access_conditions .' AND '. $conditions1;
+      }
+
       $lids = array();
       if (empty($keys)) {
         // Non-fulltext search. We will be skipping the built-in logic.
@@ -130,8 +186,8 @@ function _location_search($op = 'search', $keys = null) {
         if ($proximity) {
           $add = ', '. earth_distance_sql($lon, $lat, 'l') .' AS distance';
         }
-        $query = "SELECT l.lid$add FROM {location} l WHERE $conditions1";
-        $countquery = "SELECT COUNT(*) FROM {location} l WHERE $conditions1";
+        $query = "SELECT l.lid$add FROM {location} l $access_joins WHERE $conditions1";
+        $countquery = "SELECT COUNT(*) FROM {location} l $access_joins WHERE $conditions1";
         $result = pager_query($query, 10, 0, $countquery, $arguments1);
         while ($row = db_fetch_object($result)) {
           $lids[] = $row->lid;
@@ -139,7 +195,7 @@ function _location_search($op = 'search', $keys = null) {
       }
       else {
         // Fuzzy search -- Use the fulltext routines against the indexed locations.
-        $find = do_search($keys, 'location', 'INNER JOIN {location} l ON l.lid = i.sid ', $conditions1 . (empty($where1) ? '' : ' AND '. $where1), $arguments1, $select2, $join2, array(), $sort_parameters);
+        $find = do_search($keys, 'location', 'INNER JOIN {location} l ON l.lid = i.sid '. $access_joins, $conditions1 . (empty($where1) ? '' : ' AND '. $where1), $arguments1, $select2, $join2, array(), $sort_parameters);
         foreach ($find as $item) {
           $lids[] = $item->sid;
         }

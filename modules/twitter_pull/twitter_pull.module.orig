@@ -1,5 +1,4 @@
 <?php
-// $Id: twitter_pull.module,v 1.1.2.7 2011/01/11 04:08:04 inadarei Exp $
 
 /**
  * @file
@@ -97,7 +96,7 @@ function twitter_pull_retrieve($twitkey, $num_items = NULL) {
 
   $tweets = array();
 
-  if (!empty($cache) && !empty($cache->data)) {
+  if (!empty($cache) && !empty($cache->data) && (time() < $cache->expire)) {
     $tweets =  $cache->data;
   }
   else {
@@ -136,7 +135,7 @@ function twitter_pull_add_links($text) {
   $repl = '#<a href="http://twitter.com/#!/search?q=%23$1" title="#$1" rel="nofollow">$1</a>';
   $text = preg_replace($pattern, $repl, $text);  
 
-  return $text;
+  return filter_xss($text);
 }
 
 /**

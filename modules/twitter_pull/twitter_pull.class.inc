@@ -1,5 +1,4 @@
 <?php
-// $Id: twitter_pull.class.inc,v 1.1.2.9 2011/01/11 04:12:23 inadarei Exp $
 
 /**
  * @file
@@ -93,14 +92,17 @@ class twitter_puller {
       $items = array_slice($items, 0, $this->num_items);
       foreach ($items as $item) {
         $obj = new stdClass();
-        $obj->id = $item->id_str;
+        $obj->id = check_plain($item->id_str);
         $obj->username = (isset($item->user) && !empty($item->user->screen_name)) ? $item->user->screen_name : $item->from_user;
           $obj->username = check_plain($obj->username);
         $obj->userphoto = (isset($item->user) && !empty($item->user->profile_image_url)) ? $item->user->profile_image_url : $item->profile_image_url;
           $obj->userphoto = check_plain($obj->userphoto);
         $obj->text = filter_xss($item->text);
-        //-- Convert date to unix timestamp so themer can easily work with it.
-        $obj->timestamp = strtotime($item->created_at);
+          
+        //-- Convert date to unix timestamp so themers can easily work with it.
+        //-- We need to suppress possible warnings (in PHP 5.3+) related to non-set timezones because
+        //-- Drupal6 does not save proper timezones (just offsets) and there's no good way to fix this.
+        $obj->timestamp = @strtotime($item->created_at);
         $obj->time_ago =  t('!time ago.', array('!time' => format_interval(time() - $obj->timestamp)));        
         $tweets[] = $obj;
       }
