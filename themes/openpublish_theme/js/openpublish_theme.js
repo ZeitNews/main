@@ -215,7 +215,7 @@ $('#op-content p')
   .remove()
 
 // Hide media not inserted properly.
-$('#op-content iframe, #op-content object, #op-content script').filter(':parents(.media_embed, .video-embed-code, .audio-embed-code)').hide();
+$('#op-content iframe, #op-content object, #op-content script').filter(':parents(.media_embed, .video-embed-code, .audio-embed-code, .flowplayer)').hide();
 
 // Highlight footnotes with scroll effect.
 $("sup > a").click(function(event) {
