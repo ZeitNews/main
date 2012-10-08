@@ -377,7 +377,7 @@ div.body-content {
 .body-content .main-image, #op-content .main-image {
   background: #efefef;
   float: left;
-  margin: 0 25px 23px 0;
+  margin: 0 25px 20px 0;
   padding: 5px 5px 2px 5px;
   position: relative;
   top: 6px;
@@ -497,7 +497,7 @@ body.node-type-op-image .body-content .main-image {
   color:#666;
   width:345px;
   margin: 2px 0;
-  font-size: .917em; 
+  font-size: 11px; /* Was .917em */ 
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -510,7 +510,7 @@ body.node-type-op-image .body-content .main-image {
 .views-field-field-thumb-image-credit-value {
   font-style: italic;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: .917em; 
+  font-size: 11px; /* Was .917em */
   color: #666;
   }
 /* For Safari mainly. */
@@ -1057,8 +1057,8 @@ input.form-submit:hover, a.button:hover {
 
 .more-link {
   font-size: .917em; 
- font-family: Arial, helvetica, sans-serif;
- margin-top: 15px;
+  font-family: Arial, helvetica, sans-serif;
+  margin-top: 15px;
 }
 
 .more-link a {color: #666;}
@@ -1716,7 +1716,7 @@ a#comment-count {
 }
 .body-content p img {
   float: left;
-  margin: 10px 25px 23px 0;
+  margin: 10px 25px 20px 0;
   padding: 5px;
 }
 .body-content .full-width-image {
@@ -1870,7 +1870,7 @@ div.audio-embed-code p {
 /* For inserted tables in node bodies. */
 .body-content table {
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 25px 23px 0;
+  margin: 10px 25px 20px 0;
   padding: 5px;
   float: left !important;
   max-width: 400px !important;
@@ -2773,7 +2773,7 @@ a {
   padding: 5px 0 0 0;
   font-style: italic;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 0.7em;
+  font-size: 11px; /* Was 0.7em */
   color: #666;
   background: #EFEFEF;
   line-height: 1.4em;
@@ -3110,7 +3110,7 @@ html.js input.throbbing {
 .image-caption-left {
   float: left;
   background-color: #EFEFEF;
-  margin: 10px 25px 23px 0;
+  margin: 10px 25px 20px 0;
   padding: 5px;
   border-radius: 2px;
   max-width: 610px; /* This matches #container img having a 610px max-width. */
@@ -3118,7 +3118,7 @@ html.js input.throbbing {
 .image-caption-right {
   float: right;
   background-color: #EFEFEF;
-  margin: 10px 0 23px 25px;
+  margin: 10px 0 20px 25px;
   padding: 5px;
   border-radius: 2px;
   max-width: 610px; /* This matches #container img having a 610px max-width. */
@@ -3236,7 +3236,7 @@ html.js input.throbbing {
 .body-content .image-caption-container .caption span,
 .body-content .image-caption-container-full-width .caption span {
   font-family: Arial,Helvetica,sans-serif !important;
-  font-size: 0.7em !important;
+  font-size: 11px !important; /* Was 0.7em */
 }
 .body-content .image-caption-container .caption span.read-more,
 .body-content .image-caption-container .caption span.read-less,
@@ -3323,10 +3323,6 @@ html.js input.throbbing {
 .break {
   display: block;
   padding-bottom: 0.5em;
-}
-/* Commenters (spammers) misusing homepage (URL) field. */
-#edit-homepage-wrapper {
-display: none;
 }
 
 /* Short blockquotes */

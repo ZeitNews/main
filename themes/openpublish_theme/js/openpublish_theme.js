@@ -31,12 +31,12 @@ $('#op-content img').each(function() {
       // If it has an image caption.
       if ($(this).parent().hasClass('image-caption-container')) {
         $(this).parent().css({
-          'margin': '10px 25px 23px 0px',
+          'margin': '10px 25px 20px 0px',
           'clear': 'left'
           });
       } else {
         $(this).css({
-          'margin': '10px 25px 23px 0px',
+          'margin': '10px 25px 20px 0px',
           'clear': 'left'
           });
       }
@@ -45,12 +45,12 @@ $('#op-content img').each(function() {
     if (img_float == 'right') {
       if ($(this).parent().hasClass('image-caption-container')) {
         $(this).parent().css({
-          'margin': '10px 0px 23px 25px',
+          'margin': '10px 0px 20px 25px',
           'clear': 'right'
         });
       } else {
         $(this).css({
-          'margin': '10px 0px 23px 25px',
+          'margin': '10px 0px 20px 25px',
           'clear': 'right'
         });
       }
@@ -210,7 +210,7 @@ if (!!$('input#edit-city').attr('value')) {
 // Remove empty p tags.
 $('#op-content p')
   .filter(function() {
-    return $.trim($(this).text()) === ''
+    return $.trim($(this).text()) === '' && $(this).children().length == 0
   })
   .remove()
 

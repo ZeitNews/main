@@ -20,6 +20,10 @@ function openpublish_theme_theme() {
       'arguments' => array('form' => NULL),
       'template' => 'forms/user-register',
     ),
+    // For a new THEME_comment_form that doesn't exist in comment.module.
+    'comment_form' => array(
+      'arguments' => array('form' => NULL),
+    ),
   );
 }
 
@@ -59,6 +63,16 @@ function openpublish_theme_preprocess_user_register(&$vars) {
 }
 
 /**
+ * Implementation of theme_comment_form()
+ *
+ * Gets rid of the homepage field on comment forms to combat spam.
+ */
+function openpublish_theme_comment_form($form) {
+    unset($form['homepage']);
+    return drupal_render($form);
+}
+
+/**
  * Implementation of theme_breadcrumb()
  *
  * Return a themed breadcrumb trail.
@@ -84,7 +98,6 @@ function openpublish_theme_breadcrumb($breadcrumb) {
 function openpublish_theme_menu_local_tasks() {
   return menu_primary_local_tasks();
 }
-
 function openpublish_theme_comment_submitted($comment) {
   return t('by <strong>!username</strong> | !datetime',
     array(
@@ -92,7 +105,6 @@ function openpublish_theme_comment_submitted($comment) {
       '!datetime' => format_date($comment->timestamp)
     ));
 }
-
 function openpublish_theme_node_submitted($node) {
   return t('by <strong>!username</strong> | !datetime',
     array(
