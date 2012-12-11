@@ -1,13 +1,12 @@
-; $Id: rel_to_abs.info,v 1.1 2009/09/04 13:18:33 lourenzo Exp $
 name = Relative to Absolute Filter
 description = "Filter for convertion of relative paths to absolute URLs"
 
 package = "Input filters"
 dependencies[] = filter
 core = 6.x
-; Information added by drupal.org packaging script on 2009-12-17
-version = "6.x-1.0"
+; Information added by drupal.org packaging script on 2012-08-08
+version = "6.x-1.2"
 core = "6.x"
 project = "rel_to_abs"
-datestamp = "1261040159"
+datestamp = "1344464554"
 

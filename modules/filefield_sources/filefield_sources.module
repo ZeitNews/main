@@ -14,14 +14,6 @@ function filefield_sources_menu() {
 }
 
 /**
- * Implements hook_init().
- */
-function filefield_sources_init() {
-  // Currently needed for IMCE to set a custom variable.
-  filefield_sources_includes();
-}
-
-/**
  * Implements hook_elements().
  */
 function filefield_sources_elements() {
@@ -57,7 +49,7 @@ function filefield_sources_theme() {
  * This returns a list of widgets that are compatible with FileField Sources.
  */
 function filefield_sources_filefield_sources_widgets() {
-  return array('filefield_widget', 'imagefield_widget', 'imagefield_crop_widget');
+  return array('filefield_widget', 'imagefield_widget');
 }
 
 /**

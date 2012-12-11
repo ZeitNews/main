@@ -1,0 +1,330 @@
+<?php
+// $Id: language_select.test,v 1.1 2009/11/09 15:04:57 alduya Exp $
+
+/**
+ * @file
+ * Tests for Language select module.
+ */
+ 
+/**
+ * Functional tests for Language select.
+ */
+class LanguageSelectTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => t('Language select'),
+      'description' => t('Ensure that the Language select module functions properly.'),
+      'group' => t('Language select tests'),
+    );
+  }
+
+  public function setUp() {
+    parent::setUp('language_select', 'locale', 'content_translation');  // Enable any modules required for the test
+    // Create and log in our user
+    $user = $this->drupalCreateUser(array('create page content', 'edit any page content', 'administer languages'));
+    $this->drupalLogin($user);
+  }
+  
+  /** TEST 1
+   * Test for multilingual disabled
+   * 
+   * No language select box should be visible
+   */ 
+  public function testDisableMultilingual() {
+    variable_set('language_content_type_page', 0);
+    $path = 'node/add/page';
+    $this->drupalGet($path);
+    $test = isset($form['language']['#options']);
+    $this->assertFalse($test, t('$form[\'language\'] should not contain an array called #options.'));
+    
+    $this->outputScreenContents('After page creation: test 1', 'testDisableMultilingual');
+  }
+  
+  /** TEST 2
+   * Tests for multilingual enabled, without any language selected (defaults to '-please choose-')
+   * The Language neutral option is not disabled.
+   * 
+   * '- Please choose -' should be visible in the language select box
+   */ 
+  public function testEnableNoDefault() {
+    variable_set('language_content_type_page', 1);
+    variable_set('disable_language_neutral_page', 0);
+    variable_set('language_select_type_page', 3);
+    $path = 'node/add/page';
+    $this->drupalGet($path);
+    $this->assertNoRaw('<option value="" selected="selected">', t('No option should be selected, "- Please choose -" is visible.'));
+    
+    $this->outputScreenContents('After page creation: test 2', 'testEnableNoDefault');
+  }
+  
+  /** TEST 3
+   * Tests for multilingual enabled, without any language selected (defaults to '-please choose-')
+   * The Language neutral option is disabled.
+   * 
+   * '- Please choose -' should be visible in the language select box
+   * There shouldn't be an option 'Language neutral' in the language select box
+   */ 
+  public function testEnableNoDefaultNoLanguageNeutral() {
+    variable_set('language_content_type_page', 1);
+    variable_set('disable_language_neutral_page', 1);
+    variable_set('language_select_type_page', 3);
+    $path = 'node/add/page';
+    $this->drupalGet($path);
+    $this->assertNoRaw('<option value="" selected="selected">', t('No option should be selected, "- Please choose -" is visible.'));
+    $this->assertNoRaw('<option value="0">Language neutral</option>', t('There shouldn\'t be an option "Language neutral" in the language select.'));
+    
+    $this->outputScreenContents('After page creation: test 3', 'testEnableNoDefaultNoLanguageNeutral');
+  }
+  
+  /** TEST 4
+   * Tests for multilingual enabled, with Language neutral selected as default
+   * The Language neutral option is not disabled.
+   * 
+   * 'Language neutral' should be selected in the language select box
+   */ 
+  public function testEnableDefaultLanguageNeutral() {
+    variable_set('language_content_type_page', 1);
+    variable_set('disable_language_neutral_page', 0);
+    variable_set('language_select_type_page', 'neutral');
+    $this->drupalGet('node/add/page');
+    $this->assertRaw('<option value="neutral" selected="selected">Language neutral</option>', t('"Language neutral" should be selected in the language select.'));
+    
+    $this->outputScreenContents('After page creation: test 4', 'testEnableDefaultLanguageNeutral');
+  }
+  
+  /** TEST 5
+   * Tests for multilingual enabled, with the User language selected as default
+   * The Language neutral option is not disabled.
+   * 
+   * 'Dutch' should be selected in the language select box
+   */ 
+  public function testEnableDefaultUserLanguage() {
+    variable_set('language_content_type_page', 1);
+    variable_set('disable_language_neutral_page', 0);
+    variable_set('language_select_type_page', 'user');
+    
+    $edit = array(
+      'langcode' => 'nl',
+    );
+    $this->drupalPost('admin/settings/language/add', $edit, t('Add language'));
+    $this->assertRaw('strong>Dutch</strong></td><td>Nederlands', t('"Dutch" should be an enabled language for the site.'));
+    
+    $path = 'user/3/edit';
+    $edit = array(
+      'language' => 'nl',
+    );
+    $this->drupalPost($path, $edit, t('Save'));
+    $this->assertRaw('checked="checked"  class="form-radio" /> Dutch', t('The userlanguage is set to Dutch'));
+    
+    $path = 'node/add/page';
+    $this->drupalGet($path);
+    $this->assertRaw('<option value="nl" selected="selected">Dutch</option>', t('"Dutch" should be selected in the language select.'));
+    
+    $this->outputScreenContents('After page creation: test 5', 'testEnableDefaultUserLanguage');
+  }
+  
+  /** TEST 6
+   * Tests for multilingual enabled, with the User language selected as default
+   * The Language neutral option is disabled.
+   * 
+   * 'Dutch' should be selected in the language select box
+   */ 
+  public function testEnableDefaultUserLanguageNoLanguageNeutral() {
+    variable_set('language_content_type_page', 1);
+    variable_set('disable_language_neutral_page', 1);
+    variable_set('language_select_type_page', 'user');
+    
+    $edit = array(
+      'langcode' => 'nl',
+    );
+    $this->drupalPost('admin/settings/language/add', $edit, t('Add language'));
+    $this->assertRaw('strong>Dutch</strong></td><td>Nederlands', t('"Dutch" should be an enabled language for the site.'));
+    
+    $path = 'user/3/edit';
+    $edit = array(
+      'language' => 'nl',
+    );
+    $this->drupalPost($path, $edit, t('Save'));
+    $this->assertRaw('checked="checked"  class="form-radio" /> Dutch', t('The userlanguage is set to Dutch'));
+    
+    $path = 'node/add/page';
+    $this->drupalGet($path);
+    $this->assertRaw('<option value="nl" selected="selected">Dutch</option>', t('"Dutch" should be selected in the language select.'));
+    $this->assertNoRaw('<option value="0">Language neutral</option>', t('There shouldn\'t be an option "Language neutral" in the language select.'));
+    
+    $this->outputScreenContents('After page creation: test 6', 'testEnableDefaultUserLanguageNoLanguageNeutral');
+  }
+  
+  /** TEST 7
+   * Tests for multilingual enabled, with the Interface language selected as default
+   * The Language neutral option is not disabled.
+   * 
+   * 'Dutch' should be selected in the language select box
+   */ 
+  public function testEnableDefaultInterfaceLanguage() {
+    variable_set('language_content_type_page', 1);
+    variable_set('disable_language_neutral_page', 0);
+    variable_set('language_select_type_page', 'interface');
+    
+    $edit = array(
+      'langcode' => 'nl',
+    );
+    $this->drupalPost('admin/settings/language/add', $edit, t('Add language'));
+    $this->assertRaw('strong>Dutch</strong></td><td>Nederlands', t('"Dutch" should be an enabled language for the site.'));
+    
+    $edit = array(
+      'language_negotiation' => 1,
+    );
+    $this->drupalPost('admin/settings/language/configure', $edit, t('Save settings'));
+    $this->assertRaw('Language negotiation configuration saved.', t('Language settings set to Path prefix only'));
+    
+    $path = 'nl/node/add/page';
+    $this->drupalGet($path);
+    $this->assertRaw('<option value="nl" selected="selected">', t('"Dutch" should be selected in the language select.'));
+    
+    $this->outputScreenContents('After page creation: test 7', 'testEnableDefaultInterfaceLanguage');
+  }
+  
+  /** TEST 8
+   * Tests for multilingual enabled, with the User language selected as default
+   * The Language neutral option is disabled.
+   * 
+   * 'Dutch' should be selected in the language select box
+   */ 
+  public function testEnableDefaultInterfaceLanguageNoLanguageNeutral() {
+    variable_set('language_content_type_page', 1);
+    variable_set('disable_language_neutral_page', 1);
+    variable_set('language_select_type_page', 'interface');
+        
+    $edit = array(
+      'langcode' => 'nl',
+    );
+    $this->drupalPost('admin/settings/language/add', $edit, t('Add language'));
+    $this->assertRaw('strong>Dutch</strong></td><td>Nederlands', t('"Dutch" should be an enabled language for the site.'));
+    
+    $edit = array(
+      'language_negotiation' => 1,
+    );
+    $this->drupalPost('admin/settings/language/configure', $edit, t('Save settings'));
+    $this->assertRaw('Language negotiation configuration saved.', t('Language settings set to Path prefix only'));
+    
+    $path = 'nl/node/add/page';
+    $this->drupalGet($path);
+    $this->assertRaw('<option value="nl" selected="selected">', t('"Dutch" should be selected in the language select.'));
+    $this->assertNoRaw('<option value="0">', t('There shouldn\'t be an option "Language neutral" in the language select.'));
+    
+    $this->outputScreenContents('After page creation: test 8', 'testEnableDefaultInterfaceLanguageNoLanguageNeutral');
+  }
+  
+  /** TEST 9
+   * Tests for multilingual enabled, with Language neutral selected as default
+   * The Language neutral option is not disabled.
+   * 
+   * 'English' should be selected in the language select box
+   */ 
+  public function testEnableDefaultEnglishNoLanguageNeutral() {
+    variable_set('language_content_type_page', 1);
+    variable_set('disable_language_neutral_page', 0);
+    variable_set('language_select_type_page', 'en');
+        
+    $edit = array(
+      'langcode' => 'nl',
+    );
+    $this->drupalPost('admin/settings/language/add', $edit, t('Add language'));
+    $this->assertRaw('strong>Dutch</strong></td><td>Nederlands', t('"Dutch" should be an enabled language for the site.'));
+    
+    $edit = array(
+      'language_negotiation' => 1,
+    );
+    $this->drupalPost('admin/settings/language/configure', $edit, t('Save settings'));
+    $this->assertRaw('Language negotiation configuration saved.', t('Language settings set to Path prefix only'));
+    
+    
+    $this->drupalGet('node/add/page');
+    $this->assertRaw('<option value="en" selected="selected">English</option>', t('"English" should be selected in the language select.'));
+    
+    $this->outputScreenContents('After page creation: test 9', 'testEnableDefaultEnglishNoLanguageNeutral');
+  }
+  
+  /** TEST 10
+   * Tests for multilingual enabled, with Language neutral selected as default
+   * The Language neutral option is disabled.
+   * 
+   * 'Dutch' should be selected in the language select box
+   */ 
+  public function testEnableDefaultDutchLanguageNeutral() {
+    variable_set('language_content_type_page', 1);
+    variable_set('disable_language_neutral_page', 1);
+    variable_set('language_select_type_page', 'nl');
+        
+    $edit = array(
+      'langcode' => 'nl',
+    );
+    $this->drupalPost('admin/settings/language/add', $edit, t('Add language'));
+    $this->assertRaw('strong>Dutch</strong></td><td>Nederlands', t('"Dutch" should be an enabled language for the site.'));
+    
+    $edit = array(
+      'language_negotiation' => 1,
+    );
+    $this->drupalPost('admin/settings/language/configure', $edit, t('Save settings'));
+    $this->assertRaw('Language negotiation configuration saved.', t('Language settings set to Path prefix only'));
+    
+    
+    $this->drupalGet('node/add/page');
+    $this->assertRaw('<option value="nl" selected="selected">Dutch</option>', t('"Dutch" should be selected in the language select.'));
+    $this->assertNoRaw('<option value="0">Taalonafhankelijk</option>', t('There shouldn\'t be an option "Taalonafhankelijk" in the language select.'));
+    
+    $this->outputScreenContents('After page creation: test 10', 'testEnableDefaultDutchLanguageNeutral');
+  }
+  
+  /** TEST 11
+   * Tests for multilingual enabled, with the User language selected as default
+   * The Language neutral option is not disabled.
+   * The site default language is set to a different language (Dutch) and a new user is created.
+   * 
+   * 'Dutch' should be selected in the language select box
+   */
+
+  public function testEnableDefaultUserLanguageNLSiteDefault() {
+    
+    $edit = array(
+      'langcode' => 'nl',
+    );
+    $this->drupalPost('admin/settings/language/add', $edit, t('Add language'));
+    $this->assertRaw('strong>Dutch</strong></td><td>Nederlands', t('"Dutch" should be an enabled language for the site.'));
+    
+    $user_nl = $this->drupalCreateUser(array('create page content', 'edit any page content', 'administer languages'));
+   
+    $this->drupalLogin($user_nl);
+    
+    $edit = array(
+      'site_default' => 'nl',
+    );
+    $this->drupalPost('admin/settings/language', $edit, t('Save configuration'));
+    
+    variable_set('language_content_type_page', 1);
+    variable_set('disable_language_neutral_page', 0);
+    variable_set('language_select_type_page', 'user');
+    
+    $path = 'node/add/page';
+    $this->drupalGet($path);
+    $this->assertRaw('<option value="nl" selected="selected">', t('"Dutch" should be selected in the language select.'));
+    
+    $this->outputScreenContents('After page creation: test 11', 'testEnableDefaultUserLanguageNLSiteDefault');
+  }
+  
+  // A utility function we can use in debugging our test. This outputs the screen
+  // as an HTML file we can view, and uses the pass() method to report it to us
+  // in the simpletest web interface
+  private function outputScreenContents($description, $basename) {
+    // This is a hack to get a directory that won't be cleaned up by simpletest
+    $file_dir = file_directory_path() .'/../simpletest_output_pages';
+    if (!is_dir($file_dir)) {
+      mkdir($file_dir, 0777, TRUE);
+    }
+    $output_path = "$file_dir/$basename." . $this->randomName(10) . '.html';
+    $rv = file_put_contents($output_path, $this->drupalGetContent());
+    $this->pass("$description: Contents of result page are ". l('here', $output_path));
+  }
+}

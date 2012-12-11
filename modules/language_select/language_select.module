@@ -1,0 +1,109 @@
+<?php
+// $Id: language_select.module,v 1.1 2009/11/09 15:04:57 alduya Exp $
+
+/**
+ * @file
+ * Changes the language select for nodes in multilingual sites
+ * 
+ * Provides a Disable Language neutral option.
+ * Provides a select for the default language.
+ */
+define(LANGUAGE_SELECT_DEFAULT_USER, 'user');
+define(LANGUAGE_SELECT_DEFAULT_INTERFACE, 'interface');
+define(LANGUAGE_SELECT_DEFAULT_CHOICE, 'choice');
+define(LANGUAGE_SELECT_DEFAULT_NEUTRAL, 'neutral');
+
+function language_select_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#language_select':
+      return '<p>'. t('Offers the ability to choose whether new content can be "Language neutral" or not,
+      and whether the default language is the user language, the current system language, language neutral
+      or chosen by the user. This can be found under the Workflow settings tab when editing a content type
+      (<code>/admin/content/node-type/nodetype</code>). ') .'</p>';
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ * - Alters the default language on node create forms.
+ */
+function language_select_form_alter(&$form, $form_state, $form_id) {
+  global $language;
+  global $user;
+  
+  switch ($form_id) {
+    case $form['#node']->type .'_node_form':
+      if (is_array($form['language']['#options'])) {
+        $form['language']['#required'] = TRUE;
+        $form['language']['#options'][''] = t('- Please choose -');
+        $default_language = variable_get('language_select_type_'. $form['#node']->type, 0);
+        if (!variable_get('disable_language_neutral_'. $form['#node']->type, 0)) {
+          $form['language']['#options'][LANGUAGE_SELECT_DEFAULT_NEUTRAL] = t('Language neutral');
+        }
+        if ($form['#node']->language == '') {
+          switch ($default_language) {
+            case LANGUAGE_SELECT_DEFAULT_USER:
+              $form['language']['#default_value'] = user_preferred_language($user)->language;
+              break;
+            case LANGUAGE_SELECT_DEFAULT_INTERFACE:
+              $form['language']['#default_value'] = $language->language;
+              break;
+            case LANGUAGE_SELECT_DEFAULT_CHOICE:
+              $form['language']['#default_value'] = '';
+              break;
+            case LANGUAGE_SELECT_DEFAULT_NEUTRAL:
+              $form['language']['#default_value'] = LANGUAGE_SELECT_DEFAULT_NEUTRAL;
+              break;
+            default:
+              if (!$default_language) {
+                $form['language']['#default_value'] = LANGUAGE_SELECT_DEFAULT_NEUTRAL;
+              }
+              else {
+                $form['language']['#default_value'] = $default_language;
+              }
+          }
+        }
+      }
+      $form['#validate'][] = '_language_select_form_alter_validate';
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_form_node_type_form_alter()
+ * - Adds "Disable Language neutral" option to content type form.
+ * - Adds a dropdown to select a dynamic or fixed default language for node create forms.
+ */
+function language_select_form_node_type_form_alter(&$form, &$form_state) {
+  $form['workflow']['disable_language_neutral'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Disable "Language neutral"'),
+    '#default_value' => variable_get('disable_language_neutral_'. $form['#node_type']->type, 0),
+    '#description' => t('Removes the "Language neutral" option from the language selection dropdown.'),
+  );
+  $form['workflow']['language_select_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Select default language '),
+    '#default_value' => variable_get('language_select_type_'. $form['#node_type']->type, LANGUAGE_SELECT_DEFAULT_CHOICE),
+    '#options' => array(
+      t('Dynamic') => array(
+        LANGUAGE_SELECT_DEFAULT_USER => t('User language'), 
+        LANGUAGE_SELECT_DEFAULT_INTERFACE => t('Interface language'),
+      ),
+      t('Fixed') => locale_language_list(),          
+    ),
+    '#description' => t('Select which language is used as the default language when creating a new node.'),
+  );
+  $form['workflow']['language_select_type']['#options']['Fixed'][LANGUAGE_SELECT_DEFAULT_CHOICE] = t('No default language');
+  $form['workflow']['language_select_type']['#options']['Fixed'][LANGUAGE_SELECT_DEFAULT_NEUTRAL] = t('Language neutral');
+}
+
+/**
+ * A node is language neutral if there is an empty field in the database. But when the field is required,
+ * a value has to be passed. This extra validation changes the value for language neutral to an empty field.
+ */
+function _language_select_form_alter_validate($form, &$form_state) {
+  if ($form_state['values']['language'] == LANGUAGE_SELECT_DEFAULT_NEUTRAL) {
+    $form_state['values']['language'] = '';
+  }
+}

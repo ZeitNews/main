@@ -161,6 +161,10 @@ if (!$('.term-page-slideshow-credit').length) {
 }
 
 // Highlight active exposed filters.
+// Language
+if ($('.views-widget-filter-language .bef-tree').find('input[checked]').length) {
+  $('label[for="edit-lang"]').css({'color' : '#46607B', 'font-style' : 'italic'});
+}
 // Title
 if (!!$('input#edit-title').attr('value')) {
   $('label[for="edit-title"]').css({'color' : '#46607B', 'font-style' : 'italic'});

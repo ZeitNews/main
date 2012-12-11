@@ -105,6 +105,7 @@ div.status {
   float: right; 
   text-align: right;
   margin-top: 2px;
+  padding-right: 4px;
 }
 
 
@@ -1005,7 +1006,13 @@ input.form-submit:hover, a.button:hover {
   padding: 4px 4px 1px 4px;
   border: 1px solid #D9D9D9;
 }
-
+#container #sidebar-right .block-locale {
+  background: #46607B;
+  border: none;
+}
+#container #sidebar-right .block-locale:hover {
+  background: #393939;
+}
 .page-search #sidebar-right .block {
   text-align: left;
 }
@@ -1046,7 +1053,10 @@ input.form-submit:hover, a.button:hover {
   border: none;
   font-family: Georgia,"Times New Roman",Times,serif;
   font-style: italic;
-  letter-spacing: -0.02em;
+  letter-spacing: normal;
+}
+.sidebar block-locale h2 {
+  color: #FFFFFF;
 }
 
 .sidebar h3:after {
@@ -1902,6 +1912,7 @@ div.audio-embed-code p {
 /* Cleanup of AudioField item. */
 div.field-field-audio-file {
   margin: 2.25em 0 1.7em 0;
+  clear: left;
 }
 .field-field-audio-file .field-items .field-item {
   background-image: none;
@@ -2200,6 +2211,7 @@ fieldset.group-documentcloud {
 .page-articles h1,
 .page-multimedia h1,
 .page-archive h1,
+.page-translations h1,
 .page-authors h1,
 .page-events h1,
 .page-projects h1,
@@ -2277,6 +2289,9 @@ fieldset.group-documentcloud {
   max-height: 200px;
   padding: 0 0.5em 0.5em 0.5em;
   overflow: auto;
+}
+.sidebar .views-widget-filter-language ul.bef-tree {
+  min-width: 265px;
 }
 .sidebar ul.bef-tree-child {
   margin-bottom: 0;
@@ -2467,6 +2482,7 @@ img.imagecache-teaser_image_homepage {
 .page-articles .views-row-even img,
 .page-multimedia .views-row-even img,
 .page-archive .views-row-even img,
+.page-translations .views-row-even img,
 .page-events .views-row-even img,
 .page-resources .views-row-even img,
 .page-projects .views-row-even img,
@@ -2474,6 +2490,7 @@ img.imagecache-teaser_image_homepage {
 .page-articles .views-row-odd img,
 .page-multimedia .views-row-odd img,
 .page-archive .views-row-odd img,
+.page-translations .views-row-odd img,
 .page-events .views-row-odd img,
 .page-resources .views-row-odd img,
 .page-projects .views-row-odd img,
@@ -2485,6 +2502,7 @@ img.imagecache-teaser_image_homepage {
 .page-articles .featured-view-item img,
 .page-multimedia .featured-view-item img,
 .page-archive .featured-view-item img,
+.page-translations .featured-view-item img,
 .page-events .featured-view-item img,
 .page-resources .featured-view-item img,
 .page-projects .featured-view-item img {
@@ -2492,16 +2510,19 @@ img.imagecache-teaser_image_homepage {
   border-radius: 2px;
 }
 .page-multimedia .views-field-type,
-.page-archive .views-field-type {
+.page-archive .views-field-type,
+.page-translations .views-field-type {
   margin: 0 0 5px 0;
 }
 .page-multimedia .views-field-created,
-.page-archive .views-field-created {
+.page-archive .views-field-created,
+.page-translations .views-field-created {
   margin: 2px 0 5px 0;
 }
 .page-articles .view-articles .views-field-title,
 .page-multimedia .view-multimedia .views-field-title,
 .page-archive .view-multimedia .views-field-title,
+.page-translations .view-multimedia .views-field-title,
 .page-viewpoints .view-multimedia .views-field-title,
 .author-listing .views-field-title,
 .page-events .views-field-title,
@@ -2559,7 +2580,8 @@ div.views-field-tagorder {
 #sidebar-right .item-list ul.expanded-facet {
   margin: 10px 0;
 }
-.page-search h2:after {
+.page-search h2:after,
+.block-locale h2:after {
   content: "";
 }
 .apachesolr-showhide {
@@ -2820,6 +2842,12 @@ a {
 #combinedblock h3:hover, #combinedblock h3:active {
   color: #666666;
 }
+.sidebar .block-locale h2 a:link,
+.sidebar .block-locale h2 a:visited,
+.sidebar .block-locale h2 a:hover,
+.sidebar .block-locale h2 a:active {
+  color: #FFFFFF;
+}
 
 /* Positions author photo on user Viewpoint panels. */
 .page-blog h1 {
@@ -3075,7 +3103,7 @@ html.js input.throbbing {
 
 /* Top Utility Menu */
 #top-menu-region {
-  width: 600px;
+  width: 645px; /* For Google Translate image removal. Was: width: 660px; */
   float: right;
 }
 #top-menu-region .clearfix:after {
@@ -3083,6 +3111,11 @@ html.js input.throbbing {
 }
 #top-menu-region .social-media-icons {
   display: inline;
+  float: right;
+  clear: none;
+  height: 16px;
+  width: 157px;
+  margin: 0 0 2px 0;
 }
 #top-menu-region .social-media-icons ul {
   margin: 0 0 2px 0;
@@ -3367,6 +3400,75 @@ sup {
   color: #333;
 }
 
+/* Translation stuff. */
+div.block-locale .collapsiblock a {
+  background: url("/sites/all/themes/openpublish_theme/images/expanded-white.png") no-repeat scroll right center transparent;
+  display: block;
+}
+div.block-locale .collapsiblockCollapsed a {
+  background: url("/sites/all/themes/openpublish_theme/images/collapsed-white.png") no-repeat scroll right center transparent;
+}
+#top-menu-region .google-translate-block {
+  display: inline;
+  float: right;
+  clear: none;
+  height: 16px;
+  width: 123px;
+  margin: 0;
+}
+#google_translate_element {
+  float: right !important;
+  width: 123px; /* For icon removal. Was: width: 145px !important; */
+  height: 15px !important;
+  font-size: 12px !important; 
+  margin: 1px 0 0 0 !important ;
+  padding: 0 !important;
+  line-height: 14px !important;
+}
+/* Made possible by css.browser.selector.ugly.js */
+.win.chrome #google_translate_element {
+  margin-top: 2px !important;
+}
+div.goog-te-gadget {
+  height: 15px !important;
+  font-size: 12px !important; 
+  margin: 0 !important ;
+  padding: 0 !important;
+  line-height: 14px !important;
+}
+div.goog-te-gadget-simple {
+  height: 15px !important;
+  font-size: 12px !important;
+  margin: 0 !important; /* For icon removal. Was: margin: -1px 0 0 0 !important; */
+  padding: 0 !important;
+  line-height: 14px !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  border: none !important;
+}
+img.goog-te-gadget-icon {
+  height: 18px !important;
+  margin-right: 0 !important;
+  display: none !important; /* For icon removal. */
+}
+.goog-te-gadget-simple .goog-te-menu-value {
+  color: #666666 !important;
+  font-size: 12px !important;
+}
+a.goog-te-menu-value:link,
+a.goog-te-menu-value:visited {
+  text-decoration: none !important;
+}
+a.goog-te-menu-value:hover,
+a.goog-te-menu-value:active {
+  text-decoration: underline !important;
+}
+iframe.goog-te-menu-frame,
+iframe.goog-te-banner-frame {
+  max-height: none !important;
+  max-width: none !important;
+}
+
 /* START - Webkit hacks. */
 @media screen and (-webkit-min-device-pixel-ratio:0) {
 
@@ -3388,6 +3490,6 @@ sup {
 }
 
 /* END - Webkit hacks. */
-
+}
 
 /* ADDITIONS - END */

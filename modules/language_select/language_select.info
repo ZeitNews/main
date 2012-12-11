@@ -1,0 +1,12 @@
+; $Id: language_select.info,v 1.1 2009/11/09 15:04:57 alduya Exp $
+name = Language select
+description = Offers the ability to choose whether new content can be Language neutral, in the current system language or whether the user can choose a language freely
+core = 6.x
+dependencies[] = locale
+package = Multilanguage
+; Information added by drupal.org packaging script on 2009-11-09
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "language_select"
+datestamp = "1257781369"
+

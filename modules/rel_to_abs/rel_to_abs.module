@@ -1,11 +1,10 @@
 <?php
-// $Id: rel_to_abs.module,v 1.2 2009/12/17 08:50:50 lourenzo Exp $
 
 /**
  * @file
- * Relative Paths to absolute URLs
+ * Relative Paths to Absolute URLs
  *
- * Filter for convertion of relative paths to absolute URLs
+ * Filter for converting relative paths to absolute URLs.
  *
  */
 
@@ -16,9 +15,12 @@
 function rel_to_abs_filter($op, $delta = 0, $format = -1, $text = '', $cache_id = 0) {
   if ( ($op=='proccess' || $op=='prepare') && $text != '') {
 
+    $lang = language_default();
+
+    global $base_path;
     $text = preg_replace(
-      '/(src|href)=(\'|")\//',
-      '$1=$2'. url('<front>', array('absolute' => TRUE)),
+      '/(src|href)=(\'|")' . preg_quote($base_path, '/') . '/',
+      '$1=$2'. url('<front>', array('absolute' => TRUE, 'language' => $lang)),
       $text
     );
 
@@ -35,13 +37,4 @@ function rel_to_abs_filter($op, $delta = 0, $format = -1, $text = '', $cache_id 
   }
   return $text;
 }
-
-/**
- * Replace
- */
-function rel_to_abs_replace($matches) {
-  //'$1=$2'.url('<front>',array('absolute'=>TRUE))
-  return $matches[0] .'='. $matches[1] . url('<front>', array('absolute' => TRUE));
-}
-
 

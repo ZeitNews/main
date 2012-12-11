@@ -42,6 +42,7 @@ scripts[] = js/openpublish_theme.js
 scripts[] = js/jquery.fancybox-1.3.4/fancybox/jquery.fancybox-1.3.4.ugly.js
 scripts[] = js/jquery.expander-1.4.3.ugly.js
 scripts[] = js/jquery.unwrap.min.js
+scripts[] = js/css.browser.selector.ugly.js
 
 ; Information added by drupal.org packaging script on January 1, 1970 - 00:00
 version = "6.x-1.19"

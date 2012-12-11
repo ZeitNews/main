@@ -291,6 +291,7 @@ function openpublish_theme_preprocess_views_view_row_rss__feed(&$vars) {
   }
   
   $vars['node_teaser'] = truncate_utf8(strip_tags($node->body), 400, TRUE, FALSE) . '... ' . l(t('More') . ' &raquo;', 'node/' . $node->nid, array('html' => TRUE, 'absolute' => TRUE, 'attributes' => array('target' => '_blank')));
+
 }
 
 /**
@@ -373,6 +374,27 @@ function openpublish_theme_preprocess_views_view_row_rss__feed_3(&$vars) {
     $vars['add_comment'] = l(t('Add new comment') . ' &raquo', 'comment/reply/' . $node->nid, array('attributes' => array('target' => '_blank'), 'absolute' => TRUE, 'html' => TRUE, 'fragment' => 'comment-form'));
   }
 
+}
+
+/**
+* Implementation of theme_preprocess_views()
+*
+* Allows for the creation of a language specific feed based
+* on the exposed filter active in the URL.
+*/
+function openpublish_theme_preprocess_views_view__multimedia__page_6(&$vars) {
+  $arg1 = strtolower(htmlspecialchars($_GET['lang']));
+  if (strlen($arg1) > 0) {
+    $vars['feed_path'] = 'translations/' . $arg1 . '/feed';
+    if ($arg1 == 'all') {
+      $vars['feed_name'] = 'All Translations';
+    } else {
+      $vars['feed_name'] = strtoupper($arg1);
+    }
+  } else {
+    $vars['feed_path'] = 'translations/all/feed';
+    $vars['feed_name'] = 'All Translations';
+  }
 }
 
 /**

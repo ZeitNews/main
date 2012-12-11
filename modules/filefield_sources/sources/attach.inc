@@ -95,6 +95,11 @@ function filefield_source_attach_settings($op, $field) {
 }
 
 function _filefield_source_attach_file_path_validate($element, &$form_state) {
+  // Only validate if this source is enabled.
+  if (!$form_state['values']['filefield_sources']['attach']) {
+    return;
+  }
+
   // Strip slashes from the end of the file path.
   $filepath = rtrim($element['filefield_source_attach_path']['#value'], '\\/');
   form_set_value($element['filefield_source_attach_path'], $filepath, $form_state);
@@ -185,7 +190,7 @@ function _filefield_source_attach_options($path) {
     $options = array('' => t('-- Select file --'));
     foreach ($file_attach as $filename => $fileinfo) {
       $filename = basename($filename);
-      $options[$fileinfo->filename] = $fileinfo->basename;
+      $options[$fileinfo->filename] = preg_replace('/^' . preg_quote($path, '/') . '\//', '', $fileinfo->filename, 1);
     }
   }
 

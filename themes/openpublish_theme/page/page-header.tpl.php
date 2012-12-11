@@ -35,6 +35,7 @@
   <!--[if IE 9]>
     <link type="text/css" rel="stylesheet" media="all" href="<?php print $base_path . $directory; ?>/css/ie9.css" />
   <![endif]-->
+  <meta name="google-translate-customization" content="fe5156de10cdc8bf-3c8d6ea1f5415ece-g10a92f25b8b644a1-10"></meta>
 </head>
 
 <body <?php print openpublish_body_classes($left, $right, $body_classes); ?> >

@@ -1,0 +1,17 @@
+<?php
+// $Id: language_select.install,v 1.1 2009/11/09 15:04:57 alduya Exp $
+/**
+ * @file
+ * Sets settings for the language select module during installation
+ */
+/**
+* Implementation of hook_install().
+*/
+function language_select_install() {
+  
+  // sink module's weight to the below the locale module in the system module_list()
+  $result = db_query("SELECT weight FROM {system} WHERE name = 'locale'");
+  $locale_weight = db_result($result);
+  db_query("UPDATE {system} SET weight = %d WHERE name = 'language_select'", $locale_weight+10);
+
+}

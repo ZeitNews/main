@@ -178,7 +178,7 @@ function filefield_source_reference_autocomplete($type_name, $field_name, $filen
 function theme_filefield_source_reference_autocomplete_item($file) {
   $output = '';
   $output .= '<div class="filefield-source-reference-item">';
-  $output .= '<span class="filename">' . $file->filename . '</span> <span class="filesize">(' . format_size($file->filesize) . ')</span>';
+  $output .= '<span class="filename">' . check_plain($file->filename) . '</span> <span class="filesize">(' . format_size($file->filesize) . ')</span>';
   $output .= '</div>';
   return $output;
 }
