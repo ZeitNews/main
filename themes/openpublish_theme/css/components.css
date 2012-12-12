@@ -3103,7 +3103,7 @@ html.js input.throbbing {
 
 /* Top Utility Menu */
 #top-menu-region {
-  width: 645px; /* For Google Translate image removal. Was: width: 660px; */
+  width: 665px;
   float: right;
 }
 #top-menu-region .clearfix:after {
@@ -3413,12 +3413,10 @@ div.block-locale .collapsiblockCollapsed a {
   float: right;
   clear: none;
   height: 16px;
-  width: 123px;
   margin: 0;
 }
 #google_translate_element {
   float: right !important;
-  width: 123px; /* For icon removal. Was: width: 145px !important; */
   height: 15px !important;
   font-size: 12px !important; 
   margin: 1px 0 0 0 !important ;
