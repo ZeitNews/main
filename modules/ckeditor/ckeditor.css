@@ -158,5 +158,10 @@ fieldset#edit-appearance div#groupLayout, div#allButtons  {
  * Fix for double scrollbar on ckeditor menu dropdowns in IE - [#1361894]
  */
 .cke_browser_ie .cke_panel_block {
-    overflow: hidden !important;
+  overflow: hidden !important;
+}
+
+/* Hide breaks in the WYSIWYG to discourage their use. */
+br {
+  display: none !important;
 }
