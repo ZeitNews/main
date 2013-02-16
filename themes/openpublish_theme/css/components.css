@@ -1880,10 +1880,15 @@ div.audio-embed-code p {
 /* For inserted tables in node bodies. */
 .body-content table {
   background: none repeat scroll 0 0 #EFEFEF;
-  margin: 10px 25px 20px 0;
+  margin: 10px 25px 25px 0;
   padding: 5px;
+  border-radius: 2px;
   float: left !important;
   max-width: 400px !important;
+}
+.body-content table td {
+  font-size: 1.2em;
+  padding: 2px 7px;
 }
 /* Corrections on Documentcloud table due to above. */
 .body-content .field-type-document-cloud-doc table {
