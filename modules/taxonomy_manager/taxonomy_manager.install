@@ -24,8 +24,8 @@ function taxonomy_manager_uninstall() {
  * Implementation of hook_schema()
  */
 function taxonomy_manager_schema() {
-  $schema['taxonomy_manager_merge'] = array( 
-    'fields' => array( 
+  $schema['taxonomy_manager_merge'] = array(
+    'fields' => array(
       'main_tid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'merged_tid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
     ),

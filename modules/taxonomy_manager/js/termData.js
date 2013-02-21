@@ -1,4 +1,3 @@
-// $Id: termData.js,v 1.1.2.3.2.8.2.13 2010/01/30 16:37:29 mh86 Exp $
 
 /**
  * @file js support for term editing form for ajax saving and tree updating
@@ -10,11 +9,11 @@ var active_term = new Object();
 //holds tree objects, useful in double tree interface, when both trees needs to be updated
 var trees = new Object();
 
-/** 
+/**
  * attaches term data form, used after 'Saves changes' ahah submit
  */
 Drupal.behaviors.TaxonomyManagerTermData = function(context) {
-  if (!$('#taxonomy-manager-toolbar' + '.tm-termData-processed').size()) { 
+  if (!$('#taxonomy-manager-toolbar' + '.tm-termData-processed').size()) {
     var vid = $('#edit-term-data-vid').val();
     for (var id in trees) {
       var tree = trees[id];
@@ -32,8 +31,8 @@ Drupal.behaviors.TaxonomyManagerTermData = function(context) {
 Drupal.attachTermData = function(ul, tree) {
   trees[tree.treeId] = tree;
   Drupal.attachTermDataLinks(ul, tree);
-  
-  if (!$('#taxonomy-manager-toolbar' + '.tm-termData-processed').size()) { 	 
+
+  if (!$('#taxonomy-manager-toolbar' + '.tm-termData-processed').size()) {
 	  Drupal.attachTermDataForm(tree);
   }
 }
@@ -88,7 +87,7 @@ Drupal.attachTermDataForm = function(tree) {
     var url = Drupal.settings.termData['term_url'] +'/'+ tid +'/true';
     var termdata = new Drupal.TermData(tid, url, li, tree);
     termdata.form();
-  }  
+  }
 }
 
 /**
@@ -101,6 +100,9 @@ Drupal.TermData = function(tid, href, li, tree) {
   this.tree = tree
   this.form_build_id = tree.form_build_id;
   this.form_id = tree.form_id;
+  this.param = new Object();
+  this.param['form_id'] = tree.form_id;
+  this.param['form_token'] = tree.form_token;
   this.vid = tree.vocId;
   this.div = $('#taxonomy-term-data');
 }
@@ -112,11 +114,8 @@ Drupal.TermData = function(tid, href, li, tree) {
 Drupal.TermData.prototype.load = function() {
   var url = this.href;
   var termdata = this;
-  var param = new Object();
-  param['form_build_id'] = this.form_build_id;
-  param['form_id'] = this.form_id;
-  
-  $.get(url, param, function(data) {
+
+  $.get(url, this.param, function(data) {
     termdata.insertForm(data);
   });
 }
@@ -124,9 +123,9 @@ Drupal.TermData.prototype.load = function() {
 /**
  * inserts received html data into form wrapper
  */
-Drupal.TermData.prototype.insertForm = function(data) { 
+Drupal.TermData.prototype.insertForm = function(data) {
   $(this.div).html(data);
-  this.form(); 
+  this.form();
 }
 
 /**
@@ -134,17 +133,16 @@ Drupal.TermData.prototype.insertForm = function(data) {
  */
 Drupal.TermData.prototype.form = function() {
   var termdata = this;
-  this.param = new Object();
 
   try {
     Drupal.behaviors.textarea(this.div);
     Drupal.behaviors.autocomplete(this.div);
     Drupal.behaviors.ahah(this.div);
   } catch(e) {} //autocomplete or textarea js not added to page
-  
+
   this.param['tid'] = this.tid;
   this.param['vid'] = this.vid;
-  
+
   $(this.div).find('div.term-data-autocomplete-add > span').click(function() {
     termdata.param['attr_type'] = $(this).attr("class");
     termdata.param['value'] = $(this).parents("tr").find('input:text').attr('value');
@@ -154,7 +152,7 @@ Drupal.TermData.prototype.form = function() {
     });
     termdata.send();
   });
-  
+
   $(this.div).find('td.taxonomy-term-data-operations > span').click(function() {
     termdata.param['attr_type'] = $(this).attr("class");
     termdata.param['info'] = $(this).attr("id");
@@ -166,31 +164,31 @@ Drupal.TermData.prototype.form = function() {
     });
     termdata.send();
   });
-  
+
   $(this.div).find('#edit-term-data-weight').change(function() {
     termdata.param['value'] = this.value;
     termdata.param['attr_type'] = 'weight';
     termdata.param['op'] = 'update';
     termdata.send();
   });
-  
+
   $(this.div).find('#edit-term-data-language').change(function() {
     termdata.param['value'] = this.value;
     termdata.param['attr_type'] = 'language';
     termdata.param['op'] = 'update';
-    termdata.send(); 
+    termdata.send();
   });
-  
+
   $(this.div).find('#edit-term-data-save').click(function() {
     $('#taxonomy-manager-toolbar').removeClass("tm-termData-processed");
     termdata.param['value'] = $('#edit-term-data-name').attr('value');
     termdata.updateTermName();
   });
-  
+
   $(this.div).find('#term-data-close span').click(function() {
     termdata.div.children().hide();
   });
-  
+
   $(this.div).find('a.taxonomy-term-data-name-link').click(function() {
     var url = this.href;
     var tid = url.split("/").pop();
@@ -200,14 +198,14 @@ Drupal.TermData.prototype.form = function() {
     termdata_new.load();
     return false;
   });
-  
+
   $(this.div).find("legend").each(function() {
     var staticOffsetX, staticOffsetY = null;
     var left, top = 0;
-    var div = termdata.div; 
+    var div = termdata.div;
     var pos = $(div).position();
-    $(this).mousedown(startDrag);  
-  
+    $(this).mousedown(startDrag);
+
     function startDrag(e) {
       if (staticOffsetX == null && staticOffsetY == null) {
         staticOffsetX = e.pageX;
@@ -216,14 +214,14 @@ Drupal.TermData.prototype.form = function() {
       $(document).mousemove(performDrag).mouseup(endDrag);
       return false;
     }
- 
+
     function performDrag(e) {
       left = e.pageX - staticOffsetX;
       top = e.pageY - staticOffsetY;
       $(div).css({position: "absolute", "left": pos.left + left +"px", "top": pos.top + top +"px"});
       return false;
     }
- 
+
     function endDrag(e) {
       $(document).unbind("mousemove", performDrag).unbind("mouseup", endDrag);
     }
@@ -238,12 +236,12 @@ Drupal.TermData.prototype.send = function() {
   var url= Drupal.settings.termData['url'];
   if (this.param['value'] != '' && this.param['attr_type'] != '') {
     $.ajax({
-      data: termdata.param, 
-      type: "POST", 
+      data: termdata.param,
+      type: "POST",
       url: url,
       dataType: 'json',
       success: function(response, status) {
-        termdata.update(); 
+        termdata.update();
         termdata.insertForm(response.data);
       }
     });
@@ -257,7 +255,7 @@ Drupal.TermData.prototype.update = function() {
   for (var id in trees) {
     var tree = trees[id];
     if (tree.vocId == this.vid) {
-       this.updateTree(tree); 
+       this.updateTree(tree);
     }
   }
 }

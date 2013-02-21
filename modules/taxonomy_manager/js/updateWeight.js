@@ -1,19 +1,20 @@
-// $Id: updateWeight.js,v 1.2.2.1.2.7.2.2 2009/07/30 13:30:27 mh86 Exp $
 
 /**
  * @file js for changing weights of terms with Up and Down arrows
  */
 
 //object to store weights (tid => weight)
-var weights = new Object();
+var termWeightsData = new Object();
 
 Drupal.behaviors.TaxonomyManagerWeights = function(context) {
   var settings = Drupal.settings.updateWeight || [];
   if (!$('#taxonomy-manager-toolbar' + '.tm-weights-processed').size()) {
     $('#taxonomy-manager-toolbar').addClass('tm-weights-processed');
+    termWeightsData['form_token'] = $('input[name=form_token]').val();
+    termWeightsData['form_id'] = $('input[name=form_id]').val();
     Drupal.attachUpdateWeightToolbar(settings['up'], settings['down']);
-    Drupal.attachUpdateWeightTerms();   
-  }  
+    Drupal.attachUpdateWeightTerms();
+  }
 }
 
 /**
@@ -22,32 +23,32 @@ Drupal.behaviors.TaxonomyManagerWeights = function(context) {
  */
 Drupal.attachUpdateWeightToolbar = function(upButton, downButton) {
   var selected;
-  var url = Drupal.settings.updateWeight['url'];  
-  
+  var url = Drupal.settings.updateWeight['url'];
+
   $('#'+ upButton).click(function() {
     selected = Drupal.getSelectedTerms();
     for (var i=0; i < selected.length; i++) {
       var upTerm = selected[i];
-      var downTerm = $(upTerm).prev(); 
-    
+      var downTerm = $(upTerm).prev();
+
       Drupal.orderTerms(upTerm, downTerm);
     }
     if (selected.length > 0) {
-      $.post(url, weights);
+      $.post(url, termWeightsData);
     }
   });
-  
-  
+
+
   $('#'+ downButton).click(function() {
     selected = Drupal.getSelectedTerms();
     for (var i=selected.length-1; i >= 0; i--) {
       var downTerm = selected[i];
       var upTerm = $(downTerm).next();
-      
+
       Drupal.orderTerms(upTerm, downTerm);
     }
     if (selected.length > 0) {
-      $.post(url, weights);
+      $.post(url, termWeightsData);
     }
   });
 }
@@ -59,14 +60,14 @@ Drupal.attachUpdateWeightToolbar = function(upButton, downButton) {
 Drupal.attachUpdateWeightTerms = function(parent, currentIndex) {
   var settings = Drupal.settings.updateWeight || [];
   var disable = settings['disable_mouseover'];
- 	 
+
   if (!disable) {
     var url = Drupal.settings.updateWeight['url'];
-  
+
     var termLineClass = 'div.term-line';
     var termUpClass = 'img.term-up';
     var termDownClass = 'img.term-down';
-  
+
     if (parent && currentIndex) {
       parent = $(parent).slice(currentIndex);
     }
@@ -75,22 +76,22 @@ Drupal.attachUpdateWeightTerms = function(parent, currentIndex) {
       termUpClass = $(parent).find(termUpClass);
       termDownClass = $(parent).find(termDownClass);
     }
-  
+
     $(termLineClass).mouseover(function() {
-      $(this).find('div.term-operations').show(); 
+      $(this).find('div.term-operations').show();
     });
-  
+
     $(termLineClass).mouseout(function() {
-      $(this).find('div.term-operations').hide(); 
+      $(this).find('div.term-operations').hide();
     });
-  
+
     $(termUpClass).click(function() {
       var upTerm = $(this).parents("li").eq(0);
-      var downTerm = $(upTerm).prev(); 
-    
+      var downTerm = $(upTerm).prev();
+
       Drupal.orderTerms(upTerm, downTerm);
-      $.post(url, weights);
-    
+      $.post(url, termWeightsData);
+
       $(downTerm).find(termLineClass).unbind('mouseover');
       setTimeout(function() {
         $(upTerm).find('div.term-operations').hide();
@@ -98,17 +99,17 @@ Drupal.attachUpdateWeightTerms = function(parent, currentIndex) {
           $(this).find('div.term-operations').show();
         });
       }, 1500);
-    
+
     });
-  
-  
+
+
     $(termDownClass).click(function() {
       var downTerm = $(this).parents("li").eq(0);
       var upTerm = $(downTerm).next();
-    
+
       Drupal.orderTerms(upTerm, downTerm);
-      $.post(url, weights);
-    
+      $.post(url, termWeightsData);
+
       $(upTerm).find(termLineClass).unbind('mouseover');
       setTimeout(function() {
         $(downTerm).find('div.term-operations').hide();
@@ -116,7 +117,7 @@ Drupal.attachUpdateWeightTerms = function(parent, currentIndex) {
           $(this).find('div.term-operations').show();
         });
       }, 1500);
-    
+
     });
   }
 
@@ -131,7 +132,7 @@ Drupal.getSelectedTerms = function() {
     var term = $(this).parents("li").eq(0);
     terms.push(term);
   });
-  
+
   return terms;
 }
 
@@ -155,7 +156,7 @@ Drupal.orderTerms = function(upTerm, downTerm) {
 /**
  * simple swap of two elements
  */
-Drupal.swapTerms = function(upTerm, downTerm) { 
+Drupal.swapTerms = function(upTerm, downTerm) {
   $(upTerm).after(downTerm);
   $(downTerm).before(upTerm);
 }
@@ -174,37 +175,37 @@ Drupal.swapWeights = function(upTerm, downTerm) {
   var downWeight = Drupal.getWeight(downTerm);
   var downTid = Drupal.getTermId(downTerm);
   var upTid = Drupal.getTermId(upTerm);
-  
+
   //same weight, decrease upTerm
   if (upWeight == downWeight) {
-    weights[upTid] = --upWeight;
+    termWeightsData['weights['+ upTid +']'] = --upWeight;
   }
   //different weights, swap
   else {
-    weights[upTid] = downWeight;
-    weights[downTid] = upWeight;
+    termWeightsData['weights['+ upTid +']'] = downWeight;
+    termWeightsData['weights['+ downTid +']'] = upWeight;
   }
-  
+
   //update prev siblings if necessary
   try {
     if (Drupal.getWeight($(upTerm).prev()) >= upWeight) {
       $(upTerm).prevAll().each(function() {
         var id = Drupal.getTermId(this);
         var weight = Drupal.getWeight(this);
-        weights[id] = --weight;
+        termWeightsData['weights['+ id +']'] = --weight;
       });
     }
   } catch(e) {
     //no prev
   }
-  
+
   //update next siblings if necessary
   try {
     if (Drupal.getWeight($(downTerm).next()) <= downWeight) {
       $(downTerm).nextAll().each(function() {
         var id = Drupal.getTermId(this);
         var weight = Drupal.getWeight(this);
-        weights[id] = ++weight;
+        termWeightsData['weights['+ id +']'] = ++weight;
       });
     }
   } catch(e) {
@@ -219,14 +220,14 @@ Drupal.swapWeights = function(upTerm, downTerm) {
 Drupal.getWeight = function(li) {
   var id = Drupal.getTermId(li);
   var weight;
-  
-  if (weights[id] != null) {
-    weight = weights[id];
+
+  if (termWeightsData['weights['+ id +']'] != null) {
+    weight = termWeightsData['weights['+ id +']'];
   }
   else {
     weight = $(li).find("input:hidden[class=weight-form]").attr("value");
   }
-  
+
   return weight;
 }
 
