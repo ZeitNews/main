@@ -24,7 +24,7 @@ CKEDITOR.editorConfig = function(config) {
   // (as does Drupal), so just leave this line as is.
   config.protectedSource.push(/<\?[\s\S]*?\?>/g); // PHP Code
   config.protectedSource.push(/<code>[\s\S]*?<\/code>/gi); // Code tags
-  config.extraPlugins = '';
+  config.extraPlugins = 'characterscounter';
 
   /*
    * Append here extra CSS rules that should be applied into the editing area.

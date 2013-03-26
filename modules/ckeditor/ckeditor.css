@@ -165,3 +165,12 @@ fieldset#edit-appearance div#groupLayout, div#allButtons  {
 br {
   display: none !important;
 }
+
+/* Word counter. */
+#cke_counter_edit-body {
+  margin: 6px 0 0 0;
+}
+#cke_counter_edit-body span.cke_counter {
+  color: #60676A;
+  padding: 0 5px;
+}

@@ -45,7 +45,7 @@
 					text = text.replace(new RegExp('\\s+', 'g'), '');
 					var symbols_wo_blanks = text.length;
 
-					space.setHtml( '<span class="cke_counter" style="float: right">' + words + ' words</span>' );
+					space.setHtml( '<span class="cke_counter" style="float: right">' + symbols + ' / ' + symbols_wo_blanks + ' symbols; ' + words + ' words</span>' );
 				}
 
 			editor.on( 'dataReady', count );
