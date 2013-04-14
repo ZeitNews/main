@@ -1,0 +1,13 @@
+; $Id$
+name = Webform Reply-To
+description = Adds a reply-to field for all webforms
+core = 6.x
+package = Webform
+dependencies[] = webform
+
+; Information added by drupal.org packaging script on 2011-09-25
+version = "6.x-1.0"
+core = "6.x"
+project = "webform_reply_to"
+datestamp = "1316989008"
+

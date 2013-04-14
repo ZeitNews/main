@@ -1,0 +1,138 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function webform_reply_to_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'webform_email_edit_form') {
+    $node = $form['node']['#value'];
+    $email = $node->webform['emails'][$form['eid']['#value']];
+    $field = 'reply_to';
+    $default_value = t('No reply-to address');
+    $title = t('Reply-to address');
+    $description = t('Any email, select, or hidden form element may be selected as the reply-to email address.');
+
+    $form[$field . '_option'] = array(
+      '#title' => $title,
+      '#type' => 'radios',
+      '#default_value' => is_numeric($email[$field]) ? 'component' : ((empty($default_value) || ($email[$field] != 'default' && isset($email[$field]))) ? 'custom' : 'default'),
+      '#description' => $description,
+    );
+    if (!empty($default_value)) {
+      $form[$field . '_option']['#options']['default'] = $default_value;
+    }
+    $form[$field . '_option']['#options']['custom'] = 'custom';
+    $form[$field . '_option']['#options']['component'] = 'component';
+
+    $form[$field . '_custom'] = array(
+      '#type' => 'textfield',
+      '#size' => 40,
+      '#default_value' => (!is_numeric($email[$field]) && $email[$field] != 'default') ? $email[$field] : NULL,
+      '#maxlength' => 255,
+    );
+    $options = webform_component_list($node, 'email_address', FALSE);
+    $form[$field . '_component'] = array(
+      '#type' => 'select',
+      '#default_value' =>  is_numeric($email[$field]) ? $email[$field] : NULL,
+      '#options' => empty($options) ? array('' => t('No available components')) : $options,
+      '#disabled' => empty($options) ? TRUE : FALSE,
+      '#weight' => 6,
+    );
+
+    $form['#validate'][] = 'webform_reply_to_form_validate';
+    $form['#submit'][] = 'webform_reply_to_form_submit';
+  }
+}
+
+function webform_reply_to_form_validate($form, &$form_state) {
+  if ($form_state['values']['reply_to_option'] == 'custom' && !valid_email_address($form_state['values']['reply_to_custom'])) {
+    form_set_error('reply_to_custom', t('The entered e-mail address "@email" does not appear valid.', array('@email' => $form_state['values']['reply_to_custom'])));
+  }
+}
+
+function webform_reply_to_form_submit($form, &$form_state) {
+  $email = array(
+    'eid' => $form_state['values']['eid'],
+    'nid' => $form_state['values']['node']->nid,
+  );
+  $field = 'reply_to';
+  $option = $form_state['values'][$field . '_option'];
+  if ($option == 'default') {
+    $email[$field] = 'default';
+  }
+  else {
+    $email[$field] = $form_state['values'][$field . '_' . $option];
+  }
+  // We should be using webform_email_update($email), but it returns an error due to
+  // the NULL $email['excluded_components'], so we use drupal_write_record instead
+  drupal_write_record('webform_emails', $email, array('nid', 'eid'));
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function webform_reply_to_theme($existing, $type, $theme, $path) {
+  return array(
+    'webform_reply_to_mail_headers' => array(
+      'arguments' => array('node' => NULL, 'submission' => NULL, 'email' => NULL),
+    ),
+    'webform_reply_to_email_edit_form' => array(
+      'arguments' => array('form' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_theme_registry_alter().
+ */
+function webform_reply_to_theme_registry_alter(&$theme_registry) {
+  // Set the current theme defintions as fallbacks
+  $theme_registry['webform_reply_to_mail_headers_fallback'] = $theme_registry['webform_mail_headers'];
+  $theme_registry['webform_reply_to_email_edit_form_fallback'] = $theme_registry['webform_email_edit_form'];
+  // Override the current theme definitions
+  $theme_registry['webform_mail_headers'] = $theme_registry['webform_reply_to_mail_headers'];
+  $theme_registry['webform_email_edit_form'] = $theme_registry['webform_reply_to_email_edit_form'];
+}
+
+function theme_webform_reply_to_mail_headers($node, $submission, $email) {
+  $headers = theme('webform_reply_to_mail_headers_fallback', $node, $submission, $email);
+  if ($reply_to = webform_format_reply_to_address($email['reply_to'], $node, $submission)) {
+    $headers['Reply-To'] = $reply_to;
+  }
+  return $headers;
+}
+
+function webform_format_reply_to_address($reply_to, $node = NULL, $submission = NULL) {
+  if ($reply_to == 'default') {
+    return FALSE;
+  }
+  elseif (is_numeric($reply_to) && isset($node->webform['components'][$reply_to])) {
+    if (isset($submission->data[$reply_to]['value'])) {
+      $reply_to = implode(',', $submission->data[$reply_to]['value']);
+    }
+    else {
+      $reply_to = t('Value of "!component"', array('!component' => $node->webform['components'][$reply_to]['name']));
+    }
+  }
+  $reply_to = _webform_filter_values($reply_to, $node, $submission, NULL, FALSE, TRUE);
+  return $reply_to;
+}
+
+function theme_webform_reply_to_email_edit_form($form) {
+  $field = 'reply_to';
+  foreach (array('custom' => t('Custom'), 'component' => t('Component')) as $option => $title) {
+    $form[$field . '_' . $option]['#attributes']['class'] = 'webform-set-active';
+    $form[$field . '_option'][$option]['#title'] = $title . ': ' . drupal_render($form[$field . '_' . $option]);
+  }
+  // For spacing consistency, every option is wrapped in webform-container-inline.
+  foreach (element_children($form[$field . '_option']) as $option) {
+    $form[$field . '_option'][$option]['#prefix'] = '<div class="webform-container-inline">';
+    $form[$field . '_option'][$option]['#suffix'] = '</div>';
+  }
+  // Wrap the default option in a placeholder tag..
+  if (isset($form[$field . '_option']['#options']['default'])) {
+    $form[$field . '_option']['default']['#title'] = t('Default') . ': ' . theme('placeholder', $form[$field . '_option']['default']['#title']);
+  }
+  return theme('webform_reply_to_email_edit_form_fallback', $form);
+}

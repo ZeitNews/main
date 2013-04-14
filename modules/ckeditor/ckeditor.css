@@ -174,3 +174,6 @@ br {
   color: #60676A;
   padding: 0 5px;
 }
+#cke_counter_edit-comment {
+  display: none;
+}

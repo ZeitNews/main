@@ -1,0 +1,44 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_schema_alter().
+ */
+function webform_reply_to_schema_alter(&$schema) {
+  // Add field to existing schema.
+  $schema['webform_emails']['fields']['reply_to'] = array(
+    'description' => 'The e-mail "reply-to" e-mail address that will be used. This may be a string, the special key "default" or a numeric value. If a numeric value is used, the value of a component will be substituted on submission.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => FALSE,
+    'default' => 'default',
+  );
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function webform_reply_to_install() {
+  $ret = array();
+  db_add_field($ret, 'webform_emails', 'reply_to', array(
+    'description' => 'The e-mail "reply-to" e-mail address that will be used. This may be a string, the special key "default" or a numeric value. If a numeric value is used, the value of a component will be substituted on submission.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => FALSE,
+    'default' => 'default',
+    'initial' => 'default',
+  ));
+  return $ret;
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function webform_reply_to_uninstall() {
+  // Delete variables.
+  db_query("DELETE FROM {variable} WHERE name LIKE 'webform_reply_to_%%'");
+
+  $ret = array();
+  db_drop_field($ret, 'webform_emails', 'reply_to');
+  return $ret;
+}
