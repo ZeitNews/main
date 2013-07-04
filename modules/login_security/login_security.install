@@ -61,7 +61,6 @@ function login_security_install() {
  */
 function login_security_uninstall() {
   variable_del('login_security_track_time');
-  variable_del('login_security_delay_base_time');
   variable_del('login_security_user_wrong_count');
   variable_del('login_security_host_wrong_count');
   variable_del('login_security_host_wrong_count_hard');
@@ -74,7 +73,6 @@ function login_security_uninstall() {
   variable_del('login_security_user_blocked_email_user');
   variable_del('login_security_user_blocked_email_subject');
   variable_del('login_security_user_blocked_email_body');
-  variable_del('login_security_delay_increase');
   variable_del('login_security_last_login_timestamp');
   variable_del('login_security_last_access_timestamp');
   variable_del('login_security_activity_threshold');
@@ -177,4 +175,12 @@ function login_security_update_6002() {
   variable_del('login_security_user_blocked_email');
   variable_del('login_security_login_activity_email');
   return $ret;
+}
+
+/**
+ * Remove the option to have a login punishment for login failures for DoS.
+ */
+function login_security_update_6003() {
+  variable_del('login_security_delay_base_time');
+  variable_del('login_security_delay_increase');
 }

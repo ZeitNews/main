@@ -167,13 +167,14 @@ br {
 }
 
 /* Word counter. */
-#cke_counter_edit-body {
+div.cke_counter {
+  display: none;
+}
+div#cke_counter_edit-body {
   margin: 6px 0 0 0;
+  display: block;
 }
 #cke_counter_edit-body span.cke_counter {
   color: #60676A;
   padding: 0 5px;
-}
-#cke_counter_edit-comment {
-  display: none;
 }

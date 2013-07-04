@@ -27,17 +27,19 @@ function mollom_requirements($phase = 'runtime', $check = TRUE) {
     drupal_load('module', 'mollom');
 
     $status = _mollom_status($check);
+    $requirements['mollom'] = array(
+      'title' => t('Mollom API keys'),
+      'value' => t('Valid (public key: @publicKey)', array(
+        '@publicKey' => mollom()->loadConfiguration('publicKey'),
+      )),
+    );
     // Immediately return if everything is in order.
     if ($status === TRUE) {
       return $requirements;
     }
     // If not, something is wrong; prepare the requirements entry and set
     // defaults for any yet unknown edge-cases.
-    $requirements['mollom'] = array(
-      'title' => 'Mollom API keys',
-      'value' => '',
-      'severity' => REQUIREMENT_ERROR,
-    );
+    $requirements['mollom']['severity'] = REQUIREMENT_ERROR;
     // Append a link to the settings page to the error message on all pages,
     // except on the settings page itself. These error messages also need to be
     // shown on the settings page, since Mollom API keys can be entered later.
@@ -55,17 +57,34 @@ function mollom_requirements($phase = 'runtime', $check = TRUE) {
         '!admin-message' => $admin_message,
       ));
     }
+    // Bad request: Invalid client system time: Too large offset from UTC.
+    elseif ($status['keys valid'] === Mollom::REQUEST_ERROR) {
+      $requirements['mollom']['value'] = t('Client error');
+      $requirements['mollom']['description'] = t('The server time of this site is incorrect. The time of the operating system is not synchronized with the Coordinated Universal Time (UTC), which prevents a successful authentication with Mollom. The maximum allowed offset is @minutes minutes. Please consult your hosting provider or server operator to correct the server time.', array(
+        '@minutes' => Mollom::TIME_OFFSET_MAX / 60,
+      ));
+    }
     // Invalid API keys.
-    elseif ($status['keys valid'] === MOLLOM_ERROR) {
+    elseif ($status['keys valid'] === Mollom::AUTH_ERROR) {
       $requirements['mollom']['value'] = t('Invalid');
       $requirements['mollom']['description'] = t('The configured Mollom API keys are invalid. !admin-message', array(
         '!admin-message' => $admin_message,
       ));
     }
     // Communication error.
-    elseif ($status['keys valid'] === NETWORK_ERROR) {
+    elseif ($status['keys valid'] === Mollom::NETWORK_ERROR) {
       $requirements['mollom']['value'] = t('Network error');
       $requirements['mollom']['description'] = t('The Mollom servers could not be contacted. Please make sure that your web server can make outgoing HTTP requests.');
+    }
+    // Server error.
+    elseif ($status['keys valid'] === Mollom::RESPONSE_ERROR) {
+      $requirements['mollom']['value'] = t('Service error');
+      $requirements['mollom']['description'] = t('The Mollom API keys could not be verified. Please try again later.');
+    }
+    // 404, etc.
+    else {
+      $requirements['mollom']['value'] = t('Unknown error');
+      $requirements['mollom']['description'] = t('The Mollom servers could be contacted, but Mollom API keys could not be verified.');
     }
   }
   return $requirements;
@@ -88,14 +107,21 @@ function mollom_schema() {
       'id' => array(
         'description' => 'Unique entity ID of the content.',
         'type' => 'varchar',
-        'length' => 32,
+        'length' => 36,
         'not null' => TRUE,
         'default' => '',
       ),
-      'session_id' => array(
-        'description' => 'Session hash returned by Mollom.',
+      'contentId' => array(
+        'description' => 'Content ID returned by Mollom.',
         'type' => 'varchar',
-        'length' => 255,
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'captchaId' => array(
+        'description' => 'CAPTCHA ID returned by Mollom.',
+        'type' => 'varchar',
+        'length' => 128,
         'not null' => TRUE,
         'default' => '',
       ),
@@ -112,27 +138,53 @@ function mollom_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'moderate' => array(
+        'description' => 'Whether the content needs to be moderated.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
       // Server response columns are NULL by default, because any default value
       // would have an unintended meaning. Also, values are stored in individual
       // columns, so as to be able to join and filter/sort on these values for
       // improved content moderation.
-      'spam' => array(
+      'spamScore' => array(
         'description' => 'Text analysis spam check result.',
+        'type' => 'float',
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
+      'spamClassification' => array(
+        'description' => 'Text analysis final spam classification result.',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => FALSE,
+      ),
+      'solved' => array(
+        'description' => 'Whether a CAPTCHA has been solved (1) or not (0).',
         'type' => 'int',
         'size' => 'tiny',
         'not null' => FALSE,
       ),
-      'quality' => array(
+      'qualityScore' => array(
         'description' => 'Text analysis quality check result.',
         'type' => 'float',
         'size' => 'tiny',
         'not null' => FALSE,
       ),
-      'profanity' => array(
+      'profanityScore' => array(
         'description' => 'Text analysis profanity check result.',
         'type' => 'float',
         'size' => 'tiny',
         'not null' => FALSE,
+      ),
+      'reason' => array(
+        'description' => 'A special reason for why a post was blocked.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
       ),
       'languages' => array(
         'description' => 'Text analysis language check result.',
@@ -142,7 +194,10 @@ function mollom_schema() {
         'default' => '',
       ),
     ),
-    'indexes' => array('session_id' => array('session_id')),
+    'indexes' => array(
+      'contentId' => array('contentId'),
+      'captchaId' => array('captchaId'),
+    ),
     'primary key' => array('entity', 'id'),
     'foreign keys' => array(
       'mollom_form_id' => array(
@@ -177,12 +232,26 @@ function mollom_schema() {
         'not null' => FALSE,
         'serialize' => TRUE,
       ),
+      'unsure' => array(
+        'description' => 'Action to perform when text analysis is unsure.',
+        'type' => 'varchar',
+        'length' => 24,
+        'not null' => TRUE,
+        'default' => 'captcha',
+      ),
       'discard' => array(
         'description' => 'Whether to discard (1) or retain (0) bad posts.',
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
         'default' => 1,
+      ),
+      'moderation' => array(
+        'description' => 'Whether to integrate with Mollom moderation.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
       ),
       'enabled_fields' => array(
         'description' => 'Form elements to analyze.',
@@ -225,7 +294,7 @@ function mollom_install() {
   // When running tests in D6, hook_install() seems to be invoked very (too?)
   // early, leading to a potentially predefined valid module configuration from
   // the parent site, therefore throwing a PHP notice here.
-  if (isset($requirements['mollom'])) {
+  if (isset($requirements['mollom']['description'])) {
     drupal_set_message($requirements['mollom']['description'], 'warning');
   }
 }
@@ -534,11 +603,11 @@ function mollom_update_6114() {
     // Fill {mollom}.spam with approximate values based on {mollom}.quality.
     // Note that this is just to have some values. 'quality' and 'spam' are
     // completely unrelated otherwise.
-    // MOLLOM_ANALYSIS_SPAM
+    // MOLLOM_ANALYSIS_SPAM (2)
     $ret[] = update_sql("UPDATE {mollom} SET spam = 2 WHERE quality < 0.5");
-    // MOLLOM_ANALYSIS_UNSURE
+    // MOLLOM_ANALYSIS_UNSURE (3)
     $ret[] = update_sql("UPDATE {mollom} SET spam = 3 WHERE quality = 0.5");
-    // MOLLOM_ANALYSIS_HAM
+    // MOLLOM_ANALYSIS_HAM (1)
     $ret[] = update_sql("UPDATE {mollom} SET spam = 1 WHERE quality > 0.5");
   }
 
@@ -552,6 +621,9 @@ function mollom_update_6114() {
  */
 function mollom_update_6115() {
   $ret = array();
+  // All Mollom data record modifications have been removed from this update,
+  // since mollom_update_6200() truncates the {mollom} table either way.
+
   if (!db_column_exists('mollom', 'form_id')) {
     db_add_field($ret, 'mollom', 'form_id', array(
       'description' => 'The form_id of the form being protected.',
@@ -560,32 +632,6 @@ function mollom_update_6115() {
       'not null' => TRUE,
       'default' => '',
     ));
-    // Update simple cases first.
-    $ret[] = update_sql("UPDATE {mollom} SET form_id = 'user_register' WHERE entity = 'user'");
-    $ret[] = update_sql("UPDATE {mollom} SET form_id = 'contact_mail_page' WHERE entity = 'session'");
-    // Also perform simple update on behalf of Webform, as that is a very common
-    // use-case.
-    $ret[] = update_sql("UPDATE {mollom} SET form_id = CONCAT('webform_client_form_', did) WHERE entity = 'webform'");
-
-    // Update node entity data records.
-    $result = db_query("SELECT n.type, m.did
-      FROM {mollom} m
-      INNER JOIN {node} n ON n.nid = m.did
-      WHERE m.entity = 'node'");
-    $ids = array();
-    while ($row = db_fetch_object($result)) {
-      $ids[$row->type][] = $row->did;
-    }
-    foreach ($ids as $type => $nids) {
-      $in = implode(',', $nids);
-      $ret[] = update_sql("UPDATE {mollom} SET form_id = '{$type}_node_form' WHERE entity = 'node' AND did IN ($in)");
-    }
-
-    // Update comment entity data records.
-    // In Drupal 6, there is only one 'comment_form'. The corresponding update
-    // to Drupal 7 takes into account that {mollom}.form_id can already exist,
-    // and if it does, only comment form IDs are updated accordingly.
-    $ret[] = update_sql("UPDATE {mollom} SET form_id = 'comment_form' WHERE entity = 'comment'");
   }
   return $ret;
 }
@@ -697,3 +743,192 @@ function mollom_update_6121() {
   $ret[] = update_sql("UPDATE {mollom_form} SET strictness = 'normal' WHERE strictness = 'medium'");
   return $ret;
 }
+
+/**
+ * Change {mollom}: Add 'spamResult', change 'spam', replace 'session_id' with 'contentId' and 'captchaId'.
+ */
+function mollom_update_6200() {
+  $ret = array();
+
+  variable_del('mollom_servers');
+
+  if (db_column_exists('mollom', 'session_id')) {
+    // Truncate table. Old session IDs cannot be migrated.
+    $ret[] = update_sql("TRUNCATE TABLE {mollom}");
+    // Remove 'session_id'.
+    db_drop_index($ret, 'mollom', 'session_id');
+    db_drop_field($ret, 'mollom', 'session_id');
+
+    // Add 'contentId' and 'captchaId'.
+    db_add_field($ret, 'mollom', 'contentId', array(
+      'description' => 'Content ID returned by Mollom.',
+      'type' => 'varchar',
+      'length' => 128,
+      'not null' => TRUE,
+      'default' => '',
+    ));
+    db_add_field($ret, 'mollom', 'captchaId', array(
+      'description' => 'CAPTCHA ID returned by Mollom.',
+      'type' => 'varchar',
+      'length' => 128,
+      'not null' => TRUE,
+      'default' => '',
+    ));
+    db_add_index($ret, 'mollom', 'contentId', array('contentId'));
+    db_add_index($ret, 'mollom', 'captchaId', array('captchaId'));
+  }
+  if (!db_column_exists('mollom', 'spamClassification')) {
+    // Add 'spamClassification'.
+    db_add_field($ret, 'mollom', 'spamClassification', array(
+      'description' => 'Text analysis final spam classification result.',
+      'type' => 'varchar',
+      'length' => 16,
+      'not null' => FALSE,
+    ));
+    // Change 'spam' into 'spamScore' double.
+    db_change_field($ret, 'mollom', 'spam', 'spamScore', array(
+      'description' => 'Text analysis spam check result.',
+      'type' => 'float',
+      'size' => 'tiny',
+      'not null' => FALSE,
+    ));
+  }
+  if (!db_column_exists('mollom', 'profanityScore')) {
+    // Change 'profanity' into 'profanityScore' double.
+    db_change_field($ret, 'mollom', 'profanity', 'profanityScore', array(
+      'description' => 'Text analysis profanity check result.',
+      'type' => 'float',
+      'size' => 'tiny',
+      'not null' => FALSE,
+    ));
+  }
+  if (!db_column_exists('mollom', 'qualityScore')) {
+    // Change 'quality' into 'qualityScore' double.
+    db_change_field($ret, 'mollom', 'quality', 'qualityScore', array(
+      'description' => 'Text analysis quality check result.',
+      'type' => 'float',
+      'size' => 'tiny',
+      'not null' => FALSE,
+    ));
+  }
+  if (!db_column_exists('mollom', 'solved')) {
+    // Add 'solved'.
+    db_add_field($ret, 'mollom', 'solved', array(
+      'description' => 'Whether a CAPTCHA has been solved (1) or not (0).',
+      'type' => 'int',
+      'size' => 'tiny',
+      'not null' => FALSE,
+    ));
+  }
+  if (!db_column_exists('mollom', 'reason')) {
+    // Add 'reason'.
+    db_add_field($ret, 'mollom', 'reason', array(
+      'description' => 'A special reason for why a post was blocked.',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'default' => '',
+    ));
+  }
+  return $ret;
+}
+
+/**
+ * Add {mollom}.moderate column for tracking posts needing moderation.
+ */
+function mollom_update_6201() {
+  $ret = array();
+  if (!db_column_exists('mollom', 'moderate')) {
+    db_add_field($ret, 'mollom', 'moderate', array(
+      'description' => 'Whether the content needs to be moderated.',
+      'type' => 'int',
+      'size' => 'tiny',
+      'not null' => TRUE,
+      'default' => 0,
+    ));
+  }
+  return $ret;
+}
+
+/**
+ * Enlarge {mollom}.id to fit contentId and captchaId returned by Mollom.
+ */
+function mollom_update_6202() {
+  $ret = array();
+  db_change_field($ret, 'mollom', 'id', 'id', array(
+    'description' => 'Unique entity ID of the content.',
+    'type' => 'varchar',
+    'length' => 36,
+    'not null' => TRUE,
+    'default' => '',
+  ));
+  return $ret;
+}
+
+/**
+ * Add {mollom_form}.moderation column.
+ */
+function mollom_update_6203() {
+  $ret = array();
+  if (!db_column_exists('mollom_form', 'moderation')) {
+    variable_del('mollom_moderation_integration');
+
+    db_add_field($ret, 'mollom_form', 'moderation', array(
+      'description' => 'Whether to integrate with Mollom moderation.',
+      'type' => 'int',
+      'size' => 'tiny',
+      'not null' => TRUE,
+      'default' => 0,
+    ));
+  }
+  return $ret;
+}
+
+/**
+ * Remove server list variables.
+ */
+function mollom_update_6204() {
+  $ret = array();
+  variable_del('mollom_servers');
+  variable_del('mollom_test_servers');
+  return $ret;
+}
+
+/**
+ * Remove corrupted Mollom data records.
+ *
+ * Due to a bug in the Mollom moderation system integration code, contentIds of
+ * existing Mollom data records might have been overwritten with the contentId
+ * of a new post; i.e., corrupted. These records lead to invalid contentId
+ * lookup results now. Since the original contentIds are no longer available,
+ * the corrupted Mollom data records have to be deleted.
+ *
+ * @see http://drupal.org/node/1470326
+ */
+function mollom_update_6205() {
+  $ret = array();
+  // Find all Mollom data records with duplicate contentIds.
+  $result = db_query('SELECT contentId FROM {mollom} GROUP BY contentId HAVING COUNT(contentId) > 1');
+  while ($contentId = db_result($result)) {
+    $ret[] = update_sql("DELETE FROM {mollom} WHERE contentId = '$contentId'");
+  }
+  return $ret;
+}
+
+/**
+ * Add {mollom_form}.unsure field.
+ */
+function mollom_update_6206() {
+  $ret = array();
+  if (!db_column_exists('mollom_form', 'unsure')) {
+    db_add_field($ret, 'mollom_form', 'unsure', array(
+      'description' => 'Action to perform when text analysis is unsure.',
+      'type' => 'varchar',
+      'length' => 24,
+      'not null' => TRUE,
+      'default' => 'captcha',
+    ));
+  }
+  return $ret;
+}
+

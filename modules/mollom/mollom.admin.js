@@ -8,31 +8,32 @@ Drupal.behaviors.mollomBlacklistFilter = function (context) {
     var self = {};
     $('#mollom-blacklist:not(.mollom-processed)', context).addClass('mollom-processed').each(function () {
       // Prepare a list of all entries to optimize performance. Each key is a
-      // blacklisted text and each value is an object containing the
+      // blacklisted value and each value is an object containing the
       // corresponding table row, context, and match.
       self.entries = {};
-      $(this).find('tr:has(.mollom-blacklist-text)').each(function () {
-        var $row = $(this);
-        self.entries[$row.find('.mollom-blacklist-text').text()] = {
+      $(this).find('tr:has(.mollom-blacklist-value)').each(function () {
+        var $row = $(this), entry = {
+          value: $row.find('.mollom-blacklist-value').text(),
           context: $row.children('.mollom-blacklist-context').attr('class').match(/value-(\w+)/)[1],
           match: $row.children('.mollom-blacklist-match').attr('class').match(/value-(\w+)/)[1],
-          row: $row.get(0)
+          row: this
         };
+        self.entries[entry.context + '-' + entry.match + '-' + entry.value] = entry;
       });
 
       // Attach the instant text filtering behavior.
-      var $filterText = $('#mollom-blacklist-filter-text', context);
+      var $filterText = $('#mollom-blacklist-filter-value', context);
       var $filterContext = $('#mollom-blacklist-filter-context', context);
       var $filterMatch = $('#mollom-blacklist-filter-match', context);
 
       self.lastSearch = {};
       var filterRows = function () {
         // Prepare static variables and conditions only once.
-        var i, text, visible, changed;
+        var i, visible, changed;
         var search = {
           // Blacklist entries are stored in lowercase, so to get any filter
           // results, the entered text must be converted to lowercase, too.
-          text: $filterText.val().toLowerCase(),
+          value: $filterText.val().toLowerCase(),
           context: $filterContext.val(),
           match: $filterMatch.val()
         };
@@ -53,15 +54,15 @@ Drupal.behaviors.mollomBlacklistFilter = function (context) {
         // Likewise, we directly apply the 'display' style, since
         // jQuery.fn.hide() and jQuery.fn.show() call into jQuery.fn.animate(),
         // which is useless for this purpose.
-        for (text in self.entries) {
-          visible = (search.text.length == 0 || text.indexOf(search.text) != -1);
-          visible = visible && (search.context.length == 0 || self.entries[text].context == search.context);
-          visible = visible && (search.match.length == 0 || self.entries[text].match == search.match);
+        for (i in self.entries) {
+          visible = (search.context.length == 0 || self.entries[i].context == search.context);
+          visible = visible && (search.match.length == 0 || self.entries[i].match == search.match);
+          visible = visible && (search.value.length == 0 || self.entries[i].value.indexOf(search.value) != -1);
           if (visible) {
-            self.entries[text].row.style.display = '';
+            self.entries[i].row.style.display = '';
           }
           else {
-            self.entries[text].row.style.display = 'none';
+            self.entries[i].row.style.display = 'none';
           }
         }
       };

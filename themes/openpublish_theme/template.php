@@ -69,6 +69,9 @@ function openpublish_theme_preprocess_user_register(&$vars) {
  */
 function openpublish_theme_comment_form($form) {
     unset($form['homepage']);
+    if ($form['name']) {
+      unset($form['name']['#value']);
+    }
     return drupal_render($form);
 }
 

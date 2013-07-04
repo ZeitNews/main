@@ -20,26 +20,8 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#maxlength' => 3,
-    '#description' => t('The time window where to check for security violiations: the time in hours the login information is kept to compute the login attempts count. A common example could be 24 hours. After that time, the attempt is deleted from the list, and will never be considered again.'),
+    '#description' => t('The time window to check for security violations: the time in hours the login information is kept to compute the login attempts count. A common example could be 24 hours. After that time, the attempt is deleted from the list, and will never be considered again.'),
     '#field_suffix' => '<kbd>'. t('Hours') .'</kbd>'
-  );
-  $form['login_security_delay_base_time'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Login delay base time'),
-    '#default_value' => variable_get('login_security_delay_base_time', LOGIN_SECURITY_BASE_TIME),
-    '#element_validate' => array('_login_security_valid_integer'),
-    '#size' => 3,
-    '#maxlength' => 3,
-    '#description' => t('Delay in seconds for the login process: any invalid login attempt will have a punishment of these seconds, as a protection for password guessing attempts.'),
-    '#field_suffix' => '<kbd>'. t('Seconds') .'</kbd>'
-  );
-  $form['login_security_delay_increase'] = array(
-    '#type' => 'radios',
-    '#title' => t('Increase delay for each attempt?'),
-    '#default_value' => variable_get('login_security_delay_increase', LOGIN_SECURITY_DELAY_INCREASE),
-    '#options' => array(1 => 'Yes', 0 => 'No'),
-    '#description' => t('Increase delay in seconds for the next login count. It is computed by host and user, so any attempt to login again with the same user from the same IP address will be punished with a delay computed as (delay base time) x (login attempts for this user from this IP address) in seconds. The number of attempts is counted within the "Track time" time value. In the previous example of 24 hours tracking time, after 24h the login attemps will be cleared, and the delay decreased.'),
   );
   $form['login_security_user_wrong_count'] = array(
     '#type' => 'textfield',
@@ -47,8 +29,7 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a user is allowed. After that amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not dissapear and should be removed manually from the !users interface.', array('!users' => l(t('user management'), 'admin/user/user'))),
+    '#description' => t('Enter the number of login failures a user is allowed. After this amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not disappear and should be removed manually from the !users interface.', array('!users' => l(t('user management'), 'admin/user/user'))),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security_host_wrong_count'] = array(
@@ -57,8 +38,7 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_HOST_WRONG_COUNT),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a host is allowed. After that amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is effective during the time indicated at tracking time opion.'),
+    '#description' => t('Enter the number of login failures a host is allowed. After this amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is effective during the time indicated at tracking time opion.'),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security_host_wrong_count_hard'] = array(
@@ -67,8 +47,7 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT_HARD),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a host is allowed. After that number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not dissapear automatically and should be removed manually from the !access administration interface.', array('!access' => l(t('access rules'), 'admin/user/rules'))),
+    '#description' => t('Enter the number of login failures a host is allowed. After this number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not disappear automatically and should be removed manually from the !access administration interface.', array('!access' => l(t('access rules'), 'admin/user/rules'))),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security_activity_threshold'] = array(
@@ -77,7 +56,6 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_activity_threshold', LOGIN_SECURITY_ACTIVITY_THRESHOLD),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#maxlength' => 3,
     '#description' => t('Enter the number of login failures before creating a warning log entry about this suspicious activity. If the number of invalid login events currently being tracked reach this number, and ongoing attack is detected.'),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
@@ -107,21 +85,21 @@ function login_security_admin_settings() {
   $form['login_messages']['login_security_last_access_timestamp'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display last access timestamp'),
-    '#description' => t('Checking this option, when a user does success in login, a message will remember him when was the last site access with this account.'),
+    '#description' => t('Checking this option, when a user successfully logins in, a prompt will display the last site access with the account.'),
     '#default_value' => variable_get('login_security_last_access_timestamp', 0)
   );
   
   $form['login_messages']['login_security_user_blocked_email_user'] = array(
     '#type' => 'textfield',
     '#title' => t('Select who should get an email message when a user is blocked by this module'),
-    '#description' => t('No notification will be sent if the field is blank'),
+    '#description' => t('No notification will be sent if the field is blank.'),
     '#default_value' => variable_get('login_security_user_blocked_email_user', LOGIN_SECURITY_USER_BLOCKED_EMAIL_USER),
     '#element_validate' => array('_login_security_valid_user'),
   );
   $form['login_messages']['login_security_login_activity_email_user'] = array(
     '#type' => 'textfield',
     '#title' => t('Select who should get an email message when an ongoing attack is detected'),
-    '#description' => t('No notification will be sent if the field is blank'),
+    '#description' => t('No notification will be sent if the field is blank.'),
     '#default_value' => variable_get('login_security_login_activity_email_user', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_USER),
     '#element_validate' => array('_login_security_valid_user'),
   );

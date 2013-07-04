@@ -1,12 +1,12 @@
 (function ($) {
 
 /**
- * Open Mollom privacy policy link in a new window.
+ * Open links to Mollom.com in a new window.
  *
  * Required for valid XHTML Strict markup.
  */
-Drupal.behaviors.mollomPrivacy = function (context) {
-  $('.mollom-privacy a', context).click(function () {
+Drupal.behaviors.mollomTarget = function (context) {
+  $(context).find('.mollom-target').click(function () {
     this.target = '_blank';
   });
 };
@@ -27,25 +27,34 @@ function getMollomCaptcha() {
 
   var context = $(this).parents('form');
 
-  // Extract the Mollom session id from the form.
-  var mollomSessionId = $('input.mollom-session-id', context).val();
+  // Extract the form build ID and Mollom content ID from the form.
+  var formBuildId = $('input[name="mollom[mollom_build_id]"]', context).val();
+  var mollomContentId = $('input.mollom-content-id', context).val();
 
-  // Retrieve a CAPTCHA:
-  $.getJSON(Drupal.settings.basePath + 'mollom/captcha/' + newCaptchaType + '/' + mollomSessionId,
-    function (data) {
+  var path = 'mollom/captcha/' + newCaptchaType + '/' + formBuildId;
+  if (mollomContentId) {
+    path += '/' + mollomContentId;
+  }
+
+  // Retrieve a new CAPTCHA.
+  $.ajax({
+    url: Drupal.settings.basePath + path,
+    type: 'POST',
+    dataType: 'json',
+    success: function (data) {
       if (!(data && data.content)) {
         return;
       }
       // Inject new CAPTCHA.
       $('.mollom-captcha-content', context).parent().html(data.content);
-      // Update session id.
-      $('input.mollom-session-id', context).val(data.session_id);
+      // Update CAPTCHA ID.
+      $('input[name="mollom[captchaId]"]', context).val(data.captchaId);
       // Add an onclick-event handler for the new link.
       Drupal.attachBehaviors(context);
-      // Focus on the CATPCHA input.
+      // Focus on the CAPTCHA input.
       $('input[name="mollom[captcha]"]', context).focus();
     }
-  );
+  });
   return false;
 }
 

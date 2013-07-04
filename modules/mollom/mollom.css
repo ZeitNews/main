@@ -5,6 +5,6 @@
 
 /* Help themes to properly display Mollom's log messages. */
 .dblog-event pre,
-#simpletest-result-form table td {
+#simpletest-result-form table td pre {
   white-space: pre-wrap;
 }

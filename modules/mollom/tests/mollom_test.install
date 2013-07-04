@@ -54,5 +54,6 @@ function mollom_test_install() {
  */
 function mollom_test_uninstall() {
   drupal_uninstall_schema('mollom_test');
+  db_query("DELETE FROM {variable} WHERE name LIKE 'mollom_test.%'");
 }
 

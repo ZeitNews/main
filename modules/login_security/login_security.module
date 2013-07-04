@@ -10,8 +10,6 @@
  */
 
 define('LOGIN_SECURITY_TRACK_TIME', 1);
-define('LOGIN_SECURITY_BASE_TIME', 0);
-define('LOGIN_SECURITY_DELAY_INCREASE', 0);
 define('LOGIN_SECURITY_USER_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT_HARD', 0);
@@ -27,7 +25,7 @@ define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT', t("Security action: The user
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', t("The user %username (%edit_uri) has been blocked at %site due to the amount of failed login attempts. Please check the logs for more information."));
 define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_USER', '');
 define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT', t("Security information: Unexpected login activity has been detected at %site."));
-define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY', t("The configured threshold of %activity_threshold logins has been reached with a tota of %tracking_current_count invalid login attempts. You should review your log information about login attempts at %site."));
+define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY', t("The configured threshold of %activity_threshold logins has been reached with a total of %tracking_current_count invalid login attempts. You should review your log information about login attempts at %site."));
 define('LOGIN_SECURITY_THRESHOLD_NOTIFIED', FALSE);
 
 /**
@@ -44,7 +42,7 @@ function login_security_cron() {
  */
 function login_security_menu() {
   $items = array();
-  
+
   // Administer >> Site configuration >> Login Security settings
   $items['admin/settings/login_security'] = array(
     'title' => 'Login Security',
@@ -89,10 +87,18 @@ function login_security_form_alter(&$form, $form_state, $form_id) {
       // Put login_security first or the capture of the previous login timestamp won't work
       // and core's validation will update to the current login instance before login_security
       // can read the old timestamp.
-      $form['#validate'] = array_merge(array('login_security_soft_block_validate', 'login_security_set_login_timestamp'), $form['#validate']);
+      $validate = array('login_security_soft_block_validate', 'login_security_set_login_timestamp');
+
+      if (isset($form['#validate']) && is_array($form['#validate'])) {
+        $form['#validate'] = array_merge($validate, $form['#validate']);
+      }
+      else {
+        $form['#validate'] = $validate;
+      }
+
       $form['#validate'][] = 'login_security_validate';
       break;
-      }
+    }
   }
 
  /**
@@ -111,7 +117,7 @@ function login_security_set_login_timestamp($form, &$form_state) {
     drupal_set_message(t('Your last page access (site activity) was !stamp', array('!stamp' => format_date($account->access, 'large'))), 'status');
   }
     // Save entry in security log, Username and IP Address
-  _login_security_add_event(check_plain($form_state['values']['name']), check_plain(ip_address()));
+  _login_security_add_event($form_state['values']['name'], ip_address());
 }
 
 /**
@@ -120,7 +126,7 @@ function login_security_set_login_timestamp($form, &$form_state) {
  * @url http://drupal.org/node/493164
  */
 function login_security_soft_block_validate($form, &$form_state) {
-  $variables = $variables = _login_security_get_variables_by_name(check_plain($form_state['values']['name']));
+  $variables = _login_security_get_variables_by_name($form_state['values']['name']);
   // Check for host login attempts: Soft
   if ($variables['%soft_block_attempts'] >= 1) {
     if ($variables['%ip_current_count'] >= $variables['%soft_block_attempts']) {
@@ -139,7 +145,7 @@ function login_security_soft_block_validate($form, &$form_state) {
  */
 function login_security_validate($form, &$form_state) {
   // Sanitize user input
-  $name = check_plain($form_state['values']['name']);
+  $name = $form_state['values']['name'];
   // Null username should not be tracked
   if (!strlen($name)) {
     return;
@@ -180,18 +186,10 @@ function login_security_validate($form, &$form_state) {
     }
   }
 
-  // then, start with login Delay
-  if ($delay = variable_get('login_security_delay_base_time', LOGIN_SECURITY_BASE_TIME)) {
-    $secs = (variable_get('login_security_delay_increase', LOGIN_SECURITY_DELAY_INCREASE) == 1) ? intval($variables['%user_ip_current_count']-1) * intval($delay) : intval($delay);
-    //Included 0 just in case of 'max_execution_time' being lower than 3
-    $sleep_time  = max(0, min(ini_get('max_execution_time') - 3, $secs));
-    @sleep($sleep_time);
-  }
-
   // Check for host login attempts: Hard
   if ($variables['%hard_block_attempts'] >= 1) {
     if ($variables['%ip_current_count'] >= $variables['%hard_block_attempts']) {
-      // block the host check_plain(ip_address())
+      // block the host ip_address()
       login_user_block_ip($variables);
     }
   }
@@ -241,10 +239,10 @@ function _login_security_remove_events($name = NULL, $host = NULL) {
   // Remove selected events
   if (!empty($name)) {
     if (!empty($host)) {
-      db_query("DELETE FROM {login_security_track} WHERE name = '%s' AND host = '%s'", check_plain($name), check_plain($host));
+      db_query("DELETE FROM {login_security_track} WHERE name = '%s' AND host = '%s'", $name, $host);
     }
     else {
-      db_query("DELETE FROM {login_security_track} WHERE name = '%s'", check_plain($name));
+      db_query("DELETE FROM {login_security_track} WHERE name = '%s'", $name);
     }
   }
   else {
@@ -353,7 +351,7 @@ function login_user_block_user_name($variables) {
  */
 function _login_security_get_variables_by_name($name) {
   $account = user_load(array("name" => $name));
-  $ipaddress = check_plain(ip_address());
+  $ipaddress = ip_address();
   global $base_url;
   $variables = array(
     '%date' => format_date(time()),
@@ -406,6 +404,47 @@ function login_security_t($message, $variables = array()) {
 function login_security_help($path, $arg = NULL) {
   switch ($path) {
     case 'admin/settings/login_security':
-      return '<p>' . t('Make sure you have reviewed the !README file for further information about how all these settings will affect your Drupal login form submissions.', array('!README' => l(t('README'), 'http://drupalcode.org/viewvc/drupal/contributions/modules/login_security/README.txt?view=markup&pathrev=DRUPAL-6--1'))) . '</p>';
+      return '<p>' . t('Make sure you have reviewed the !README file for further information about how all these settings will affect your Drupal login form submissions.', array('!README' => l(t('README'), 'http://drupalcode.org/project/login_security.git/blob/refs/heads/6.x-1.x:/README.txt'))) . '</p>';
   }
+}
+
+/**
+ * Implement hook_nagios().
+ */
+function login_security_nagios() {
+  $return = array(
+    'key' => 'login_security',
+  );
+
+  // Get the token variables.
+  $variables = _login_security_get_variables_by_name('anonymous');
+
+  // Check the threshold_notified flag for the module status.
+  $condition = variable_get('login_security_threshold_notified', 'bogus');
+  if ($condition !== 'bogus') {
+    // Attack is happening.
+    if ($condition) {
+      $status = NAGIOS_STATUS_CRITICAL;
+      $text = login_security_t(LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT, $variables);
+    }
+    // All is normal.
+    else {
+      $status = NAGIOS_STATUS_OK;
+      $text = '';
+    }
+  }
+  // Status unknown if the variable set to bogus.
+  else {
+    $status = NAGIOS_STATUS_UNKNOWN;
+    $text = t("Please check if the drupal variable login_security_threshold_notified exists.");
+  }
+
+  // Build the return data.
+  $return['login_security'] = array(
+    'status' => $status,
+    'type' => 'state',
+    'text' => $text
+  );
+
+  return $return;
 }
