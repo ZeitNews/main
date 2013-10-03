@@ -3471,6 +3471,10 @@ iframe.goog-te-banner-frame {
   max-height: none !important;
   max-width: none !important;
 }
+iframe#coinbase_modal_iframe_10c9e0bcdf1b0ccbc7176965c75a3731 {
+  max-height: none !important;
+  max-width: none !important;
+}
 
 /* START - Webkit hacks. */
 @media screen and (-webkit-min-device-pixel-ratio:0) {

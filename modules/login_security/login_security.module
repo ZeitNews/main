@@ -16,16 +16,16 @@ define('LOGIN_SECURITY_HOST_WRONG_COUNT_HARD', 0);
 define('LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR', 0);
 define('LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE', 0);
 define('LOGIN_SECURITY_ACTIVITY_THRESHOLD', 0);
-define('LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE', t("You have used %user_current_count out of %user_block_attempts login attempts. After all %user_block_attempts have been used, you will be unable to login."));
-define('LOGIN_SECURITY_HOST_SOFT_BANNED', t("This host is not allowed to log in to %site. Please contact your site administrator."));
-define('LOGIN_SECURITY_HOST_HARD_BANNED', t("The IP address <em>%ip</em> is banned at %site, and will not be able to access any of its content from now on. Please contact the site administrator."));
-define('LOGIN_SECURITY_USER_BLOCKED', t("The user <em>%username</em> has been blocked due to failed login attempts."));
+define('LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE', "You have used @user_current_count out of @user_block_attempts login attempts. After all @user_block_attempts have been used, you will be unable to login.");
+define('LOGIN_SECURITY_HOST_SOFT_BANNED', "This host is not allowed to log in to @site. Please contact your site administrator.");
+define('LOGIN_SECURITY_HOST_HARD_BANNED', "The IP address @ip is banned at @site, and will not be able to access any of its content from now on. Please contact the site administrator.");
+define('LOGIN_SECURITY_USER_BLOCKED', "The user @username has been blocked due to failed login attempts.");
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_USER', '');
-define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT', t("Security action: The user %username has been blocked."));
-define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', t("The user %username (%edit_uri) has been blocked at %site due to the amount of failed login attempts. Please check the logs for more information."));
+define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT', "Security action: The user @username has been blocked.");
+define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', "The user @username (@edit_uri) has been blocked at @site due to the amount of failed login attempts. Please check the logs for more information.");
 define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_USER', '');
-define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT', t("Security information: Unexpected login activity has been detected at %site."));
-define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY', t("The configured threshold of %activity_threshold logins has been reached with a total of %tracking_current_count invalid login attempts. You should review your log information about login attempts at %site."));
+define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT', "Security information: Unexpected login activity has been detected at @site.");
+define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY', "The configured threshold of @activity_threshold logins has been reached with a total of @tracking_current_count invalid login attempts. You should review your log information about login attempts at @site.");
 define('LOGIN_SECURITY_THRESHOLD_NOTIFIED', FALSE);
 
 /**
@@ -111,10 +111,10 @@ function login_security_form_alter(&$form, $form_state, $form_id) {
 function login_security_set_login_timestamp($form, &$form_state) {
   $account = user_load(array('name' => $form_state['values']['name'], 'pass' => trim($form_state['values']['pass']), 'status' => 1));
   if (variable_get('login_security_last_login_timestamp', 0) && $account->login > 0) {
-    drupal_set_message(t('Your last login was !stamp', array('!stamp' => format_date($account->login, 'large'))), 'status');
+    drupal_set_message(t('Your last login was @stamp', array('@stamp' => format_date($account->login, 'large'))), 'status');
   }
   if (variable_get('login_security_last_access_timestamp', 0) && $account->access > 0) {
-    drupal_set_message(t('Your last page access (site activity) was !stamp', array('!stamp' => format_date($account->access, 'large'))), 'status');
+    drupal_set_message(t('Your last page access (site activity) was @stamp', array('@stamp' => format_date($account->access, 'large'))), 'status');
   }
     // Save entry in security log, Username and IP Address
   _login_security_add_event($form_state['values']['name'], ip_address());
@@ -128,9 +128,9 @@ function login_security_set_login_timestamp($form, &$form_state) {
 function login_security_soft_block_validate($form, &$form_state) {
   $variables = _login_security_get_variables_by_name($form_state['values']['name']);
   // Check for host login attempts: Soft
-  if ($variables['%soft_block_attempts'] >= 1) {
-    if ($variables['%ip_current_count'] >= $variables['%soft_block_attempts']) {
-      form_set_error('submit', login_security_t(variable_get('login_security_host_soft_banned',  LOGIN_SECURITY_HOST_SOFT_BANNED), $variables));
+  if ($variables['@soft_block_attempts'] >= 1) {
+    if ($variables['@ip_current_count'] >= $variables['@soft_block_attempts']) {
+      form_set_error('submit', t(variable_get('login_security_host_soft_banned',  LOGIN_SECURITY_HOST_SOFT_BANNED), $variables));
       }
     }
   }
@@ -160,43 +160,43 @@ function login_security_validate($form, &$form_state) {
   // First, check if administrator should be notified of unexpected login activity..
   // Only process if configured threshold > 1
   // see: http://drupal.org/node/583092
-  if ($variables['%activity_threshold'])  {
+  if ($variables['@activity_threshold'])  {
     //check if threshold has been reached
-    if ($variables['%tracking_current_count'] > $variables['%activity_threshold'] ) {
+    if ($variables['@tracking_current_count'] > $variables['@activity_threshold'] ) {
       // Check if admin has been already alerted
       if (!variable_get('login_security_threshold_notified', LOGIN_SECURITY_THRESHOLD_NOTIFIED)) {
         //Mark alert status as notified and send the email
-        watchdog('login_security', 'Ongoing attack detected: Suspicious activity detected in login form submissions. Too many invalid login attempts threshold reached: currently %tracking_current_count events are tracked, and threshold is configured for %activity_threshold attempts.', $variables, WATCHDOG_WARNING);
+        watchdog('login_security', 'Ongoing attack detected: Suspicious activity detected in login form submissions. Too many invalid login attempts threshold reached: currently @tracking_current_count events are tracked, and threshold is configured for @activity_threshold attempts.', $variables, WATCHDOG_WARNING);
         variable_set('login_security_threshold_notified', TRUE);
         //Submit email only if required..
         $login_activity_email_user = variable_get('login_security_login_activity_email_user', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_USER);
         if ($login_activity_email_user !== '') {
           $from = variable_get('site_mail', ini_get('sendmail_from'));
           $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE name = '%s'", $login_activity_email_user));
-          $subject = login_security_t(variable_get('login_security_login_activity_email_subject', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT), $variables);
-          $body = login_security_t(variable_get('login_security_login_activity_email_body', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY), $variables);
+          $subject = t(variable_get('login_security_login_activity_email_subject', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT), $variables);
+          $body = t(variable_get('login_security_login_activity_email_body', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY), $variables);
           $mail = drupal_mail('login_security', 'login_activity_notify', $admin_mail, language_default(), $variables, $from, TRUE);
         }
       }
     }
-    elseif ((variable_get('login_security_threshold_notified', TRUE)) && ($variables['%tracking_current_count'] < ($variables['%activity_threshold'] / 3) )) {
+    elseif ((variable_get('login_security_threshold_notified', TRUE)) && ($variables['@tracking_current_count'] < ($variables['@activity_threshold'] / 3) )) {
       //Reset alert if currently tracked events is < threshold / 3
-      watchdog('login_security', 'Suspicious activity in login form submissions is no longer detected: currently %tracking_current_count events are being tracked, and threshold is configured for %activity_threshold maximum allowed attempts).', $variables, WATCHDOG_NOTICE);
+      watchdog('login_security', 'Suspicious activity in login form submissions is no longer detected: currently @tracking_current_count events are being tracked, and threshold is configured for @activity_threshold maximum allowed attempts).', $variables, WATCHDOG_NOTICE);
       variable_set('login_security_threshold_notified', FALSE);
     }
   }
 
   // Check for host login attempts: Hard
-  if ($variables['%hard_block_attempts'] >= 1) {
-    if ($variables['%ip_current_count'] >= $variables['%hard_block_attempts']) {
+  if ($variables['@hard_block_attempts'] >= 1) {
+    if ($variables['@ip_current_count'] >= $variables['@hard_block_attempts']) {
       // block the host ip_address()
       login_user_block_ip($variables);
     }
   }
 
   // Check for user login attempts
-  if ($variables['%user_block_attempts'] >= 1) {
-    if ($variables['%user_current_count'] >= $variables['%user_block_attempts']) {
+  if ($variables['@user_block_attempts'] >= 1) {
+    if ($variables['@user_current_count'] >= $variables['@user_block_attempts']) {
       // Block the account $name
       login_user_block_user_name($variables);
     }
@@ -219,9 +219,9 @@ function login_security_validate($form, &$form_state) {
 
     // Should the user be advised about the remaining login attempts?
     $notice_user = variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE);
-    if (($notice_user == TRUE) && ($variables['%user_block_attempts'] > 0) && $variables['%user_block_attempts'] >= $variables['%user_current_count']) {
+    if (($notice_user == TRUE) && ($variables['@user_block_attempts'] > 0) && $variables['@user_block_attempts'] >= $variables['@user_current_count']) {
       // this loop is instead of doing t() because t() can only translate static strings, not variables.
-      drupal_set_message(login_security_t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables), 'warning');
+      drupal_set_message(t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables), 'warning');
       }
     }
   }
@@ -297,13 +297,13 @@ function _login_security_add_event($name, $ip) {
 function login_user_block_ip($variables) {
   // There is no need to check if the host has been banned, we can't get here twice.
   $block = new stdClass();
-  $block->mask = $variables['%ip'];
+  $block->mask = $variables['@ip'];
   $block->type = 'host';
   $block->status = 0;
   drupal_write_record('access', $block);
-  watchdog('login_security', 'Banned IP address %ip due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit rule'), "admin/user/rules/edit/{$block->aid}", array('query' => array('destination' => 'admin/user/rules'))));
+  watchdog('login_security', 'Banned IP address @ip due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit rule'), "admin/user/rules/edit/{$block->aid}", array('query' => array('destination' => 'admin/user/rules'))));
   //Using form_set_error because it may disrupt current form submission.
-  form_set_error('void', login_security_t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), $variables));
+  form_set_error('void', t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), $variables));
 }
 
 /**
@@ -315,11 +315,11 @@ function login_user_block_ip($variables) {
  */
 function login_user_block_user_name($variables) {
   // If the user exists
-  if ($variables['%uid'] > 1) {
+  if ($variables['@uid'] > 1) {
     // Modifying the user table is not an option so it disables the user hooks. Need to do
     // firing the hook so user_notifications can be used.
     // db_query("UPDATE {users} SET status = 0 WHERE uid = %d", $uid);
-    $uid = $variables['%uid'];
+    $uid = $variables['@uid'];
     $account = user_load(array("uid" => $uid));
 
     // Block account if is active.
@@ -328,17 +328,17 @@ function login_user_block_user_name($variables) {
       // remove user from site now.
       sess_destroy_uid($uid);
       // The watchdog alert is set to 'user' so it will show with other blocked user messages.
-      watchdog('user', 'Blocked user %username due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit user'), "user/{$variables['%uid']}/edit", array('query' => array('destination' => 'admin/user/user'))));
+      watchdog('user', 'Blocked user @username due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit user'), "user/{$variables['@uid']}/edit", array('query' => array('destination' => 'admin/user/user'))));
       // Also notify the user that account has been blocked.
-      form_set_error('void', login_security_t(variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED), $variables));
+      form_set_error('void', t(variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED), $variables));
 
       // Send admin email
       $user_blocked_email_user = variable_get('login_security_user_blocked_email_user', LOGIN_SECURITY_USER_BLOCKED_EMAIL_USER);
       if ($user_blocked_email_user !== '') {
         $from = variable_get('site_mail', ini_get('sendmail_from'));
         $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE name = '%s'", $user_blocked_email_user));
-        $subject = login_security_t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
-        $body = login_security_t(variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
+        $subject = t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
+        $body = t(variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
         return drupal_mail('login_security', 'block_user_notify', $admin_mail, language_default(), $variables, $from, TRUE);
       }
     }
@@ -354,23 +354,23 @@ function _login_security_get_variables_by_name($name) {
   $ipaddress = ip_address();
   global $base_url;
   $variables = array(
-    '%date' => format_date(time()),
-    '%ip' => $ipaddress,
-    '%username' => $account->name,
-    '%email' => $account->mail,
-    '%uid' => $account->uid,
-    '%site' => variable_get('site_name', 'drupal'),
-    '%uri' => $base_url,
-    '%edit_uri' => url('user/'. $account->uid .'/edit', array('absolute' => TRUE)),
-    '%hard_block_attempts' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT_HARD),
-    '%soft_block_attempts' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
-    '%user_block_attempts' => variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
-    '%user_ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s' AND host = '%s'", $name, $ipaddress)),
-    '%ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", $ipaddress)),
-    '%user_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s'", $name)),
-    '%tracking_time' => variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME),
-    '%tracking_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track}")),
-    '%activity_threshold' => variable_get('login_security_activity_threshold', LOGIN_SECURITY_ACTIVITY_THRESHOLD),
+    '@date' => format_date(time()),
+    '@ip' => $ipaddress,
+    '@username' => $account->name,
+    '@email' => $account->mail,
+    '@uid' => $account->uid,
+    '@site' => variable_get('site_name', 'drupal'),
+    '@uri' => $base_url,
+    '@edit_uri' => url('user/'. $account->uid .'/edit', array('absolute' => TRUE)),
+    '@hard_block_attempts' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT_HARD),
+    '@soft_block_attempts' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
+    '@user_block_attempts' => variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
+    '@user_ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s' AND host = '%s'", $name, $ipaddress)),
+    '@ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", $ipaddress)),
+    '@user_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s'", $name)),
+    '@tracking_time' => variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME),
+    '@tracking_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track}")),
+    '@activity_threshold' => variable_get('login_security_activity_threshold', LOGIN_SECURITY_ACTIVITY_THRESHOLD),
   );
   return $variables;
 }
@@ -378,24 +378,14 @@ function _login_security_get_variables_by_name($name) {
 function login_security_mail($key, &$message, $variables) {
   switch ($key) {
     case 'block_user_notify':
-      $message['subject'] = login_security_t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
-      $message['body'] = login_security_t(variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
+      $message['subject'] = t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
+      $message['body'] = t(variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
       break;
     case 'login_activity_notify':
-      $message['subject'] = login_security_t(variable_get('login_security_login_activity_email_subject', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT), $variables);
-      $message['body'] = login_security_t(variable_get('login_security_login_activity_email_body', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY), $variables);
+      $message['subject'] = t(variable_get('login_security_login_activity_email_subject', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT), $variables);
+      $message['body'] = t(variable_get('login_security_login_activity_email_body', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY), $variables);
       break;
   }
-}
-
-/**
- * This option is instead of doing t() because t() can only translate static strings, not variables.
- */
-function login_security_t($message, $variables = array()) {
-  foreach ($variables as $key => $value) {
-    $variables[$key] = theme('placeholder', $value);
-  }
-  return strtr($message, $variables);
 }
 
 /**
@@ -425,7 +415,7 @@ function login_security_nagios() {
     // Attack is happening.
     if ($condition) {
       $status = NAGIOS_STATUS_CRITICAL;
-      $text = login_security_t(LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT, $variables);
+      $text = t(LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT, $variables);
     }
     // All is normal.
     else {
